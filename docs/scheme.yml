@@ -1,0 +1,70 @@
+users:
+    id          : integer;
+    mail_addr   : string;
+    password    : string;
+    is_active   : boolean; // default: false, アカウントの有効/無効
+
+mail_temporary:
+    id          : integer; // users.idを参照:on delete cascade.
+    token       : string; // 認証トークン
+
+reset_requests:
+    id          : integer; // users.idを参照:on delete cascade.
+    token       : string; // パスワードリセットトークン
+
+profiles:
+    id      : integer; // users.idを参照 :on delete cascade.
+    name    : string;
+    icon_url: string;
+    tags    : string; // タグはカンマ区切りで保存
+
+block_list:
+    id              : integer;
+    user_id         : integer; // users.idを参照:on delete cascade.
+    blocked_user_id : integer; // users.idを参照:on delete cascade.
+
+groups:
+    id              : integer;
+    name            : string;
+    description     : string;
+    owner_id        : integer; // users.idを参照
+    group_icon_url  : string;
+    is_public       : boolean; // 公開グループかどうか
+
+group_members:
+    group_id: integer; // groups.idを参照 :on delete cascade.
+    user_id : integer; // users.idを参照
+    role    : string; // 例: "admin", "member"
+
+invites:
+    id          : integer;
+    group_id    : integer; // groups.idを参照 :on delete cascade.
+    inviter_id  : integer; // users.idを参照
+    token       : string; // 招待トークン
+
+chats:
+    id          : integer;
+    message     : string;
+    group_id    : integer; // groups.idを参照 :on delete cascade.
+    sender_id   : integer; // users.idを参照 :on delete cascade.
+    timestamp   : datetime;
+    image_url   : string; // 画像がある場合のURL
+
+blogs:
+    id          : integer;
+    tag         : string;
+    title       : string;
+    content     : string;
+    owner_id    : integer;  // users.idを参照 :on delete cascade.
+    good_count  : integer;  // いいね数
+    view_count  : integer;  // 閲覧数
+    created_at  : datetime;
+    updated_at  : datetime; // default null
+    is_public   : boolean;  // 公開/非公開
+    group_id    : integer;  // groups.idを参照、nullの場合は個人ブログ
+
+blog_comments:
+    id      : integer;
+    blog_id : integer; // blog.idを参照 :on delete cascade.
+    user_id : integer; // users.idを参照 :on delete cascade.
+    message : string;  // コメント内容
