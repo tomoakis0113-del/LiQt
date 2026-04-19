@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS block_list (
     FOREIGN KEY (blocked_user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- groups
-CREATE TABLE IF NOT EXISTS groups (
+-- `groups`
+CREATE TABLE IF NOT EXISTS `groups` (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     description TEXT,
@@ -55,7 +55,7 @@ CREATE TABLE IF NOT EXISTS group_members (
     user_id INT NOT NULL,
     role VARCHAR(50),
     PRIMARY KEY (group_id, user_id),
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS invites (
     group_id INT NOT NULL,
     inviter_id INT NOT NULL,
     token VARCHAR(255) NOT NULL,
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
     FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS chats (
     sender_id INT NOT NULL,
     timestamp DATETIME,
     image_url TEXT,
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS blogs (
     is_public BOOLEAN DEFAULT TRUE,
     group_id INT NULL,
     FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES groups(id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE
 );
 
 -- blog_comments
