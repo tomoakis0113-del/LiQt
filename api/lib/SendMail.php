@@ -29,15 +29,15 @@ class SendMail{
             $mail->Encoding = 'base64'; // MIMEエンコーディングを指定
 
             // メール件名と本文
-            $mail->Subject = mb_encode_mimeheader($subject, 'UTF-8');
+            $mail->Subject = $subject;
             $mail->Body = $body;
             $mail->isHTML(true); // プレーンテキストメール（HTMLの場合はtrueに変更）
 
             $mail->send();
 
             return true;
-        } catch (Exception $e) {
-            // Error handling code here if needed
+        } catch (\Exception $e) {
+            error_log("メールの送信に失敗しました: " . $mail->ErrorInfo);
             return false;
         }
     }

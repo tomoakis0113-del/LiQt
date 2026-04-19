@@ -14,12 +14,40 @@ class Session {
     /** @var pdoHandler PDOハンドラーインスタンス */
     protected $pdoHandler;
 
+    /**
+     * テーブルがない場合は作成する
+     */
+    protected function createTablesIfNotExist() {
+        $this->pdoHandler->exec(
+            "CREATE TABLE IF NOT EXISTS session (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                token VARCHAR(255) NOT NULL,
+                expire DATETIME NOT NULL,
+                user_agent VARCHAR(255) NOT NULL,
+                UNIQUE KEY (token),
+                INDEX (user_id)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        );
+
+        $this->pdoHandler->exec(
+            "CREATE TABLE IF NOT EXISTS session_log (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                user_id INT NOT NULL,
+                user_agent VARCHAR(255) NOT NULL,
+                ip VARCHAR(45) NOT NULL,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+        );
+    }
+
     /** コンストラクタ 
      * @param PDOHandler $pdoHandler PDOハンドラーインスタンス
      * @throws Exception セッションの開始に失敗した場合
     */
     public function __construct(PDOHandler $pdoHandler) {
         $this->pdoHandler = $pdoHandler;
+        $this->createTablesIfNotExist();
 
         // セッションが開始されていない場合開始
         if (session_status() === PHP_SESSION_NONE){
