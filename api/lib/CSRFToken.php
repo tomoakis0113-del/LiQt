@@ -1,26 +1,38 @@
 <?php
 namespace lib;
 
+class CSRFTokenException extends \Exception {}
+
 class CSRFToken{
     /** @var string CSRFトークン */
     private $token;
 
     /** コンストラクタ */
     public function __construct() {
-        if (session_status() === PHP_SESSION_NONE)
-            session_start();
-        
-        // セッションにトークンがない場合は生成
-        if (!isset($_SESSION['csrf_token']))
-            $this->generateToken();
-        else
-            $this->token = $_SESSION['csrf_token'];
+        try {
+            if (session_status() === PHP_SESSION_NONE)
+                session_start();
+            
+            // セッションにトokenがない場合は生成
+            if (!isset($_SESSION['csrf_token']))
+                $this->generateToken();
+            else
+                $this->token = $_SESSION['csrf_token'];
+        } catch (\Exception $e) {
+            error_log("[SanaeProject] Failed to initialize CSRF token: " . $e->getMessage());
+            throw new CSRFTokenException('CSRFトークンの初期化に失敗しました: ' . $e->getMessage());
+        }
     }
 
     /** CSRFトークン生成 */
     private function generateToken(): void {
-        $this->token = bin2hex(random_bytes(32));
-        $_SESSION['csrf_token'] = $this->token;
+        try {
+            $this->token = bin2hex(random_bytes(32));
+            $_SESSION['csrf_token'] = $this->token;
+        } catch (\Exception $e) {
+            error_log("[SanaeProject] Failed to generate CSRF token: " . $e->getMessage());
+            throw new CSRFTokenException('CSRFトークンの生成に失敗しました: ' . $e->getMessage());
+        }
     }
 
     /** CSRFトークン取得 */

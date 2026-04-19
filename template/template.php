@@ -13,15 +13,15 @@
   <title>Template Page</title><!-- ! [注意]ページのタイトルを記載してください。 -->
 
   <!-- js -->
-  <script src="./libs/bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
+  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
 
   <!-- css -->
-  <link rel="stylesheet" href="./libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="./custom/custom-theme.css">
+  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../custom/custom-theme.css">
 </head>
 <body>
   <!-- ヘッダー -->
-  <?php require_once __DIR__ . '/component/header.php'; ?>
+  <?php require_once __DIR__ . '/../component/header.php'; ?>
 
   <!-- 本文 -->
   <main class="container p-4">
@@ -44,6 +44,6 @@
   </main>
 
   <!-- フッター -->
-  <?php require_once __DIR__ . '/component/footer.php'; ?>
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
 </body>
 </html>

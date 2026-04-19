@@ -4,6 +4,8 @@ namespace lib;
 use lib\PDOHandler;
 use Dotenv\Dotenv;
 
+class UtilException extends \Exception {}
+
 /**
  * Utilクラス
  * このクラスは、一般的なユーティリティ関数を提供します。
@@ -14,16 +16,26 @@ class Util {
      * .envファイルから環境変数を読み込みます。
      */
     public static function loadEnv(): void {
-        $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
-        $dotenv->load();
+        try {
+            $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+            $dotenv->load();
+        } catch (\Exception $e) {
+            error_log("[SanaeProject] Failed to load environment variables: " . $e->getMessage());
+            throw new UtilException('環境変数の読み込みに失敗しました: ' . $e->getMessage());
+        }
     }
 
     /**
      * データベースに接続する
      */
     public static function connectDB(): PDOHandler {
-        Util::loadEnv();
-        return PDOHandler::getInstanceMYSQL($_ENV['DB_HOST'], $_ENV['DB_NAME'], $_ENV['DB_USER'], $_ENV['DB_PASSWORD']);
+        try {
+            Util::loadEnv();
+            return PDOHandler::getInstanceMYSQL($_ENV['DB_HOST'], $_ENV['DB_NAME'], $_ENV['DB_USER'], $_ENV['DB_PASSWORD']);
+        } catch (\Exception $e) {
+            error_log("[SanaeProject] Failed to connect database: " . $e->getMessage());
+            throw new UtilException('データベース接続に失敗しました: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -42,12 +54,15 @@ class Util {
      */
     public static function addLog(PDOHandler $pdoHandler, string $message, string $status = 'undefined'): void {
         try{
-            $ipAddr    = $_SERVER['REMOTE_ADDR'];
-            $userAgent = $_SERVER['HTTP_USER_AGENT'];
-            $pdoHandler->exec("INSERT INTO log(user_id, user_agent, ip, message, status) VALUES(:user_id, :user_agent, :ip, :message, :status)", [":user_id"=>$_SESSION['user_id'], ":user_agent"=>$userAgent, ":ip"=>$ipAddr, ":message"=>$message, ":status"=>$status]);
+            $ipAddr    = $_SERVER['REMOTE_ADDR'] ?? '';
+            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+            $userId    = $_SESSION['user_id'] ?? null;
+
+            $pdoHandler->exec("INSERT INTO log(user_id, user_agent, ip, message, status) VALUES(:user_id, :user_agent, :ip, :message, :status)", [":user_id"=>$userId, ":user_agent"=>$userAgent, ":ip"=>$ipAddr, ":message"=>$message, ":status"=>$status]);
         }
         catch(\Exception $e){
-            error_log("ログの追加に失敗しました: " . $e->getMessage());
+            error_log("[SanaeProject] Failed to add log: " . $e->getMessage());
+            throw new UtilException('ログ追加に失敗しました: ' . $e->getMessage());
         }
     }
 
@@ -65,6 +80,39 @@ class Util {
         }
 
         return $randomString;
+    }
+
+    /**
+     * APIの成功レスポンスを返す
+     * @param array $data レスポンスデータ
+     * @param string $message レスポンスメッセージ
+     */
+    public static function responseSuccess($data = [], $message = 'Success') {
+        header('Content-Type: application/json');
+        exit(
+            json_encode([
+                'status' => 'success',
+                'message' => $message,
+                'data' => $data
+            ])
+        );
+    }
+
+    /**
+     * APIのエラーレスポンスを返す
+     * @param int $errorCode HTTPステータスコード
+     * @param string $message エラーメッセージ
+     */
+    public static function responseError($errorCode = 500, $message = 'Error') {
+        http_response_code($errorCode);
+
+        header('Content-Type: application/json');
+        exit(
+            json_encode([
+                'status' => 'error',
+                'message' => $message
+            ])
+        );
     }
 }
 ?>

@@ -37,6 +37,7 @@ class PDOHandler{
 
             return new self($pdo);
         } catch (\PDOException $e) {
+            error_log("[SanaeProject] Faild to connect to MySQL: " . $e->getMessage());
             throw new \PDOException('Connection failed: ' . $e->getMessage());
         }
     }
@@ -55,15 +56,25 @@ class PDOHandler{
 
             return new self($pdo);
         } catch (\PDOException $e) {
+            error_log("[SanaeProject] Faild to connect to SQLite: " . $e->getMessage());
             throw new \PDOException('Connection failed: ' . $e->getMessage());
         }
     }
 
     /**
      * インサートIDを取得
-    */
+     * 
+     * @return int|null インサートIDまたはnull
+     * @throws Exception IDの取得に失敗した場合
+     */
     public function getLastInsertId(): ?int {
-        return $this->pdo->lastInsertId();
+        try {
+            $id = $this->pdo->lastInsertId();
+            return $id ? (int)$id : null;
+        } catch (\PDOException $e) {
+            error_log("[SanaeProject] Failed to get last insert ID: " . $e->getMessage());
+            throw new \PDOException('Failed to get last insert ID: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -95,6 +106,7 @@ class PDOHandler{
     
             return $result;
         } catch (\PDOException $e) {
+            error_log("[SanaeProject] Faild to execute query: " . $e->getMessage() . " | Query: " . $query);
             throw new \PDOException('Query failed: ' . $e->getMessage());
         }
     }

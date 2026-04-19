@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 try{
     /* 以下サンプルコード */
@@ -24,6 +24,7 @@ try{
     echo lib\SendMail::send('example@example.com', 'タイトル', 'html本文')?'メール送信成功':'メール送信失敗';
 }
 catch(\Exception $e){
-    echo "エラーが発生しました: " . $e->getMessage();
     error_log("エラーが発生しました: " . $e->getMessage());
+    exit(lib\Util::responseError(500, 'サーバーエラーが発生しました'));
 }
+?>

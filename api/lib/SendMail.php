@@ -6,12 +6,24 @@ use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
 use lib\Util;
 
+class SendMailException extends \Exception {}
+
 class SendMail{
+    /**
+     * メールを送信する
+     * 
+     * @param string $to 送信先メールアドレス
+     * @param string $subject メール件名
+     * @param string $body メール本文
+     * @return bool 送信成功時true
+     * @throws SendMailException メール送信に失敗した場合
+     */
     public static function send($to, $subject, $body): bool {
         $mail = new PHPMailer(true);
-        Util::loadEnv();
         
         try {
+            Util::loadEnv();
+            
             $mail->isSMTP();
             $mail->Host = $_ENV['MAIL_HOST'];
             $mail->SMTPAuth = true;
@@ -37,7 +49,7 @@ class SendMail{
 
             return true;
         } catch (\Exception $e) {
-            error_log("メールの送信に失敗しました: " . $mail->ErrorInfo);
+            error_log("[SanaeProject] Failed to send mail: " . $e->getMessage() . " | ErrorInfo: " . $mail->ErrorInfo);
             return false;
         }
     }
