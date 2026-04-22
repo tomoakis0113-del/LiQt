@@ -158,7 +158,7 @@ class Session {
             usleep(rand(500000, 3000000));
 
             $result = $this->pdoHandler->exec(
-                "SELECT id,password FROM user WHERE name = ?",
+                "SELECT id,password FROM users WHERE name = ?",
                 [$userName]
             );
 
@@ -266,26 +266,6 @@ class Session {
     /** 現在のログインユーザーID取得 */
     public function getCurrentUserID(): ?int {
         return $this->isLoggedIn() ? $_SESSION[SESSION_KEY] : null;
-    }
-
-    /** 現在のログインユーザー情報取得
-     * @return array|null ユーザー情報またはnull
-     * @throws SessionException ユーザー情報取得に失敗した場合
-     */
-    public function getCurrentUser(): ?array {
-        try {
-            if ($this->isLoggedIn()) {
-                $userID = $_SESSION[SESSION_KEY];
-                return $this->pdoHandler->exec(
-                    "SELECT id,name,password FROM user WHERE id = ?",
-                    [$userID]
-                )[0] ?? null;
-            }
-            return null;
-        } catch (\Exception $e) {
-            error_log("[SanaeProject] Failed to get current user: " . $e->getMessage());
-            throw new SessionException('ユーザー情報取得に失敗しました: ' . $e->getMessage());
-        }
     }
 
     /** セッションID再生成
