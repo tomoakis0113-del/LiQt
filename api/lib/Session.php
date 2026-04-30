@@ -146,20 +146,20 @@ class Session {
     }
     
     /** ログイン試行
-     * @param string $userName ユーザー名
+     * @param string $mailAddress メールアドレス
      * @param string $password パスワード
      * @param bool $remember ログイン状態を保持するかどうか
      * @return bool ログイン成功時true
      * @throws SessionException ログイン処理に失敗した場合
      */
-    public function tryLogin(string $userName, string $password, bool $remember = false): bool {
+    public function tryLogin(string $mailAddress, string $password, bool $remember = false): bool {
         try {
             // 時間をずらしてログイン試行の頻度を下げる
             usleep(rand(500000, 3000000));
 
             $result = $this->pdoHandler->exec(
-                "SELECT id,password FROM users WHERE name = ?",
-                [$userName]
+                "SELECT id,password FROM users WHERE mail_address = ?",
+                [$mailAddress]
             );
 
             if ($result && password_verify($password, $result[0]['password'])) {
@@ -173,7 +173,7 @@ class Session {
             }
             return false;
         } catch (\Exception $e) {
-            error_log("[SanaeProject] Failed to try login for user: " . $userName . " | Error: " . $e->getMessage());
+            error_log("[SanaeProject] Failed to try login for user: " . $mailAddress . " | Error: " . $e->getMessage());
             throw new SessionException('ログイン処理に失敗しました: ' . $e->getMessage());
         }
     }
