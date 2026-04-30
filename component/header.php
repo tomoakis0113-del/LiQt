@@ -1,53 +1,52 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+?>
+
 <header>
   <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #06C755;">
     <div class="container">
 
       <!-- ロゴ -->
-      <a class="navbar-brand fw-bold" href="dashboard.php">LiQt</a>
+      <a class="navbar-brand fw-bold" href="/dashboard.php">
+        LiQt
+      </a>
 
       <!-- ハンバーガー -->
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <!-- メニュー -->
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto align-items-center">
 
-          <!-- チャット -->
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#">チャット</a>
-          </li>
+        <!-- 🔍 検索フォーム -->
+        <form class="d-flex mx-auto w-50" action="/search.php" method="GET">
 
-          <!-- ブログ -->
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#">ブログ</a>
-          </li>
+          <!-- 検索種類 -->
+          <select name="type" class="form-select me-2">
+            <option value="user">ユーザID検索</option>
+            <option value="group">グループ検索</option>
+            <option value="blog">ブログ検索</option>
+          </select>
 
-          <!-- 通知 -->
-          <li class="nav-item position-relative">
-            <a class="nav-link text-white" href="#">
-              通知
-              <!-- バッジ -->
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                3
-              </span>
-            </a>
-          </li>
+          <!-- 入力欄 -->
+          <input 
+            type="text" 
+            name="keyword" 
+            class="form-control me-2" 
+            placeholder="検索ワード"
+            required
+          >
 
-          <!-- プロフィール -->
-          <li class="nav-item">
-            <a class="nav-link text-white" href="profile.php">プロフィール</a>
-          </li>
+          <!-- ボタン -->
+          <button class="btn btn-light" type="submit">
+            検索
+          </button>
 
-          <!-- ログアウト -->
-          <li class="nav-item">
-            <a class="nav-link text-white" href="#">ログアウト</a>
-          </li>
+        </form>
 
-        </ul>
       </div>
-
     </div>
   </nav>
 </header>
