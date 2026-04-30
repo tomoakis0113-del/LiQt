@@ -1,6 +1,17 @@
 <?php
 require_once __DIR__ . '/../../vendor/autoload.php';
 
+/**
+ * サインインAPI
+ * 必要なパラメータ:
+ * - mail_address: メールアドレス
+ * - password: パスワード
+ * - csrf_token: CSRFトークン
+ * 
+ * レスポンス:
+ * - 成功: { "success": true, "message": "ログインに成功しました" }
+ * - エラー: { "success": false, "message": "エラ
+ */
 try{
     //POST以外を拒否
     if($_SERVER['REQUEST_METHOD'] !== 'POST'){

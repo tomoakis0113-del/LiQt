@@ -1,6 +1,19 @@
 <?php
 require_once __DIR__.'/../../vendor/autoload.php';
 
+/**
+ * ユーザー作成API
+ * 必要なパラメータ:
+ * - user_id: ユーザーID（ユニークな文字列）
+ * - display_name: 表示名
+ * - mail_address: メールアドレス
+ * - password: パスワード
+ * - csrf_token: CSRFトークン
+ * 
+ * レスポンス:
+ * - 成功: { "success": true, "message": "ユーザーの作成に成功しました" }
+ * - エラー: { "success": false, "message": "エラーメッセージ" }
+ */
 try{
     // データ受け取り
     $user_id      = $_POST['user_id'] ?? null;
