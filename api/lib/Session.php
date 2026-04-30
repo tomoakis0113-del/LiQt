@@ -263,21 +263,6 @@ class Session {
         }
     }
 
-    /** アカウントを作成 */
-    public function createAccount(string $mailAddress, string $password): bool {
-        try {
-            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-            $this->pdoHandler->exec(
-                "INSERT INTO users (mail_address, password) VALUES (?, ?)",
-                [$mailAddress, $hashedPassword]
-            );
-            return true;
-        } catch (\Exception $e) {
-            error_log("[SanaeProject] Failed to create account for email: " . $mailAddress . " | Error: " . $e->getMessage());
-            throw new SessionException('アカウントの作成に失敗しました: ' . $e->getMessage());
-        }
-    }
-
     /** 現在のログインユーザーID取得 */
     public function getCurrentUserID(): ?int {
         return $this->isLoggedIn() ? $_SESSION[SESSION_KEY] : null;

@@ -1,14 +1,25 @@
--- users
+-- 1. ユーザー (認証基盤)
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id VARCHAR(50) NOT NULL UNIQUE,     -- ユーザーが指定する一意のID (英数字)
     mail_address VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    is_active BOOLEAN DEFAULT FALSE,
+    password VARCHAR(255) NOT NULL,          -- ハッシュ化されたパスワード
+    is_active BOOLEAN DEFAULT FALSE,         -- メール認証済みか
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT NULL
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- mail_temporary
+-- 2. プロフィール (ユーザー詳細情報)
+CREATE TABLE IF NOT EXISTS profiles (
+    user_id INT PRIMARY KEY,
+    display_name VARCHAR(100) NOT NULL,      -- 表示名
+    introduction TEXT,                       -- 自己紹介
+    icon_url VARCHAR(255),                   -- アイコン画像のパス
+    tags TEXT,                               -- カンマ区切りのタグ
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 3. メール認証一時トークン
 CREATE TABLE IF NOT EXISTS mail_temporary (
     user_id INT PRIMARY KEY,
     token VARCHAR(255) NOT NULL,
@@ -16,106 +27,91 @@ CREATE TABLE IF NOT EXISTS mail_temporary (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- reset_requests
+-- 4. パスワードリセット要求
 CREATE TABLE IF NOT EXISTS reset_requests (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT NOT NULL,
     token VARCHAR(255) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    expires_at DATETIME,
+    expires_at DATETIME NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- profiles
-CREATE TABLE IF NOT EXISTS profiles (
-    user_id INT PRIMARY KEY,
-    name VARCHAR(255),
-    icon_url TEXT,
-    tags TEXT,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- block_list
+-- 5. ブロックリスト
 CREATE TABLE IF NOT EXISTS block_list (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    blocked_user_id INT NOT NULL,
+    user_id INT NOT NULL,                    -- ブロックした人
+    blocked_user_id INT NOT NULL,            -- ブロックされた人
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY (user_id, blocked_user_id),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (blocked_user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- `groups`
+-- 6. グループ
 CREATE TABLE IF NOT EXISTS `groups` (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    description TEXT,
-    owner_id INT NOT NULL,
-    group_icon_url TEXT,
-    is_public BOOLEAN DEFAULT FALSE,
+    group_icon_url VARCHAR(255),
+    is_public BOOLEAN DEFAULT FALSE,         -- 公開/非公開
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES users(id)
+    INDEX (name)
 );
 
--- group_members
+-- 7. グループメンバー (ロール管理)
 CREATE TABLE IF NOT EXISTS group_members (
     group_id INT NOT NULL,
     user_id INT NOT NULL,
-    role VARCHAR(50),
+    role ENUM('owner', 'manager', 'member') DEFAULT 'member',
     joined_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (group_id, user_id),
     FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- invites
-CREATE TABLE IF NOT EXISTS invites (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    group_id INT NOT NULL,
-    inviter_id INT NOT NULL,
-    invitee_email VARCHAR(255),
-    token VARCHAR(255) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
-    FOREIGN KEY (inviter_id) REFERENCES users(id) ON DELETE CASCADE
-);
-
--- chats
+-- 8. チャットメッセージ
 CREATE TABLE IF NOT EXISTS chats (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    message TEXT,
     group_id INT NOT NULL,
     sender_id INT NOT NULL,
-    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-    image_url TEXT,
+    content TEXT NOT NULL,                   -- message から content に変更
+    image_url VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP, -- timestamp から名称変更
     FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- blogs
+-- 9. ブログ
 CREATE TABLE IF NOT EXISTS blogs (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    tags TEXT,
-    title VARCHAR(255),
-    content TEXT,
-    owner_id INT NOT NULL,
-    good_count INT DEFAULT 0,
-    view_count INT DEFAULT 0,
+    author_id INT NOT NULL,                  -- 投稿者ID
+    group_id INT NULL,                       -- group公開時の所属グループ
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,                   -- Markdown形式
+    tags TEXT,                               -- カンマ区切り
+    visibility ENUM('public', 'private', 'group') DEFAULT 'public',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT NULL,
-    is_public BOOLEAN DEFAULT TRUE,
-    visibility VARCHAR(20) DEFAULT 'public',
-    group_id INT NULL,
-    FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE CASCADE
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES `groups`(id) ON DELETE SET NULL
 );
 
--- blog_comments
+-- 10. ブログ・いいね (正規化)
+CREATE TABLE IF NOT EXISTS blog_likes (
+    blog_id INT NOT NULL,
+    user_id INT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (blog_id, user_id),
+    FOREIGN KEY (blog_id) REFERENCES blogs(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 11. ブログ・コメント
 CREATE TABLE IF NOT EXISTS blog_comments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     blog_id INT NOT NULL,
     user_id INT NOT NULL,
-    message TEXT,
+    content TEXT NOT NULL,                   -- message から名称変更
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (blog_id) REFERENCES blogs(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE

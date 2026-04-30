@@ -95,14 +95,12 @@ $csrfToken = new lib\CSRFToken();
         // パラメータの収集
         const keys = document.querySelectorAll('.param-key');
         const values = document.querySelectorAll('.param-value');
-        const data = {};
+        const formData = new FormData();
 
         keys.forEach((keyEl, index) => {
             const key = keyEl.value.trim();
             const val = values[index].value.trim();
-            if (key) {
-                data[key] = val;
-            }
+            formData.append(key, val);
         });
 
         responseOutput.textContent = "送信中...";
@@ -111,10 +109,7 @@ $csrfToken = new lib\CSRFToken();
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
+                body: formData
             });
 
             const result = await response.json();
