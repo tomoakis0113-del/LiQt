@@ -1,70 +1,86 @@
 users:
     id          : integer;
-    mail_addr   : string;
+    mail_address: string;
     password    : string;
     is_active   : boolean; // default: false, アカウントの有効/無効
+    created_at  : datetime;
+    updated_at  : datetime; // nullable
 
 mail_temporary:
-    id          : integer; // users.idを参照:on delete cascade.
-    token       : string; // 認証トークン
+    user_id : integer; // users.id を参照 :on delete cascade
+    token   : string;  // 認証トークン
+    created_at: datetime;
 
 reset_requests:
-    id          : integer; // users.idを参照:on delete cascade.
-    token       : string; // パスワードリセットトークン
+    user_id    : integer; // users.id を参照 :on delete cascade
+    token      : string;  // パスワードリセットトークン
+    created_at : datetime;
+    expires_at : datetime;
 
 profiles:
-    id      : integer; // users.idを参照 :on delete cascade.
+    user_id : integer; // users.id を参照 :on delete cascade
     name    : string;
     icon_url: string;
     tags    : string; // タグはカンマ区切りで保存
 
 block_list:
     id              : integer;
-    user_id         : integer; // users.idを参照:on delete cascade.
-    blocked_user_id : integer; // users.idを参照:on delete cascade.
+    user_id         : integer; // users.id を参照 :on delete cascade
+    blocked_user_id : integer; // users.id を参照 :on delete cascade
 
 groups:
     id              : integer;
     name            : string;
     description     : string;
-    owner_id        : integer; // users.idを参照
+    owner_id        : integer; // users.id を参照
     group_icon_url  : string;
     is_public       : boolean; // 公開グループかどうか
+    created_at      : datetime;
 
 group_members:
-    group_id: integer; // groups.idを参照 :on delete cascade.
-    user_id : integer; // users.idを参照
-    role    : string; // 例: "admin", "member"
+    group_id : integer; // groups.id を参照 :on delete cascade
+    user_id  : integer; // users.id を参照
+    role     : string;  // 例: "owner", "manager", "member"
+    joined_at: datetime;
 
 invites:
-    id          : integer;
-    group_id    : integer; // groups.idを参照 :on delete cascade.
-    inviter_id  : integer; // users.idを参照
-    token       : string; // 招待トークン
+    id            : integer;
+    group_id      : integer; // groups.id を参照 :on delete cascade
+    inviter_id    : integer; // users.id を参照
+    invitee_email : string;  // 招待先メール（未登録ユーザー向け）
+    token         : string;  // 招待トークン
+    created_at    : datetime;
+
+sessions:
+    session_id : string;
+    user_id    : integer; // users.id を参照
+    expires_at : datetime;
 
 chats:
     id          : integer;
     message     : string;
-    group_id    : integer; // groups.idを参照 :on delete cascade.
-    sender_id   : integer; // users.idを参照 :on delete cascade.
+    group_id    : integer; // groups.id を参照 :on delete cascade
+    sender_id   : integer; // users.id を参照 :on delete cascade
     timestamp   : datetime;
     image_url   : string; // 画像がある場合のURL
 
 blogs:
     id          : integer;
-    tag         : string;
+    tags        : string; // カンマ区切りの文字列
     title       : string;
     content     : string;
-    owner_id    : integer;  // users.idを参照 :on delete cascade.
+    owner_id    : integer;  // users.id を参照 :on delete cascade
     good_count  : integer;  // いいね数
     view_count  : integer;  // 閲覧数
     created_at  : datetime;
-    updated_at  : datetime; // default null
+    updated_at  : datetime; // nullable
     is_public   : boolean;  // 公開/非公開
-    group_id    : integer;  // groups.idを参照、nullの場合は個人ブログ
+    group_id    : integer;  // groups.id を参照、null の場合は個人ブログ
+    visibility  : string;   // optional: "public"/"private"/"group"
 
 blog_comments:
-    id      : integer;
-    blog_id : integer; // blog.idを参照 :on delete cascade.
-    user_id : integer; // users.idを参照 :on delete cascade.
-    message : string;  // コメント内容
+    id         : integer;
+    blog_id    : integer; // blogs.id を参照 :on delete cascade
+    user_id    : integer; // users.id を参照 :on delete cascade
+    message    : string;  // コメント内容
+    created_at : datetime;
