@@ -1,6 +1,15 @@
 <?php
 require_once __DIR__ .'/../../vendor/autoload.php';
 
+/**
+ * メール認証トークン送信API
+ * 必要なパラメータ:
+ * - csrf_token: CSRFトークン
+ * 
+ * レスポンス:
+ * - 成功: { "success": true, "message": "確認トークンをメールに送信しました" }
+ * - エラー: { "success": false, "message": "エラーメッセージ" }
+ */
 try{
     // パラメータの受け取り
     $csrf_token   = $_POST['csrf_token'] ?? null;

@@ -152,7 +152,7 @@ class Session {
      * @return bool ログイン成功時true
      * @throws SessionException ログイン処理に失敗した場合
      */
-    public function tryLogin(string $mailAddress, string $password, bool $remember = false): bool {
+    public function tryLogin(string $mailAddress, string $password, bool $remember = true): bool {
         try {
             // 時間をずらしてログイン試行の頻度を下げる
             usleep(rand(500000, 3000000));
