@@ -28,4 +28,4 @@ newLiQtは、PHPで構築されたLine風のチャットアプリケーション
 - [データベース設計](docs/Scheme.yml)
 
 ## ライセンス
-MIT License
+Apache License 2.0
