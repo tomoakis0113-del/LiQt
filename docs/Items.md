@@ -81,6 +81,10 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - サインインページへのリンク(`signin.php`)
 
 ### メール認証ページ(`verify_email.php`)
+- トークン送信処理
+    - トークン送信処理（`api/auth/send_verify_token.php`）
+    - 30 秒のクールダウンタイム
+    
 - フォーム
     - メールアドレス入力: `mail_address`
     - トークン入力      : `token`
@@ -92,7 +96,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - 失敗：エラーメッセージ表示
 
         - トークン再送信ボタン
-            - トークン再送信処理（`api/auth/resend_token.php`）
+            - トークン再送信処理（`api/auth/send_verify_token.php`）
             - 30 秒のクールダウンタイム
 
 ## ページ
