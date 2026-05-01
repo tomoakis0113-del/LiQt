@@ -1,9 +1,3 @@
-<?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-?>
-
 <header>
   <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #06C755;">
     <div class="container">
@@ -31,13 +25,12 @@ if (session_status() === PHP_SESSION_NONE) {
           </select>
 
           <!-- 入力欄 -->
-          <input 
-            type="text" 
-            name="keyword" 
-            class="form-control me-2" 
+          <input
+            type="text"
+            name="keyword"
+            class="form-control me-2"
             placeholder="検索ワード"
-            required
-          >
+            required>
 
           <!-- ボタン -->
           <button class="btn btn-light" type="submit">

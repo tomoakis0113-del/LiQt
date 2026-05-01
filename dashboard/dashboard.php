@@ -6,34 +6,35 @@ require_once __DIR__ . '/../component/auth_check.php';
 
 // モックAPIレスポンス（本来は api/get_dashboard.php をfetch）
 $response = [
-    'success' => true,
-    'message' => '',
-    'data' => [
-        'joined_groups' => [
-            [
-                'group_id' => 1,
-                'group_name' => '開発チーム',
-                'group_icon' => '👨‍💻',
-                'latest_message' => 'APIの仕様どうする？'
-            ],
-            [
-                'group_id' => 2,
-                'group_name' => '雑談部屋',
-                'group_icon' => '💬',
-                'latest_message' => '今日ラーメン行く？'
-            ],
-            [
-                'group_id' => 3,
-                'group_name' => 'ゲーム仲間',
-                'group_icon' => '🎮',
-                'latest_message' => '昨日の試合やばかった'
-            ]
-        ]
+  'success' => true,
+  'message' => '',
+  'data' => [
+    'joined_groups' => [
+      [
+        'group_id' => 1,
+        'group_name' => '開発チーム',
+        'group_icon' => '👨‍💻',
+        'latest_message' => 'APIの仕様どうする？'
+      ],
+      [
+        'group_id' => 2,
+        'group_name' => '雑談部屋',
+        'group_icon' => '💬',
+        'latest_message' => '今日ラーメン行く？'
+      ],
+      [
+        'group_id' => 3,
+        'group_name' => 'ゲーム仲間',
+        'group_icon' => '🎮',
+        'latest_message' => '昨日の試合やばかった'
+      ]
     ]
+  ]
 ];
 ?>
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,78 +45,80 @@ $response = [
 </head>
 
 <!-- ✅ フッター固定 -->
+
 <body class="d-flex flex-column min-vh-100">
 
-<!-- ヘッダー -->
-<?php require_once __DIR__ . '/../component/header.php'; ?>
+  <!-- ヘッダー -->
+  <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-<!-- メイン -->
-<main class="container p-4 flex-grow-1">
+  <!-- メイン -->
+  <main class="container p-4 flex-grow-1">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">ダッシュボード</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold">ダッシュボード</h2>
 
-    <!-- グループ作成 -->
-    <a href="/create_group.php" class="btn btn-success">
-      ＋ グループ作成
-    </a>
-  </div>
-
-  <?php if (!$response['success']): ?>
-    <!-- エラー -->
-    <div class="alert alert-danger">
-      <?php echo htmlspecialchars($response['message']); ?>
+      <!-- グループ作成 -->
+      <a href="/create_group.php" class="btn btn-success">
+        ＋ グループ作成
+      </a>
     </div>
-  <?php else: ?>
 
-    <div class="row g-3">
+    <?php if (!$response['success']): ?>
+      <!-- エラー -->
+      <div class="alert alert-danger">
+        <?php echo htmlspecialchars($response['message']); ?>
+      </div>
+    <?php else: ?>
 
-      <?php foreach ($response['data']['joined_groups'] as $group): ?>
+      <div class="row g-3">
 
-        <div class="col-md-6 col-lg-4">
+        <?php foreach ($response['data']['joined_groups'] as $group): ?>
 
-          <!-- グループカード -->
-          <a href="/chat.php?group_id=<?php echo $group['group_id']; ?>" 
-             class="text-decoration-none text-dark">
+          <div class="col-md-6 col-lg-4">
 
-            <div class="card shadow-sm h-100 hover-shadow">
+            <!-- グループカード -->
+            <a href="/chat.php?group_id=<?php echo $group['group_id']; ?>"
+              class="text-decoration-none text-dark">
 
-              <div class="card-body d-flex align-items-center">
+              <div class="card shadow-sm h-100 hover-shadow">
 
-                <!-- アイコン -->
-                <div class="fs-2 me-3">
-                  <?php echo htmlspecialchars($group['group_icon']); ?>
-                </div>
+                <div class="card-body d-flex align-items-center">
 
-                <!-- 情報 -->
-                <div>
-                  <h5 class="mb-1">
-                    <?php echo htmlspecialchars($group['group_name']); ?>
-                  </h5>
+                  <!-- アイコン -->
+                  <div class="fs-2 me-3">
+                    <?php echo htmlspecialchars($group['group_icon']); ?>
+                  </div>
 
-                  <small class="text-muted">
-                    <?php echo htmlspecialchars($group['latest_message']); ?>
-                  </small>
+                  <!-- 情報 -->
+                  <div>
+                    <h5 class="mb-1">
+                      <?php echo htmlspecialchars($group['group_name']); ?>
+                    </h5>
+
+                    <small class="text-muted">
+                      <?php echo htmlspecialchars($group['latest_message']); ?>
+                    </small>
+                  </div>
+
                 </div>
 
               </div>
 
-            </div>
+            </a>
 
-          </a>
+          </div>
 
-        </div>
+        <?php endforeach; ?>
 
-      <?php endforeach; ?>
+      </div>
 
-    </div>
+    <?php endif; ?>
 
-  <?php endif; ?>
+  </main>
 
-</main>
-
-<!-- フッター -->
-<?php require_once __DIR__ . '/../component/footer.php'; ?>
+  <!-- フッター -->
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
 </body>
+
 </html>
