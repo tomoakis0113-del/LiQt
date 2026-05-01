@@ -42,12 +42,6 @@
 
       <form id="verifyForm">
 
-        <!-- メール -->
-        <div class="mb-3">
-          <label class="form-label">メールアドレス</label>
-          <input type="email" id="email" class="form-control" placeholder="メールアドレスを入力">
-        </div>
-
         <!-- トークン -->
         <div class="mb-3">
           <label class="form-label">認証コード</label>
