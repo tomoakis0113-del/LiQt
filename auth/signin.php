@@ -28,7 +28,7 @@
 
     <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
 
-      <h3 class="text-center mb-4">ログイン</h3>
+      <h3 class="text-center mb-4">サインイン</h3>
 
       <!-- エラーメッセージ（モック） -->
       <div id="errorMsg" class="alert alert-danger d-none">
@@ -51,7 +51,7 @@
 
         <!-- ログインボタン -->
         <button type="submit" class="btn w-100 text-white" style="background-color: #06C755;">
-          ログインする
+          サインインする
         </button>
 
       </form>

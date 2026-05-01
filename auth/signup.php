@@ -9,7 +9,7 @@
   <meta name="author" content="乙成,島田,勝原">
 
   <!-- title -->
-  <title>新規登録</title>
+  <title>サインアップ</title>
 
   <!-- Bootstrap -->
   <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
@@ -28,7 +28,7 @@
 
     <div class="card shadow-sm p-4" style="width: 100%; max-width: 450px;">
 
-      <h3 class="text-center mb-4">新規登録</h3>
+      <h3 class="text-center mb-4">サインアップ</h3>
 
       <!-- エラー表示 -->
       <div id="errorMsg" class="alert alert-danger d-none">
