@@ -17,10 +17,10 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * is_mine: 自分のプロフィールが表示されてるか（true/false）
  * 
  */
-try{
+try {
     // POST以外を拒否
-    if($_SERVER['REQUEST_METHOD'] !== 'POST'){
-        lib\Util::responseError(405,'許可されていないリクエストです');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        lib\Util::responseError(405, '許可されていないリクエストです');
     }
 
     $sentToken = $_POST['csrf_token'] ?? '';
@@ -28,40 +28,39 @@ try{
 
     $csrfToken = new lib\CSRFToken();
 
-    if(!$csrfToken->isValid($sentToken)){
-        lib\Util::responseError(400,'不正リクエストです');
+    if (!$csrfToken->isValid($sentToken)) {
+        lib\Util::responseError(400, '不正リクエストです');
     }
 
     $pdoHandler = lib\Util::connectDB();
     $sessionHandler = new lib\Session($pdoHandler);
 
-    if(!$sessionHandler->isLoggedIn()){
-        lib\Util::responseError(401,'ログインしてください');
+    if (!$sessionHandler->isLoggedIn()) {
+        lib\Util::responseError(401, 'ログインしてください');
     }
 
     $currentUserId = $sessionHandler->getCurrentUserID();
 
     // user_id未指定なら自分のプロフィール
-    if($targetUserId === ''){
+    if ($targetUserId === '') {
         $userResult = $pdoHandler->exec(
             "SELECT user_id FROM users WHERE id = ?",
             [$currentUserId]
         );
 
-        if(!$userResult){
-            lib\Util::responseError(404,'ユーザーが見つかりません');
+        if (!$userResult) {
+            lib\Util::responseError(404, 'ユーザーが見つかりません');
         }
 
         $targetUserId = $userResult[0]['user_id'];
     }
-
     // ユーザーIDは8文字のみ
-    if(!preg_match('/^[A-Za-z0-9]{8}$/', $targetUserId)){
-        lib\Util::responseError(400,'ユーザーIDは英数字8文字で入力してください');
+    else if (!preg_match('/^[A-Za-z0-9]{8}$/', $targetUserId)) {
+        lib\Util::responseError(400, 'ユーザーIDは英数字8文字で入力してください');
     }
 
-$profile = $pdoHandler->exec(
-    "SELECT 
+    $profile = $pdoHandler->exec(
+        "SELECT 
         users.id,
         users.user_id,
         profiles.display_name,
@@ -71,10 +70,10 @@ $profile = $pdoHandler->exec(
     FROM users
     INNER JOIN profiles ON users.id = profiles.user_id
     WHERE users.user_id = ?",
-    [$targetUserId]
-);
-    if(!$profile){
-        lib\Util::responseError(404,'プロフィールが見つかりません');
+        [$targetUserId]
+    );
+    if (!$profile) {
+        lib\Util::responseError(404, 'プロフィールが見つかりません');
     }
 
     $targetInternalId = $profile[0]['id'];
@@ -88,8 +87,8 @@ $profile = $pdoHandler->exec(
     );
 
     $blogIds = [];
-    if($blogs){
-        foreach($blogs as $blog){
+    if ($blogs) {
+        foreach ($blogs as $blog) {
             $blogIds[] = $blog['id'];
         }
     }
@@ -105,9 +104,7 @@ $profile = $pdoHandler->exec(
     ];
 
     lib\Util::responseSuccess($data, 'プロフィールを取得しました');
-}
-catch(\Throwable $e){
+} catch (\Throwable $e) {
     error_log("エラーが発生しました: " . $e->getMessage());
     lib\Util::responseError(500, 'サーバーエラーが発生しました');
 }
-?>
