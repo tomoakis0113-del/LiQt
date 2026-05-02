@@ -6,8 +6,8 @@
 - [x] `api/auth/send_verify_token.php`
 - [x] `api/profile/get_profile.php`
 - [x] `api/profile/update_profile.php`
-- [ ] `api/profile/start_chat.php`
-- [ ] `api/profile/block_user.php`
+- [x] `api/profile/start_chat.php`
+- [x] `api/profile/block_user.php`
 - [ ] `api/dashboard/get_dashboard.php`
 - [ ] `api/group/create_group.php`
 - [ ] `api/group/get_group_chat.php`
