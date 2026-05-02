@@ -410,7 +410,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 
 1) パスワード再発行申請ページ（`forgot_password.php`）
 - フォーム: メールアドレス `mail_address`
-- 送信処理: `api/auth/request_password_reset.php`（トークンを生成してメール送信）
+- 送信処理: `api/auth/request_password_reset.php`（トークンを生成してメール送信）**5分間有効なトークンを生成し、メールで送信すること。**
 - レスポンス: `success`->true/false, `message`->エラーメッセージ
 
 2) パスワードリセットページ（`reset_password.php`）
