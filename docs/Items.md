@@ -136,7 +136,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - ブログ一覧表示    : `blogs[]` **ブログ ID 配列。URL に変換して表示：/blog_detail.php?blog_id=xxx**
 
     - 自分のプロフィールの場合
-        - 編集ボタン0
+        - 編集ボタン
             - 編集処理（`api/profile/update_profile.php`）
                 - フォーム
                     - アイコンアップロード : `icon`

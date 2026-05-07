@@ -1,7 +1,6 @@
 <?php
 namespace lib;
 
-use lib\PDOHandler;
 use models\User as UserModel;
 use models\Session as SessionModel;
 use models\SessionLog as SessionLogModel;
