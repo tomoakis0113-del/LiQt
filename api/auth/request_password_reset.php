@@ -28,34 +28,32 @@ try {
         lib\Util::responseError(400, '不正リクエストです');
     }
 
-    //dbに接続
-    $pdoHandler = lib\Util::connectDB();
-    $sessionHandler = new lib\Session($pdoHandler);
+    // session
+    $sessionHandler = new lib\Session();
     if ($sessionHandler->isLoggedIn()) {
         lib\Util::responseError(401, 'すでにログインしています');
     }
 
     // ユーザーが存在するか確認
-    $user_id = $pdoHandler->exec(
-        "SELECT id FROM users WHERE mail_address = ?",
-        [$mail_address]
-    )[0]['id'] ?? null;
+    $user_id = models\User::query()
+        ->where('mail_address', $mail_address)
+        ->first(['id'])['id'] ?? null;
+    
     if (!$user_id) {
         lib\Util::responseSuccess('パスワード再発行のメールを送信しました');
     }
 
     // トークンを削除
-    $pdoHandler->exec(
-        "DELETE FROM reset_requests WHERE user_id = ?",
-        [$user_id]
-    );
+    models\ResetRequest::query()->where('user_id', $user_id)->delete();
 
     // トークンを生成(5分間有効)して保存
     $token = lib\Util::generateRandomString(5);
-    $pdoHandler->exec(
-        "INSERT INTO reset_requests(user_id, token, created_at, expires_at) VALUES(?, ?, NOW(), NOW() + INTERVAL 5 MINUTE)",
-        [$user_id, $token]
-    );
+    models\ResetRequest::query()->insert([
+        'user_id' => $user_id,
+        'token' => $token,
+        'created_at' => date('Y-m-d H:i:s'),
+        'expires_at' => date('Y-m-d H:i:s', strtotime('+5 minutes'))
+    ]);
 
     // メール送信
     $isSuccess = lib\SendMail::send(

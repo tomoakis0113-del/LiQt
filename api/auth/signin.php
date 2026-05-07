@@ -43,8 +43,7 @@ try{
     }
 
     //dbに接続
-    $pdoHandler = lib\Util::connectDB();
-    $sessionHandler = new lib\Session($pdoHandler);
+    $sessionHandler = new lib\Session();
     $isSuccess = $sessionHandler->tryLogin($mailaddress, $password);
 
     if($isSuccess){

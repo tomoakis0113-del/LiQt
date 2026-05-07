@@ -1,4 +1,7 @@
 <?php
+
+use function Illuminate\Support\now;
+
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
@@ -40,37 +43,28 @@ try {
     if (!preg_match($pattern, $new_password)) {
         lib\Util::responseError(400, 'パスワードは6-20文字で、英大文字・小文字・数字をそれぞれ1種類以上含む必要があります');
     }
-
-    // DB接続
-    $pdoHandler = lib\Util::connectDB();
-
+    
     // メールアドレスからユーザーIDを取得
-    $user_id = $pdoHandler->exec(
-        'SELECT id FROM users WHERE mail_address = :mail_address',
-        [':mail_address' => $mail_address]
-    )[0]['id'] ?? null;
+    $user_id = models\User::query()
+        ->where('mail_address', $mail_address)
+        ->first(['id'])['id'] ?? null;
     if ($user_id === null) {
         lib\Util::responseError(404, '無効なトークンです');
     }
 
     // トークンの検証 - トークンが存在し、有効期限内であることを確認
-    $result = $pdoHandler->exec(
-        'SELECT id FROM reset_requests WHERE user_id = :user_id AND token = :token AND NOW() < expires_at',
-        [':user_id' => $user_id, ':token' => $token]
-    );
-    if (count($result) === 0) {
+    $result = models\ResetRequest::query()
+        ->where('user_id', $user_id)
+        ->where('token', $token)
+        ->where('expires_at', '>', now())
+        ->get(['id'])['id'] ?? null;
+    if ($result === null) {
         lib\Util::responseError(400, '無効なトークンです');
     }
 
     // パスワードを更新し、トークンを削除
-    $pdoHandler->exec(
-        'UPDATE users SET password = :password WHERE mail_address = :mail_address',
-        [':password' => password_hash($new_password, PASSWORD_DEFAULT), ':mail_address' => $mail_address]
-    );
-    $pdoHandler->exec(
-        'DELETE FROM reset_requests WHERE user_id = :user_id',
-        [':user_id' => $user_id]
-    );
+    models\User::query()->where('mail_address', $mail_address)->update(['password' => password_hash($new_password, PASSWORD_DEFAULT)]);
+    models\ResetRequest::query()->where('user_id', $user_id)->delete();
 
     lib\Util::responseSuccess('パスワードがリセットされました');
 } catch (\Throwable $e) {

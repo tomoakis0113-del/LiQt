@@ -13,9 +13,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 try {
     $csrfToken = new lib\CSRFToken();
 
-    //dbに接続
-    $pdoHandler = lib\Util::connectDB();
-    $sessionHandler = new lib\Session($pdoHandler);
+    $sessionHandler = new lib\Session();
     $sessionHandler->logout();
     lib\Util::responseSuccess('ログアウトに成功しました');
 } catch (\Throwable $e) {

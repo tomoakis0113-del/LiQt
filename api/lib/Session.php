@@ -2,6 +2,7 @@
 namespace lib;
 
 use lib\PDOHandler;
+use models\User as UserModel;
 use models\Session as SessionModel;
 use models\SessionLog as SessionLogModel;
 
@@ -120,7 +121,7 @@ class Session {
             // 時間をずらしてログイン試行の頻度を下げる
             usleep(rand(500000, 3000000));
 
-            $user = SessionModel::query()
+            $user = UserModel::query()
                     ->where('mail_address', '=', $mailAddress)
                     ->first(['id', 'password']);
 
@@ -131,6 +132,8 @@ class Session {
                     $this->setRememberToken($user['id']);
                 
                 return true;
+            }else{
+                error_log("[SanaeProject] Failed login attempt for email: " . $mailAddress);
             }
             return false;
         } catch (\Exception $e) {

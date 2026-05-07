@@ -14,5 +14,8 @@
         "files": [
             "./api/db/bootstrap.php"
         ]
+    },
+    "require-dev": {
+        "barryvdh/laravel-ide-helper": "^3.7"
     }
 }

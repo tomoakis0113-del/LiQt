@@ -17,8 +17,7 @@ try{
     $csrf_token  = $_POST['csrf_token'] ?? null;
     $token       = $_POST['token'] ?? null;
 
-    $pdoHandler = lib\Util::connectDB();
-    $sessionHandler = new lib\Session($pdoHandler);
+    $sessionHandler = new lib\Session();
     $csrfToken = new lib\CSRFToken();
 
     // 検証
@@ -38,10 +37,12 @@ try{
     // 現在のユーザ情報を取得
     $timezone = new DateTimeZone('Asia/Tokyo');
     $user_id = $sessionHandler->getCurrentUserID();
-    $user = $pdoHandler->exec(
-        "SELECT u.user_id, u.is_active, mt.token, mt.created_at FROM users u INNER JOIN mail_temporary mt ON u.id = mt.user_id WHERE u.id = :id AND mt.token = :token",
-        ['id' => $user_id, 'token' => $token]
-        )[0] ?? null;
+    $user = models\User::query()
+        ->where('id', $user_id)
+        ->first(['user_id', 'is_active']);
+    $userToken = models\MailTemporary::query()
+        ->where('user_id', $user_id)
+        ->first(['token', 'created_at']);
 
     if(!$user){ 
         lib\Util::responseError(404,'ユーザーが見つかりません');
@@ -49,22 +50,17 @@ try{
     if($user['is_active']){
         lib\Util::responseError(400,'ユーザーは既に有効化されています');
     }
-    $diff = (new DateTime('now', $timezone))->getTimestamp() - (new DateTime($user['created_at'], $timezone))->getTimestamp();
+    $diff = (new DateTime('now', $timezone))->getTimestamp() - (new DateTime($userToken['created_at'], $timezone))->getTimestamp();
     if($diff > 300){ // 300秒 = 5分
         lib\Util::responseError(400,'トークンの有効期限が切れています。新しいトークンを発行してください。');
     }
-    if($user['token'] !== $token){
+    if($userToken['token'] !== $token){
         lib\Util::responseError(400,'トークンが一致しません');
     }
 
-    $pdoHandler->exec(
-        "DELETE FROM mail_temporary WHERE user_id = :user_id",
-        ['user_id' => $user_id]
-    );
-    $pdoHandler->exec(
-        "UPDATE users SET is_active = 1 WHERE id = :id",
-        ['id' => $user_id]
-    );
+    // トークンが一致し、有効期限内であればユーザーを有効化し、トークンを削除
+    models\MailTemporary::query()->where('user_id', $user_id)->delete();
+    models\User::query()->where('id', $user_id)->update(['is_active' => 1]);
 
     lib\Util::responseSuccess('メール認証が完了しました');
 } catch (Exception $e){

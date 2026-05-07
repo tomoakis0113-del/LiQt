@@ -51,13 +51,4 @@ class Group extends Model
     {
         return $this->hasMany(Chat::class, 'group_id');
     }
-
-    /**
-     * このグループに参加しているユーザーを取得（中間テーブルがある場合）
-     */
-    public function members()
-    {
-        // group_members のような中間テーブルを想定する場合
-        // return $this->belongsToMany(User::class, 'group_members');
-    }
 }

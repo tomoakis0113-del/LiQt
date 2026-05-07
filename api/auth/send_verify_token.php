@@ -12,10 +12,8 @@ require_once __DIR__ .'/../../vendor/autoload.php';
  */
 try{
     // パラメータの受け取り
-    $csrf_token   = $_POST['csrf_token'] ?? null;
-
-    $pdoHandler = lib\Util::connectDB();
-    $sessionHandler = new lib\Session($pdoHandler);
+    $csrf_token = $_POST['csrf_token'] ?? null;
+    $sessionHandler = new lib\Session();
     $csrfToken = new lib\CSRFToken();
 
     // 検証
@@ -31,10 +29,9 @@ try{
 
     // 現在のユーザ情報を取得
     $user_id = $sessionHandler->getCurrentUserID();
-    $user = $pdoHandler->exec(
-        "SELECT user_id, mail_address, is_active FROM users WHERE id = :id",
-        ['id' => $user_id]
-        )[0] ?? null;
+    $user = models\User::query()
+        ->where('id', $user_id)
+        ->first(['user_id', 'mail_address', 'is_active']);
 
     // ユーザの存在と状態を確認
     if(!$user){ 
@@ -45,10 +42,9 @@ try{
     }
 
     // 既存のトークンを確認
-    $existingToken = $pdoHandler->exec(
-        "SELECT created_at FROM mail_temporary WHERE user_id = :user_id",
-        ['user_id' => $user_id]
-    )[0] ?? null;
+    $existingToken = models\MailTemporary::query()
+        ->where('user_id', $user_id)
+        ->first(['created_at']);
 
     // 既存のトークンが1分以内に発行されているか確認
     if($existingToken){
@@ -60,18 +56,15 @@ try{
             lib\Util::responseError(429,'トークンは1分に1回のみ発行できます。');
         }
 
-        $pdoHandler->exec(
-            "DELETE FROM mail_temporary WHERE user_id = :user_id",
-            ['user_id' => $user_id]
-        );
+        models\MailTemporary::query()->where('user_id', $user_id)->delete();
     }
 
     // トークン生成と保存
     $token = lib\Util::generateRandomString(5);
-    $pdoHandler->exec(
-        "INSERT INTO mail_temporary(user_id, token) VALUES (:user_id, :token)",
-        ['user_id' => $user_id, 'token' => $token]
-    );
+    models\MailTemporary::query()->insert([
+        'user_id' => $user_id,
+        'token' => $token
+    ]);
 
     // メール送信
     $isSuccess = lib\SendMail::send(
