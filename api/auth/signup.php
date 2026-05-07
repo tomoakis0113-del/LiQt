@@ -43,19 +43,6 @@ try{
     if(!preg_match($pattern, $password)){
         lib\Util::responseError(400,'パスワードは6-20文字で、英大文字・小文字・数字をそれぞれ1種類以上含む必要があります');
     }
-    
-    // UPDATE users SET user_id = 'otonari' WHERE id = 1;
-    models\User::query()
-        ->where('id', 1)
-        ->update(['user_id' => 'otonari']);
-    
-    // INSERT INTO users (id, user_id) VALUES ( 1, 'otonari' );
-    models\User::create([
-        'id' => 1, 'user_id' => 'otonari',
-    ]);
-
-
-
 
     // ユーザーIDとメールアドレスの重複チェック
     if(models\User::query()->where('user_id', $user_id)->exists()){
