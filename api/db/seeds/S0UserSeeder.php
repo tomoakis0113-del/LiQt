@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Phinx\Seed\AbstractSeed;
 
-class UserSeeder extends AbstractSeed
+class S0UserSeeder extends AbstractSeed
 {
     /**
      * Run Method.
@@ -19,24 +19,24 @@ class UserSeeder extends AbstractSeed
         $users = [
             [
                 'user_id'       => 'otonari',
-                'mail_address'  => 'example@example.com',
+                'mail_address'  => 'example1@example.com',
                 'password'      => password_hash('Password123', PASSWORD_DEFAULT),
                 'is_active'     => true,
             ],
             [
                 'user_id'       => 'simada',
-                'mail_address'  => 'example@example.com',
+                'mail_address'  => 'example2@example.com',
                 'password'      => password_hash('Password123', PASSWORD_DEFAULT),
                 'is_active'     => true,
             ],
             [
                 'user_id'       => 'katuhara',
-                'mail_address'  => 'example@example.com',
+                'mail_address'  => 'example3@example.com',
                 'password'      => password_hash('Password123', PASSWORD_DEFAULT),
                 'is_active'     => true,
             ],
         ];
 
-        $this->insert('users', $users);
+        $this->table('users')->insert($users)->saveData();
     }
 }
