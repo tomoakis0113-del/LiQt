@@ -2,6 +2,10 @@
 namespace lib;
 
 use lib\PDOHandler;
+use models\Session as SessionModel;
+use models\SessionLog as SessionLogModel;
+
+use function Illuminate\Support\now;
 
 const SESSION_KEY = 'user_id';
 const SESSION_EXPIRE = 31*7*24*60*60; // 1ヶ月（秒）
@@ -11,50 +15,10 @@ const REMEMBER_COOKIE_EXPIRE = 60*60*24*30; // 30日（秒）
 class SessionException extends \Exception {}
 
 class Session {
-    /** @var pdoHandler PDOハンドラーインスタンス */
-    protected $pdoHandler;
-
-    /**
-     * テーブルがない場合は作成する
-     */
-    protected function createTablesIfNotExist() {
-        try{
-            $this->pdoHandler->exec(
-                "CREATE TABLE IF NOT EXISTS session (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    token VARCHAR(255) NOT NULL,
-                    expire DATETIME NOT NULL,
-                    user_agent VARCHAR(255) NOT NULL,
-                    UNIQUE KEY (token),
-                    INDEX (user_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-            );
-
-            $this->pdoHandler->exec(
-                "CREATE TABLE IF NOT EXISTS session_log (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    user_id INT NOT NULL,
-                    user_agent VARCHAR(255) NOT NULL,
-                    ip VARCHAR(45) NOT NULL,
-                    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
-            );
-        }
-        catch(\Exception $e){
-            error_log("[SanaeProject] Faild to create session tables: " . $e->getMessage());
-            throw new SessionException('セッションテーブルの作成に失敗しました: ' . $e->getMessage());
-        }
-    }
-
-    /** コンストラクタ 
-     * @param PDOHandler $pdoHandler PDOハンドラーインスタンス
+    /** コンストラクタ
      * @throws Exception セッションの開始に失敗した場合
     */
-    public function __construct(PDOHandler $pdoHandler) {
-        $this->pdoHandler = $pdoHandler;
-        $this->createTablesIfNotExist();
-
+    public function __construct() {
         // セッションが開始されていない場合開始
         if (session_status() === PHP_SESSION_NONE){
             try{
@@ -84,20 +48,18 @@ class Session {
     */
     protected function loginWithRememberToken(string $token): void {
         try {
-            $result = $this->pdoHandler->exec(
-                "SELECT user_id FROM session WHERE token = :token AND expire > NOW() AND user_agent = :user_agent",
-                ['token' => $token, 'user_agent' => $_SERVER['HTTP_USER_AGENT']]
-            );
+            /** @var int|null $user_id */
+            $user_id = SessionModel::query()
+                        ->where('token',     '=',   $token)
+                        ->where('expire',    '>',   now())
+                        ->where('user_agent','=',   $_SERVER['HTTP_USER_AGENT'])
+                        ->first(['user_id']);
             
-            if ($result && isset($result[0]['user_id'])) {
-                // クッキー認証に成功したらセッションを設定
-                $this->setSession($result[0]['user_id']);
-                
-                // トークンを更新
-                $this->setRememberToken($result[0]['user_id']);
+            if ($user_id) {
+                $this->setSession($user_id);
+                $this->setRememberToken($user_id); // トークンを更新
             } else {
-                // 無効なトークンの場合はクッキーを削除
-                setcookie(REMEMBER_COOKIE_NAME, '', time() - 3600, '/');
+                setcookie(REMEMBER_COOKIE_NAME, '', time() - 3600, '/'); // 無効なトークンの場合はクッキーを削除
             }
         } catch (\Exception $e) {
             error_log("[SanaeProject] Failed to login with remember token: " . $e->getMessage());
@@ -115,10 +77,11 @@ class Session {
             $_SESSION[SESSION_KEY] = $userID;
             $_SESSION['last_activity'] = time();
 
-            $this->pdoHandler->exec(
-                "INSERT INTO session_log (user_id, user_agent, ip) VALUES (?, ?, ?)",
-                [$userID, $_SERVER['HTTP_USER_AGENT'], $_SERVER['REMOTE_ADDR']]
-            );
+            SessionLogModel::query()->create([
+                'user_id' => $userID,
+                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+                'ip' => $_SERVER['REMOTE_ADDR']
+            ]);
         } catch (\Exception $e) {
             error_log("[SanaeProject] Failed to set session: " . $e->getMessage());
             throw new SessionException('セッション設定に失敗しました: ' . $e->getMessage());
@@ -157,17 +120,15 @@ class Session {
             // 時間をずらしてログイン試行の頻度を下げる
             usleep(rand(500000, 3000000));
 
-            $result = $this->pdoHandler->exec(
-                "SELECT id,password FROM users WHERE mail_address = ?",
-                [$mailAddress]
-            );
+            $user = SessionModel::query()
+                    ->where('mail_address', '=', $mailAddress)
+                    ->first(['id', 'password']);
 
-            if ($result && password_verify($password, $result[0]['password'])) {
-                $this->setSession($result[0]['id']);
+            if ($user && password_verify($password, $user['password'])) {
+                $this->setSession($user['id']);
                 
-                // 「ログイン状態を維持する」が選択されていればrememberトークンを設定
                 if ($remember)
-                    $this->setRememberToken($result[0]['id']);
+                    $this->setRememberToken($user['id']);
                 
                 return true;
             }
@@ -188,21 +149,17 @@ class Session {
             $expiry = date('Y-m-d H:i:s', time() + REMEMBER_COOKIE_EXPIRE);
             
             // ユーザーIDとトークンでの既存レコードを削除
-            $this->pdoHandler->exec(
-                "DELETE FROM session WHERE user_id = :user_id",
-                ['user_id' => $userId]
-            );
+            SessionModel::query()
+                ->where('user_id', $userId)
+                ->delete();
             
             // 新しいトークンを保存
-            $this->pdoHandler->exec(
-                "INSERT INTO session (user_id, token, expire, user_agent) VALUES (:user_id, :token, :expire, :user_agent)",
-                [
-                    'user_id' => $userId,
-                    'token' => $token,
-                    'expire' => $expiry,
-                    'user_agent' => $_SERVER['HTTP_USER_AGENT']
-                ]
-            );
+            SessionModel::query()->create([
+                'user_id' => $userId,
+                'token' => $token,
+                'expire' => $expiry,
+                'user_agent' => $_SERVER['HTTP_USER_AGENT']
+            ]);
             
             // クッキーにトークンを保存
             setcookie(
@@ -236,10 +193,9 @@ class Session {
                 // ユーザーのリメンバートークンをDBから削除
                 $userId = $this->getCurrentUserID();
                 if ($userId) {
-                    $this->pdoHandler->exec(
-                        "DELETE FROM session WHERE user_id = ?",
-                        [$userId]
-                    );
+                    SessionModel::query()
+                        ->where('user_id', $userId)
+                        ->delete();
                 }
                 
                 // リメンバートークンのクッキーを削除
