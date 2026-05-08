@@ -50,7 +50,7 @@
           <input type="password" id="password" class="form-control" placeholder="パスワードを入力">
         </div>
 
-        <!-- ログインボタン -->
+        <!-- サインインボタン -->
         <button type="submit" class="btn w-100 text-white" style="background-color: #06C755;">
           サインインする
         </button>

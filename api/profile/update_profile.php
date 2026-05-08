@@ -43,10 +43,10 @@ try{
         lib\Util::responseError(400,'タグは半角カンマ区切りで入力してください');
     }
 
-    // ログイン状態の確認
+    // サインイン状態の確認
     $sessionHandler = new lib\Session();
-    if(!$sessionHandler->isLoggedIn()){
-        lib\Util::responseError(401,'ログインしてください');
+    if(!$sessionHandler->isSignedIn()){
+        lib\Util::responseError(401,'サインインしてください');
     }
     $currentUserId = $sessionHandler->getCurrentUserID();
 

@@ -36,8 +36,8 @@ try{
     $sessionHandler = new lib\Session();
     $user_id = $sessionHandler->getCurrentUserID();
     
-    if(!$sessionHandler->isLoggedIn()){
-        lib\Util::responseError(401,'ログインが必要です');
+    if(!$sessionHandler->isSignedIn()){
+        lib\Util::responseError(401,'サインインが必要です');
     }
 
     // すでに同じグループ名が存在するか確認

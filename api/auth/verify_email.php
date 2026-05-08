@@ -24,8 +24,8 @@ try{
     if($_SERVER['REQUEST_METHOD'] !== 'POST'){
         lib\Util::responseError(405,'POSTリクエストのみ許可されています');
     }
-    if(!$sessionHandler->isLoggedIn()){
-        lib\Util::responseError(401,'ログインが必要です');
+    if(!$sessionHandler->isSignedIn()){
+        lib\Util::responseError(401,'サインインが必要です');
     }
     if(!$csrf_token || !$csrfToken->isValid($csrf_token)){
         lib\Util::responseError(400,'不正リクエストです');

@@ -32,7 +32,7 @@ class Session {
         // セッションの有効期限確認
         if (isset($_SESSION[SESSION_KEY])) {
             if (time() - $_SESSION['last_activity'] > SESSION_EXPIRE)
-                $this->logout();
+                $this->signout();
             else
                 $_SESSION['last_activity'] = time();
         }
@@ -42,9 +42,9 @@ class Session {
         }
     }
     
-    /** リメンバートークンでログイン 
+    /** リメンバートークンでサインイン 
      * @param string $token リメンバートークン
-     * @throws SessionException ログイン処理に失敗した場合
+     * @throws SessionException サインイン処理に失敗した場合
     */
     protected function loginWithRememberToken(string $token): void {
         try {
@@ -63,7 +63,7 @@ class Session {
             }
         } catch (\Exception $e) {
             error_log("[SanaeProject] Failed to login with remember token: " . $e->getMessage());
-            throw new SessionException('リメンバートークンによるログインに失敗しました: ' . $e->getMessage());
+            throw new SessionException('リメンバートークンによるサインインに失敗しました: ' . $e->getMessage());
         }
     }
 
@@ -108,16 +108,16 @@ class Session {
         }
     }
     
-    /** ログイン試行
+    /** サインイン試行
      * @param string $mailAddress メールアドレス
      * @param string $password パスワード
-     * @param bool $remember ログイン状態を保持するかどうか
-     * @return bool ログイン成功時true
-     * @throws SessionException ログイン処理に失敗した場合
+     * @param bool $remember サインイン状態を保持するかどうか
+     * @return bool サインイン成功時true
+     * @throws SessionException サインイン処理に失敗した場合
      */
     public function tryLogin(string $mailAddress, string $password, bool $remember = true): bool {
         try {
-            // 時間をずらしてログイン試行の頻度を下げる
+            // 時間をずらしてサインイン試行の頻度を下げる
             usleep(rand(500000, 3000000));
 
             $user = UserModel::query()
@@ -137,7 +137,7 @@ class Session {
             return false;
         } catch (\Exception $e) {
             error_log("[SanaeProject] Failed to try login for user: " . $mailAddress . " | Error: " . $e->getMessage());
-            throw new SessionException('ログイン処理に失敗しました: ' . $e->getMessage());
+            throw new SessionException('サインイン処理に失敗しました: ' . $e->getMessage());
         }
     }
     
@@ -181,17 +181,17 @@ class Session {
         }
     }
 
-    /** ログイン状態確認 */
-    public function isLoggedIn(): bool {
+    /** サインイン状態確認 */
+    public function isSignedIn(): bool {
         return isset($_SESSION[SESSION_KEY]);
     }
 
-    /** ログアウト処理
-     * @throws SessionException ログアウト処理に失敗した場合
+    /** サインアウト処理
+     * @throws SessionException サインアウト処理に失敗した場合
      */
-    public function logout(): void {
+    public function signout(): void {
         try {
-            if ($this->isLoggedIn()) {
+            if ($this->isSignedIn()) {
                 // ユーザーのリメンバートークンをDBから削除
                 $userId = $this->getCurrentUserID();
                 if ($userId) {
@@ -216,14 +216,14 @@ class Session {
                 $this->destroySession();
             }
         } catch (\Exception $e) {
-            error_log("[SanaeProject] Failed to logout: " . $e->getMessage());
-            throw new SessionException('ログアウト処理に失敗しました: ' . $e->getMessage());
+            error_log("[SanaeProject] Failed to signout: " . $e->getMessage());
+            throw new SessionException('サインアウト処理に失敗しました: ' . $e->getMessage());
         }
     }
 
-    /** 現在のログインユーザーID取得 */
+    /** 現在のサインインユーザーID取得 */
     public function getCurrentUserID(): ?int {
-        return $this->isLoggedIn() ? $_SESSION[SESSION_KEY] : null;
+        return $this->isSignedIn() ? $_SESSION[SESSION_KEY] : null;
     }
 
     /** セッションID再生成
@@ -231,7 +231,7 @@ class Session {
      */
     public function regenerateSession(): void {
         try {
-            if ($this->isLoggedIn()) {
+            if ($this->isSignedIn()) {
                 session_regenerate_id(true);
                 $_SESSION['last_activity'] = time();
             }

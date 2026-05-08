@@ -30,8 +30,8 @@ try {
 
     // session
     $sessionHandler = new lib\Session();
-    if ($sessionHandler->isLoggedIn()) {
-        lib\Util::responseError(401, 'すでにログインしています');
+    if ($sessionHandler->isSignedIn()) {
+        lib\Util::responseError(401, 'すでにサインインしています');
     }
 
     // ユーザーが存在するか確認

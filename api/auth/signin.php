@@ -9,7 +9,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - csrf_token: CSRFトークン
  * 
  * レスポンス:
- * - 成功: { "success": true, "message": "ログインに成功しました" }
+ * - 成功: { "success": true, "message": "サインインに成功しました" }
  * - エラー: { "success": false, "message": "エラ
  */
 try{
@@ -48,7 +48,7 @@ try{
 
     if($isSuccess){
         session_regenerate_id(true);
-        lib\Util::responseSuccess('ログインに成功しました');
+        lib\Util::responseSuccess('サインインに成功しました');
     }else{
         lib\Util::responseError(401,'メールアドレスまたはパスワードが違います');
     }

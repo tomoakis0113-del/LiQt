@@ -11,9 +11,9 @@ try{
 
     // ユーザ操作系
     $session = new lib\Session();
-    $session->tryLogin('username', 'password', true); // ユーザ名、パスワードを用いてログインを試行する。true:ログインを維持
-    $session->isLoggedIn(); // ログイン済みかどうか
-    $session->logout(); // ログアウト
+    $session->tryLogin('username', 'password', true); // ユーザ名、パスワードを用いてサインインを試行する。true:サインインを維持
+    $session->isSignedIn(); // サインイン済みかどうか
+    $session->signout(); // サインアウト
 
     // データベース操作はORMを使用
     $users = models\User::query()->where('is_active', 1)->get();

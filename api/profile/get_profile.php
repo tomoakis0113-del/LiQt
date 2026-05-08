@@ -33,8 +33,8 @@ try {
     }
 
     $sessionHandler = new lib\Session();
-    if (!$sessionHandler->isLoggedIn()) {
-        lib\Util::responseError(401, 'ログインしてください');
+    if (!$sessionHandler->isSignedIn()) {
+        lib\Util::responseError(401, 'サインインしてください');
     }
 
     $currentUserId = $sessionHandler->getCurrentUserID();
