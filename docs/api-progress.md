@@ -9,7 +9,7 @@
 - [x] `api/profile/start_chat.php`
 - [x] `api/profile/block_user.php`
 - [ ] `api/dashboard/get_dashboard.php`
-- [ ] `api/group/create_group.php`
+- [x] `api/group/create_group.php`
 - [ ] `api/group/get_group_chat.php`
 - [ ] `api/group/send_message.php`
 - [ ] `api/group/get_user_role.php`
