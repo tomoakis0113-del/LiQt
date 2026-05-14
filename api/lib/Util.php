@@ -53,11 +53,11 @@ class Util {
      * @param array $data レスポンスデータ
      * @param string $message レスポンスメッセージ
      */
-    public static function responseSuccess($data = [], $message = 'Success') {
+    public static function responseSuccess( $message = 'Success', $data = []) {
         header('Content-Type: application/json');
         exit(
             json_encode([
-                'status' => 'success',
+                'success' => true,
                 'message' => $message,
                 'data' => $data
             ])
@@ -75,7 +75,7 @@ class Util {
         header('Content-Type: application/json');
         exit(
             json_encode([
-                'status' => 'error',
+                'success' => false,
                 'message' => $message
             ])
         );

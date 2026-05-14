@@ -49,14 +49,13 @@ try{
     }
 
     // グループが存在するかどうかチェック
-    $group = models\Group::query()->where('id', $group_id)->first(['id', 'name', 'group_icon_url', 'is_public', 'created_at']);
+    $group = models\Group::where('id', $group_id)->first(['id', 'name', 'group_icon_url', 'is_public', 'created_at']);
     if(!$group || !$group->id){
         lib\Util::responseError(404, 'グループが見つかりません');
     }
 
     // ブログ取得
-    $blogs = models\Blog::query()
-        ->where('group_id', $group_id)
+    $blogs = models\Blog::where('group_id', $group_id)
         ->orderBy('created_at', 'desc')
         ->get([
             'id as blog_id', 
@@ -64,10 +63,10 @@ try{
             'content', 
             'tags', 
             'created_at'
-            ]);
-    
+        ]);
+
     // メッセージ取得
-    $messages = models\Chat::joinWhere('profiles', 'chats.sender_id', '=', 'profiles.user_id')::query()
+    $messages = models\Chat::join('profiles', 'chats.sender_id', '=', 'profiles.user_id')
         ->where('group_id', $group_id)
         ->orderBy('created_at', 'asc')
         ->get([
@@ -78,9 +77,9 @@ try{
             'chats.content', 
             'chats.image_url', 
             'chats.created_at'
-            ]);
-    
-    lib\Util::responseSuccess([
+        ]);
+
+    lib\Util::responseSuccess('成功しました。',[
         'group_name' => $group->name,
         'group_icon' => $group->group_icon_url,
         'group_blogs' => $blogs,

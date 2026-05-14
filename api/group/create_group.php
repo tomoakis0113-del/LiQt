@@ -40,21 +40,20 @@ try{
         lib\Util::responseError(401,'サインインが必要です');
     }
 
+
     // すでに同じグループ名が存在するか確認
-    $existingGroup = models\Group::query()
-        ->where('name', $group_name)
-        ->first(['id']);
+    $existingGroup = models\Group::where('name', $group_name)->first(['id']);
     if($existingGroup){
         lib\Util::responseError(400,'同じグループ名が既に存在しています');
     }
 
     // グループ作成
-    $group_id = models\Group::query()->insert([
+    $group_id = models\Group::insertGetId([
         'name' => $group_name,
         'group_icon_url' => $group_icon,
         'is_public' => $is_public ? 1 : 0,
-    ])->id;
-    models\GroupMember::query()->insert([
+    ]);
+    models\GroupMember::insert([
         'group_id' => $group_id,
         'user_id'  => $user_id,
         'role'     => 'owner',
@@ -64,11 +63,12 @@ try{
     if(is_array($invite_user_ids)){
         foreach($invite_user_ids as $invite_user_id){
             // 招待ユーザIDからユーザのIDを取得
-            $id = models\User::query()->where('user_id', $invite_user_id)->first(['id'])['id'] ?? null;
+            $user = models\User::where('user_id', $invite_user_id)->first(['id']);
+            $id = $user['id'] ?? ($user->id ?? null);
             if($id === null){
                 continue; // ユーザが存在しない場合はスキップ
             }
-            models\GroupMember::query()->insert([
+            models\GroupMember::insert([
                 'group_id' => $group_id,
                 'user_id'  => $id,
                 'role'     => 'member',

@@ -53,7 +53,7 @@ class Session {
                         ->where('token',     '=',   $token)
                         ->where('expire',    '>',   now())
                         ->where('user_agent','=',   $_SERVER['HTTP_USER_AGENT'])
-                        ->first(['user_id']);
+                        ->first(['user_id'])['user_id'] ?? null;
             
             if ($user_id) {
                 $this->setSession($user_id);
