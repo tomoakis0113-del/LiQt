@@ -202,6 +202,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - ブログID: `blog_id`
             - タイトル表示 : `title` **タイトルをクリックでページ遷移(`blog_detail.php?blog_id=xxx`)**
             - タグ表示   : `tags` **カンマ区切りの文字列**
+            - 作成日時表示 : `created_at`
 
         - メッセージ一覧 : `messages[]`
             - メッセージID      : `message_id`
@@ -209,6 +210,8 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - 送信者名表示      : `sender_display_name` **ユーザIDではなく表示名を表示すること。表示名をクリックでプロフィールページへ遷移(`profile.php?user_id=xxx`)**
             - 送信者アイコン表示: `sender_icon`
             - メッセージ内容表示: `content`
+            - 送信日時表示      : `created_at`
+            - 添付写真表示      : `image_url` **画像がない場合は null**
         
     - フォーム
         - メッセージ投稿（Markdown）         : `message_content` **作成中にプレビューを表示（例: markdown-it など）**
