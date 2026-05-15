@@ -15,6 +15,7 @@ try{
         lib\Util::responseError(405,'許可されていないリクエストです');
     }
 
+    // パラメータの受け取りとバリデーション
     $sentToken    = $_POST['csrf_token'] ?? '';
     $displayName  = trim($_POST['display_name'] ?? '');
     $introduction = trim($_POST['introduction'] ?? '');
@@ -42,17 +43,14 @@ try{
         lib\Util::responseError(400,'タグは半角カンマ区切りで入力してください');
     }
 
-    $pdoHandler = lib\Util::connectDB();
-    $sessionHandler = new lib\Session($pdoHandler);
-
-    if(!$sessionHandler->isLoggedIn()){
-        lib\Util::responseError(401,'ログインしてください');
+    // サインイン状態の確認
+    $sessionHandler = new lib\Session();
+    if(!$sessionHandler->isSignedIn()){
+        lib\Util::responseError(401,'サインインしてください');
     }
-
     $currentUserId = $sessionHandler->getCurrentUserID();
 
     $iconUrl = null;
-
     if(isset($_FILES['icon']) && $_FILES['icon']['error'] !== UPLOAD_ERR_NO_FILE){
         if($_FILES['icon']['error'] !== UPLOAD_ERR_OK){
             lib\Util::responseError(400,'アイコンのアップロードに失敗しました');
@@ -82,19 +80,22 @@ try{
     }
 
     if($iconUrl !== null){
-        $pdoHandler->exec(
-            "UPDATE profiles
-             SET display_name = ?, introduction = ?, tags = ?, icon_url = ?
-             WHERE user_id = ?",
-            [$displayName, $introduction, $tags, $iconUrl, $currentUserId]
-        );
+        models\Profile::query()
+            ->where('user_id', $currentUserId)
+            ->update([
+                'display_name' => $displayName,
+                'introduction' => $introduction,
+                'tags' => $tags,
+                'icon_url' => $iconUrl
+            ]);
     }else{
-        $pdoHandler->exec(
-            "UPDATE profiles
-             SET display_name = ?, introduction = ?, tags = ?
-             WHERE user_id = ?",
-            [$displayName, $introduction, $tags, $currentUserId]
-        );
+        models\Profile::query()
+            ->where('user_id', $currentUserId)
+            ->update([
+                'display_name' => $displayName,
+                'introduction' => $introduction,
+                'tags' => $tags
+            ]);
     }
 
     lib\Util::responseSuccess([], 'プロフィールを更新しました');

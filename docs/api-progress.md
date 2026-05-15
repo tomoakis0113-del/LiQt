@@ -1,0 +1,31 @@
+# apiの実装チェックリスト
+- [x] `api/auth/signin.php`
+- [x] `api/auth/signup.php`
+- [x] `api/auth/send_verify_token.php`
+- [x] `api/auth/verify_email.php`
+- [x] `api/auth/send_verify_token.php`
+- [x] `api/profile/get_profile.php`
+- [x] `api/profile/update_profile.php`
+- [x] `api/profile/start_chat.php`
+- [x] `api/profile/block_user.php`
+- [ ] `api/dashboard/get_dashboard.php`
+- [x] `api/group/create_group.php`
+- [x] `api/group/get_group_chat.php`
+- [x] `api/group/send_message.php`
+- [ ] `api/group/get_user_role.php`
+- [ ] `api/group/get_group_info.php`
+- [ ] `api/group/update_group.php`
+- [ ] `api/group/delete_group.php`
+- [ ] `api/group/get_group_info.php`
+- [ ] `api/group/leave_group.php`
+- [ ] `api/group/get_public_groups.php`
+- [ ] `api/group/join_group.php`
+- [ ] `api/group/search_groups.php`
+- [ ] `api/blog/get_blogs.php`
+- [ ] `api/blog/search_blogs.php`
+- [ ] `api/blog/get_blog_detail.php`
+- [ ] `api/blog/create_blog.php`
+- [ ] `api/blog/delete_blog.php`
+- [x] `api/auth/signout.php`
+- [x] `api/auth/request_password_reset.php`
+- [x] `api/auth/reset_password.php`

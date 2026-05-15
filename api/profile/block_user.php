@@ -17,51 +17,46 @@ try{
 
     $csrfToken = new lib\CSRFToken();
 
+    // csrfトークンの検証
     if(!$csrfToken->isValid($sentToken)){
         lib\Util::responseError(400,'不正リクエストです');
     }
 
+    // ユーザーIDのバリデーション
     if(!preg_match('/^[A-Za-z0-9]{8}$/', $targetUserId)){
         lib\Util::responseError(400,'ユーザーIDは英数字8文字で入力してください');
     }
 
-    $pdoHandler = lib\Util::connectDB();
-    $sessionHandler = new lib\Session($pdoHandler);
-
-    if(!$sessionHandler->isLoggedIn()){
-        lib\Util::responseError(401,'ログインしてください');
+    $sessionHandler = new lib\Session();
+    if(!$sessionHandler->isSignedIn()){
+        lib\Util::responseError(401,'サインインしてください');
     }
 
     $currentUserId = $sessionHandler->getCurrentUserID();
+    $targetUserId = models\User::query()
+        ->where('user_id', $targetUserId)
+        ->first(['id'])['id'] ?? null;
 
-    $targetUser = $pdoHandler->exec(
-        "SELECT id FROM users WHERE user_id = ?",
-        [$targetUserId]
-    );
-
-    if(!$targetUser){
+    if(!$targetUserId){
         lib\Util::responseError(404,'ブロック対象のユーザーが見つかりません');
     }
-
-    $blockedUserId = $targetUser[0]['id'];
-
-    if($currentUserId == $blockedUserId){
+    if($currentUserId == $targetUserId){
         lib\Util::responseError(400,'自分自身はブロックできません');
     }
 
-    $exists = $pdoHandler->exec(
-        "SELECT id FROM block_list WHERE user_id = ? AND blocked_user_id = ?",
-        [$currentUserId, $blockedUserId]
-    );
-
+    $exists = models\BlockList::query()
+        ->where('user_id', $currentUserId)
+        ->where('blocked_user_id', $targetUserId)
+        ->first(['id'])['id'] ?? null;
     if($exists){
         lib\Util::responseSuccess([], 'すでにブロック済みです');
     }
 
-    $pdoHandler->exec(
-        "INSERT INTO block_list (user_id, blocked_user_id) VALUES (?, ?)",
-        [$currentUserId, $blockedUserId]
-    );
+    // ブロックリストに追加
+    models\BlockList::query()->insert([
+        'user_id' => $currentUserId,
+        'blocked_user_id' => $targetUserId
+    ]);
 
     lib\Util::responseSuccess([], 'ユーザーをブロックしました');
 }

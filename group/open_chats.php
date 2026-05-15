@@ -1,62 +1,62 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>オープンチャット一覧</title>
+  <title>オープンチャット一覧</title>
 
-<link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
-<script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-<style>
-.group-icon {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-}
+  <style>
+    .group-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+    }
 
-.group-card {
-  cursor: pointer;
-  transition: 0.2s;
-}
+    .group-card {
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-.group-card:hover {
-  background-color: #f8f9fa;
-}
-</style>
+    .group-card:hover {
+      background-color: #f8f9fa;
+    }
+  </style>
 </head>
 
 <body>
 
-<?php require_once __DIR__ . '/../component/header.php'; ?>
+  <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-<main class="container p-4" style="max-width:800px;">
+  <main class="container p-4" style="max-width:800px;">
 
-<h3 class="mb-4">オープンチャット</h3>
+    <h3 class="mb-4">オープンチャット</h3>
 
-<!-- アラート -->
-<div id="alertBox" class="alert d-none"></div>
+    <!-- アラート -->
+    <div id="alertBox" class="alert d-none"></div>
 
-<!-- 検索 -->
-<form id="searchForm" class="mb-4">
-  <div class="input-group">
-    <input type="text" class="form-control" name="group_name_search" placeholder="グループ名で検索">
-    <button class="btn btn-primary">検索</button>
-  </div>
-</form>
+    <!-- 検索 -->
+    <form id="searchForm" class="mb-4">
+      <div class="input-group">
+        <input type="text" class="form-control" name="group_name_search" placeholder="グループ名で検索">
+        <button class="btn btn-primary">検索</button>
+      </div>
+    </form>
 
-<!-- 一覧 -->
-<div id="groupList" class="list-group"></div>
+    <!-- 一覧 -->
+    <div id="groupList" class="list-group"></div>
 
-</main>
+  </main>
 
-<?php require_once __DIR__ . '/../component/footer.php'; ?>
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-<script>
-
-// 初期ロード
-loadGroups();
+  <script>
+    // 初期ロード
+    loadGroups();
 
 // 一覧取得（仮データ）
 function loadGroups() {
@@ -82,18 +82,18 @@ function loadGroups() {
   renderGroups(dummyGroups);
 }
 
-// 描画
-function renderGroups(groups) {
-  const list = document.getElementById("groupList");
-  list.innerHTML = "";
+    // 描画
+    function renderGroups(groups) {
+      const list = document.getElementById("groupList");
+      list.innerHTML = "";
 
-  if (groups.length === 0) {
-    list.innerHTML = `<div class="text-muted">グループが見つかりません</div>`;
-    return;
-  }
+      if (groups.length === 0) {
+        list.innerHTML = `<div class="text-muted">グループが見つかりません</div>`;
+        return;
+      }
 
-  groups.forEach(g => {
-    list.innerHTML += `
+      groups.forEach(g => {
+        list.innerHTML += `
       <div class="list-group-item group-card d-flex align-items-center"
            onclick="joinGroup('${g.group_id}')">
 
@@ -106,60 +106,62 @@ function renderGroups(groups) {
 
       </div>
     `;
-  });
-}
-
-// 参加処理
-async function joinGroup(groupId) {
-  if (!confirm("このグループに参加しますか？")) return;
-
-  try {
-    const res = await fetch("api/join_group.php", {
-      method: "POST",
-      body: new URLSearchParams({ group_id: groupId })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-      location.href = `chat.php?group_id=${groupId}`;
-    } else {
-      showError(data.message);
+      });
     }
 
-  } catch (e) {
-    showError("通信エラー");
-  }
-}
+    // 参加処理
+    async function joinGroup(groupId) {
+      if (!confirm("このグループに参加しますか？")) return;
 
-// 検索
-document.getElementById("searchForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+      try {
+        const res = await fetch("api/join_group.php", {
+          method: "POST",
+          body: new URLSearchParams({
+            group_id: groupId
+          })
+        });
 
-  const formData = new FormData(e.target);
+        const data = await res.json();
 
-  const res = await fetch("api/search_groups.php", {
-    method: "POST",
-    body: formData
-  });
+        if (data.success) {
+          location.href = `chat.php?group_id=${groupId}`;
+        } else {
+          showError(data.message);
+        }
 
-  const data = await res.json();
+      } catch (e) {
+        showError("通信エラー");
+      }
+    }
 
-  if (data.success) {
-    renderGroups(data.groups);
-  } else {
-    showError(data.message);
-  }
-});
+    // 検索
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
 
-// エラー表示
-function showError(msg) {
-  const box = document.getElementById("alertBox");
-  box.textContent = msg;
-  box.className = "alert alert-danger";
-}
+      const formData = new FormData(e.target);
 
-</script>
+      const res = await fetch("api/search_groups.php", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        renderGroups(data.groups);
+      } else {
+        showError(data.message);
+      }
+    });
+
+    // エラー表示
+    function showError(msg) {
+      const box = document.getElementById("alertBox");
+      box.textContent = msg;
+      box.className = "alert alert-danger";
+    }
+  </script>
 
 </body>
+
 </html>

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="ja">
+
 <head>
   <!-- meta -->
   <meta charset="UTF-8">
@@ -19,6 +20,8 @@
   <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="../custom/custom-theme.css">
 
+  <!-- markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
   <!-- markdown -->
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
@@ -334,4 +337,5 @@
   </script>
 
 </body>
+
 </html>

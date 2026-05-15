@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
 
   <!-- meta -->
@@ -18,6 +19,8 @@
 
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
   <!-- markdown -->
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
@@ -187,6 +190,7 @@
 
     </div>
 
+  </main>
   </main>
 
   <!-- フッター -->
@@ -547,4 +551,5 @@
   </script>
 
 </body>
+
 </html>

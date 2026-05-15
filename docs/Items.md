@@ -3,9 +3,9 @@
 README.md の内容をもとに、各ページに必要な項目をリストアップしています。必要に応じて、追加の項目や機能を検討してください。
 
 ## 語句定義
-- サインイン    ：ユーザーが LiQt にログインすること。
+- サインイン    ：ユーザーが LiQt にサインインすること。
 - サインアップ  ：ユーザーが LiQt に新規登録すること。
-- サインアウト  ：ユーザーが LiQt からログアウトすること。
+- サインアウト  ：ユーザーが LiQt からサインアウトすること。
 - プロフィール  ：ユーザーの基本情報や自己紹介を表示するページ。
 - ユーザー      ：LiQt を利用する個人。プロフィールを持ち、グループに参加し、ブログを投稿できる。
 - グループ      ：ユーザーが参加するコミュニティ。公開/非公開の設定が可能。
@@ -54,7 +54,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - パスワード入力    : `password` **英大文字・小文字・数字を含む 6～20 文字が推奨**
 
 - サインインボタン
-    - サインイン処理(`api/signin.php`)
+    - サインイン処理(`api/auth/signin.php`)
         - レスポンス:`success`->[true/false], `message`->エラーメッセージ
         - 成功：ダッシュボードページへ遷移
         - 失敗：エラーメッセージ表示
@@ -65,14 +65,14 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 
 ### 新規登録ページ(`signup.php`)
 - フォーム
-    - ユーザID          : `user_id` **プライマリ且つ変更不可** 
+    - ユーザID          : `user_id` **プライマリ且つ変更不可** **ユーザIDは半角英数字で 5～20 文字**
     - 表示名            : `display_name`
     - メールアドレス    : `mail_address`
     - パスワード        : `password` **英大文字・小文字・数字を含む 6～20 文字が推奨**
     - パスワード確認    : `password_confirm`
 
 - サインアップボタン
-    - サインアップ処理(`api/signup.php`)
+    - サインアップ処理(`api/auth/signup.php`)
         - レスポンス:`success`->[true/false], `message`->エラーメッセージ
         - 成功：メール認証ページへ遷移
         - 失敗：エラーメッセージ表示
@@ -81,18 +81,22 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - サインインページへのリンク(`signin.php`)
 
 ### メール認証ページ(`verify_email.php`)
+- トークン送信処理
+    - トークン送信処理（`api/auth/send_verify_token.php`）
+    - 30 秒のクールダウンタイム
+    
 - フォーム
     - メールアドレス入力: `mail_address`
     - トークン入力      : `token`
 
 - 認証ボタン
-    - 認証処理(`api/verify_email.php`)
+    - 認証処理(`api/auth/verify_email.php`)
         - レスポンス:`success`->[true/false], `message`->エラーメッセージ
         - 成功：サインインページへ遷移
         - 失敗：エラーメッセージ表示
 
         - トークン再送信ボタン
-            - トークン再送信処理（`api/resend_token.php`）
+            - トークン再送信処理（`api/auth/send_verify_token.php`）
             - 30 秒のクールダウンタイム
 
 ## ページ
@@ -120,7 +124,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 - GETパラメータがない場合は自分のプロフィールを表示することを前提とすること。
     - `profile.php`
 
-- レスポンス（`api/get_profile.php`）
+- レスポンス（`api/profile/get_profile.php`）
     - `success` -> true/false
     - `message` -> エラーメッセージ
     - `data` -> プロフィール情報
@@ -132,8 +136,8 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - ブログ一覧表示    : `blogs[]` **ブログ ID 配列。URL に変換して表示：/blog_detail.php?blog_id=xxx**
 
     - 自分のプロフィールの場合
-        - 編集ボタン0
-            - 編集処理（`api/update_profile.php`）
+        - 編集ボタン
+            - 編集処理（`api/profile/update_profile.php`）
                 - フォーム
                     - アイコンアップロード : `icon`
                     - 表示名入力           : `display_name`
@@ -145,13 +149,13 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 
     - 他人のプロフィールの場合
         - チャットを開始
-            - チャット開始処理（`api/start_chat.php`）
+            - チャット開始処理（`api/profile/start_chat.php`）
                 - レスポンス: `success`->true/false, `message`->エラーメッセージ, `chat_link`
                 - 成功：チャットページへ遷移（`chat.php?group_id=xxx`）
                 - 失敗：エラーメッセージ表示
 
         - ブロックボタン
-            - ブロック処理（`api/block_user.php`）
+            - ブロック処理（`api/profile/block_user.php`）
                 - レスポンス: `success`->true/false, `message`->エラーメッセージ
                 - 成功：プロフィールページを更新して表示
                 - 失敗：エラーメッセージ表示
@@ -159,7 +163,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 ### ダッシュボードページ
 
 #### ダッシュボードトップ(`dashboard.php`)
-- レスポンス(`api/get_dashboard.php`)
+- レスポンス(`api/dashboard/get_dashboard.php`)
     - success -> [true/false]
     - message -> エラーメッセージ
     - data -> ダッシュボード情報
@@ -179,7 +183,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - ユーザ招待（ユーザID入力 検索も可）: `invite_user_ids[]`
 
     - 作成ボタン
-        - 作成処理（`api/create_group.php`）
+        - 作成処理（`api/group/create_group.php`）
             - レスポンス: `success`->[true/false], `message`->エラーメッセージ
             - 成功：グループチャットページへ遷移
             - 失敗：エラーメッセージ表示
@@ -188,7 +192,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 - GETリクエストで`group_id`を受け取ることを前提とすること。
     - `chat.php?group_id=xxx`
 
-- レスポンス(`api/get_group_chat.php`)
+- レスポンス(`api/group/get_group_chat.php`)
     - success -> [true/false]
     - message -> エラーメッセージ
     - data -> グループチャット情報
@@ -198,6 +202,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - ブログID: `blog_id`
             - タイトル表示 : `title` **タイトルをクリックでページ遷移(`blog_detail.php?blog_id=xxx`)**
             - タグ表示   : `tags` **カンマ区切りの文字列**
+            - 作成日時表示 : `created_at`
 
         - メッセージ一覧 : `messages[]`
             - メッセージID      : `message_id`
@@ -205,13 +210,15 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - 送信者名表示      : `sender_display_name` **ユーザIDではなく表示名を表示すること。表示名をクリックでプロフィールページへ遷移(`profile.php?user_id=xxx`)**
             - 送信者アイコン表示: `sender_icon`
             - メッセージ内容表示: `content`
+            - 送信日時表示      : `created_at`
+            - 添付写真表示      : `image_url` **画像がない場合は null**
         
     - フォーム
         - メッセージ投稿（Markdown）         : `message_content` **作成中にプレビューを表示（例: markdown-it など）**
         - 画像アップロード                   : `image_upload`
 
     - 送信ボタン
-        - メッセージ送信処理（`api/send_message.php`）
+        - メッセージ送信処理（`api/group/send_message.php`）
             - レスポンス: `success`->[true/false], `message`->エラーメッセージ
             - 成功：メッセージをチャットに表示
             - 失敗：エラーメッセージ表示
@@ -224,11 +231,11 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 
 - オーナと管理者、メンバーで表示内容や操作できる内容が異なることを前提とすること。
 - 自分のロールを確認すること
-    - ロール確認処理（`api/get_user_role.php`）
+    - ロール確認処理（`api/group/get_user_role.php`）
         - レスポンス: `success`->true/false, `message`->エラーメッセージ, `role`->[owner/manager/member]
 
 - オーナー、管理者
-    - レスポンス(`api/get_group_info.php`)
+    - レスポンス(`api/group/get_group_info.php`)
         - グループ名表示   : `group_name`
         - アイコン表示     : `group_icon`
         - 公開/非公開表示  : `is_public`
@@ -250,18 +257,18 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
                 - 管理者は自分以外のメンバの権限を変更可能（ただし、オーナーの権限は変更不可）
 
     - 編集ボタン
-        - 編集処理（`api/update_group.php`）
+        - 編集処理（`api/group/update_group.php`）
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：`chat.php?group_id=xxx` へ遷移
             - 失敗：エラーメッセージ表示
 
     - グループ削除ボタン（オーナー権限）
-        - 削除処理（`api/delete_group.php`）
+        - 削除処理（`api/group/delete_group.php`）
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：`dashboard.php` へ遷移
             - 失敗：エラーメッセージ表示
 - メンバー
-    - レスポンス（`api/get_group_info.php`）
+    - レスポンス（`api/group/get_group_info.php`）
         - グループ名表示   : `group_name`
         - アイコン表示     : `group_icon`
         - 公開/非公開表示  : `is_public`
@@ -272,17 +279,17 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - 権限 [owner/manager/member] : `role`
 
     - 退会ボタン
-        - 退会処理（`api/leave_group.php`）
+        - 退会処理（`api/group/leave_group.php`）
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：`dashboard.php` へ遷移
             - 失敗：エラーメッセージ表示
 
 #### オープンチャット一覧ページ（`open_chats.php`）
-- 公開グループ一覧(`api/get_public_groups.php`)
+- 公開グループ一覧(`api/group/get_public_groups.php`)
     - グループID                : `group_id`
     - グループ名表示            : `group_name`
         - グループチャットページへのリンク
-            - 押した時点でグループに参加する処理(`api/join_group.php`)
+            - 押した時点でグループに参加する処理(`api/group/join_group.php`)
                 - レスポンス:`success`->true/false, `message`->エラーメッセージ
                 - 成功：グループチャットページへ遷移(`chat.php?group_id=xxx`)
                 - 失敗：エラーメッセージ表示
@@ -294,7 +301,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - グループ名入力 : `group_name_search`
 
     - 検索ボタン
-        - 検索処理（`api/search_groups.php`）
+        - 検索処理（`api/group/search_groups.php`）
             - レスポンス: `success`->true/false, `message`->エラーメッセージ, `groups[]`
             - 成功：検索結果を表示
             - 失敗：エラーメッセージ表示
@@ -302,7 +309,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 ### ブログ（Qiita 風）ページ
 
 #### ブログ一覧ページ（`blogs.php`）
-- レスポンス(`api/get_blogs.php`)
+- レスポンス(`api/blog/get_blogs.php`)
     - 公開記事一覧表示 : `public_blogs[]`
         - ブログID: `blog_id`
         - タイトル表示 : `title` **タイトルをクリックでページ遷移(`blog_detail.php?blog_id=xxx`)**
@@ -323,13 +330,13 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - グループ指定 : `group_filter`
 
 - 検索ボタン
-    - 検索処理(`api/search_blogs.php`)
+    - 検索処理(`api/blog/search_blogs.php`)
         - レスポンス : `success`->true/false, `message`->エラーメッセージ, `blogs[]`
         - 成功：検索結果を表示
         - 失敗：エラーメッセージ表示
     
 #### ブログ詳細ページ（`blog_detail.php`）
-- レスポンス(`api/get_blog_detail.php`)
+- レスポンス(`api/blog/get_blog_detail.php`)
     - タイトル表示  : `title`
     - タグ表示      : `tags`　**カンマ区切りの文字列**
     - 本文表示      : `content`
@@ -353,7 +360,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - タグ表示      : `tags` **カンマ区切りの文字列**
 
 #### ブログ作成ページ（`create_blog.php`）
-- フォーム(`api/create_blog.php`)
+- フォーム(`api/blog/create_blog.php`)
     - タイトル  : `title`
     - 本文      : `content`
     - 公開設定（public / private / group）: `visibility`
@@ -365,7 +372,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - タグ設定  : `tags` **カンマ区切りの文字列（半角カンマ）**
 
 - 投稿ボタン
-    - 投稿処理(`api/create_blog.php`)
+    - 投稿処理(`api/blog/create_blog.php`)
         - レスポンス:`success`->true/false, `message`->エラーメッセージ
         - 成功：ブログ詳細ページへ遷移(`blog_detail.php?blog_id=xxx`)
         - 失敗：エラーメッセージ表示
@@ -375,7 +382,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - `edit_blog.php?blog_id=xxx`
 - ブログの投稿者以外がアクセスした場合は、ブログ詳細ページへリダイレクトすることを前提とすること。
      - `blog_detail.php?blog_id=xxx`
-- レスポンス(`api/get_blog_detail.php`)
+- レスポンス(`api/blog/get_blog_detail.php`)
     - タイトル  : `title`
     - タグ      : `tags` **カンマ区切りの文字列**
     - 本文      : `content`
@@ -388,7 +395,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - 公開設定変更（public / private / group）: `visibility`
     
     - 削除ボタン
-        - 削除処理（`api/delete_blog.php`）
+        - 削除処理（`api/blog/delete_blog.php`）
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：ブログ一覧ページへ遷移
             - 失敗：エラーメッセージ表示
@@ -397,7 +404,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 
 #### サインアウトページ（`signout.php`）
 - POST リクエストでサインアウト処理を行うことを想定します。
-    - サインアウト処理（`api/signout.php`）
+    - サインアウト処理（`api/auth/signout.php`）
         - レスポンス: `success`->true/false, `message`->エラーメッセージ
         - 成功：`signin.php` へリダイレクト
         - 実装上の注意: セッション破棄、Cookie の削除、CSRF 検証を行うこと。
@@ -406,12 +413,12 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 
 1) パスワード再発行申請ページ（`forgot_password.php`）
 - フォーム: メールアドレス `mail_address`
-- 送信処理: `api/request_password_reset.php`（トークンを生成してメール送信）
+- 送信処理: `api/auth/request_password_reset.php`（トークンを生成してメール送信）**5分間有効なトークンを生成し、メールで送信すること。**
 - レスポンス: `success`->true/false, `message`->エラーメッセージ
 
 2) パスワードリセットページ（`reset_password.php`）
 - フォーム: `mail_address`, `token`, `new_password`, `new_password_confirm`
-- リセット処理: `api/reset_password.php`
+- リセット処理: `api/auth/reset_password.php`
     - レスポンス: `success`->true/false, `message`->エラーメッセージ
     - 成功：`signin.php` へ遷移
     - 実装上の注意: トークンの有効期限を設定し、再利用を防ぐこと。パスワード要件はサインアップと同様に検証すること。

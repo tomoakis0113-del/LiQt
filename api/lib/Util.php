@@ -1,9 +1,7 @@
 <?php
 namespace lib;
 
-use lib\PDOHandler;
 use Dotenv\Dotenv;
-
 class UtilException extends \Exception {}
 
 /**
@@ -26,19 +24,6 @@ class Util {
     }
 
     /**
-     * データベースに接続する
-     */
-    public static function connectDB(): PDOHandler {
-        try {
-            Util::loadEnv();
-            return PDOHandler::getInstanceMYSQL($_ENV['DB_HOST'], $_ENV['DB_NAME'], $_ENV['DB_USER'], $_ENV['DB_PASSWORD']);
-        } catch (\Exception $e) {
-            error_log("[SanaeProject] Failed to connect database: " . $e->getMessage());
-            throw new UtilException('データベース接続に失敗しました: ' . $e->getMessage());
-        }
-    }
-
-    /**
      * ローカルホストかどうかをチェック
      * @return bool ローカルホストの場合はtrue、それ以外はfalse
      */
@@ -47,25 +32,6 @@ class Util {
         return $serverName === 'localhost' || $serverName === '127.0.0.1';
     }
     
-    /**
-     * ログを追加
-     * @param PDOHandler $pdoHandler PDOハンドラー
-     * @param string $message ログメッセージ
-     */
-    public static function addLog(PDOHandler $pdoHandler, string $message, string $status = 'undefined'): void {
-        try{
-            $ipAddr    = $_SERVER['REMOTE_ADDR'] ?? '';
-            $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-            $userId    = $_SESSION['user_id'] ?? null;
-
-            $pdoHandler->exec("INSERT INTO log(user_id, user_agent, ip, message, status) VALUES(:user_id, :user_agent, :ip, :message, :status)", [":user_id"=>$userId, ":user_agent"=>$userAgent, ":ip"=>$ipAddr, ":message"=>$message, ":status"=>$status]);
-        }
-        catch(\Exception $e){
-            error_log("[SanaeProject] Failed to add log: " . $e->getMessage());
-            throw new UtilException('ログ追加に失敗しました: ' . $e->getMessage());
-        }
-    }
-
     /**
      * ランダムな文字列を生成
      * @param int $length 生成する文字列の長さ
@@ -87,11 +53,11 @@ class Util {
      * @param array $data レスポンスデータ
      * @param string $message レスポンスメッセージ
      */
-    public static function responseSuccess($data = [], $message = 'Success') {
+    public static function responseSuccess( $message = 'Success', $data = []) {
         header('Content-Type: application/json');
         exit(
             json_encode([
-                'status' => 'success',
+                'success' => true,
                 'message' => $message,
                 'data' => $data
             ])
@@ -109,7 +75,7 @@ class Util {
         header('Content-Type: application/json');
         exit(
             json_encode([
-                'status' => 'error',
+                'success' => false,
                 'message' => $message
             ])
         );

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <!-- meta -->
   <meta charset="UTF-8">
@@ -37,7 +38,7 @@
 
       <!-- 成功（モック用） -->
       <div id="successMsg" class="alert alert-success d-none">
-        認証成功！ログインページへ移動します
+        認証成功！サインインページへ移動します
       </div>
 
       <form id="verifyForm">
@@ -119,4 +120,5 @@
   </script>
 
 </body>
+
 </html>

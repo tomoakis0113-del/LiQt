@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <!-- meta -->
   <meta charset="UTF-8">
@@ -206,4 +207,5 @@
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
 </body>
+
 </html>

@@ -9,16 +9,21 @@ try{
     $csrfToken->getToken(); // csrf_tokenを取得->フロントエンド側でフォームに埋め込む
     $csrfToken->isValid($_POST['csrf_token'] ?? ''); // フォーム送信時にトークンを検証
 
-    // データベース操作用ライブラリ
-    $pdoHandler = lib\Util::connectDB(); // データベース接続
-    $pdoHandler->exec('SELECT name FROM user WHERE id = ?',['otonari']);
-
     // ユーザ操作系
-    $pdoHandler = lib\Util::connectDB();
-    $session = new lib\Session($pdoHandler);
-    $session->tryLogin('username', 'password', true); // ユーザ名、パスワードを用いてログインを試行する。true:ログインを維持
-    $session->isLoggedIn(); // ログイン済みかどうか
-    $session->logout(); // ログアウト
+    $session = new lib\Session();
+    $session->tryLogin('username', 'password', true); // ユーザ名、パスワードを用いてサインインを試行する。true:サインインを維持
+    $session->isSignedIn(); // サインイン済みかどうか
+    $session->signout(); // サインアウト
+
+    // データベース操作はORMを使用
+    $users = models\User::query()->where('is_active', 1)->get();
+    $user = models\User::query()->where('id', 1)->first();
+    $newUserId = models\User::query()->insertGetId([
+        'user_id' => 'newuser',
+        'mail_address' => 'test@example.com',
+        'password' => password_hash('Password123', PASSWORD_DEFAULT),
+        'is_active' => false,
+    ]);
 
     // メール送信
     echo lib\SendMail::send('example@example.com', 'タイトル', 'html本文')?'メール送信成功':'メール送信失敗';

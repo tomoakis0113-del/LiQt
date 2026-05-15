@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 
 <html lang="ja">
+
 <head>
   <!-- meta -->
   <meta charset="UTF-8">
@@ -26,6 +27,8 @@
 
 <body class="bg-light">
 
+  <!-- ヘッダー -->
+  <?php require_once __DIR__ . '/../component/header.php'; ?>
   <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
@@ -215,9 +218,13 @@
     </a>
 
   </main>
+  </main>
 
+  <!-- フッター -->
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
   <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
 </body>
+
 </html>

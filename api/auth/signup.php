@@ -32,6 +32,9 @@ try{
     if(!$user_id || !$display_name || !$mail_address || !$password){
         lib\Util::responseError(400,'全てのフィールドを入力してください');
     }
+    if(!preg_match('/^[a-zA-Z0-9]{5,20}$/', $user_id)){
+        lib\Util::responseError(400,'ユーザーIDは半角英数字で 5～20 文字で入力してください');
+    }
     if(!filter_var($mail_address, FILTER_VALIDATE_EMAIL)){
         lib\Util::responseError(400,'メールアドレスの形式が正しくありません');
     }
@@ -41,30 +44,27 @@ try{
         lib\Util::responseError(400,'パスワードは6-20文字で、英大文字・小文字・数字をそれぞれ1種類以上含む必要があります');
     }
 
-    // DB接続
-    $pdoHandler = lib\Util::connectDB();
-    $pdoHandler->exec(
-        'INSERT INTO users(user_id,mail_address,password)
-        VALUES (:user_id, :mail_address, :password)
-        ',
-        [
-            'user_id'       => $user_id,
-            'mail_address'  => $mail_address,
-            'password'      => password_hash($password, PASSWORD_DEFAULT)
-        ]
-    );
-    $user_id_number = $pdoHandler->getLastInsertId();
-    $pdoHandler->exec(
-        'INSERT INTO profiles(user_id,display_name)
-        VALUES (:user_id, :display_name)
-        ',
-        [
-            'user_id'       => $user_id_number,
-            'display_name'  => $display_name
-        ]
-    );
+    // ユーザーIDとメールアドレスの重複チェック
+    if(models\User::query()->where('user_id', $user_id)->exists()){
+        lib\Util::responseError(400,'ユーザーIDは既に使用されています');
+    }
+    if(models\User::query()->where('mail_address', $mail_address)->exists()){
+        lib\Util::responseError(400,'メールアドレスは既に使用されています');
+    }
 
-    lib\Util::responseSuccess('ユーザーの作成に成功しました');
+    // ユーザー作成
+    $session = models\User::create([
+        'user_id' => $user_id,
+        'mail_address' => $mail_address,
+        'password' => password_hash($password, PASSWORD_DEFAULT),
+        'is_active' => false,
+    ]);
+    models\Profile::create([
+        'user_id' => $session->id,
+        'display_name' => $display_name,
+    ]);
+
+    lib\Util::responseSuccess('ユーザーの作成に成功しました。');
 } catch (Exception $e){
     error_log("エラーが発生しました: " . $e->getMessage());
     lib\Util::responseError(500, 'サーバーエラーが発生しました');
