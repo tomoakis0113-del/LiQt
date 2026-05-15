@@ -7,13 +7,12 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - csrf_token: CSRFトークン
  * 
  * レスポンス:
- * - 成功: { "success": true, "message": "サインインに成功しました" }
- * - エラー: { "success": false, "message": "エラ
+ * - 成功: { "success": true, "message": "ダッシュボード情報を取得しました" }
+ * - エラー: { "success": false, "message": "不正なリクエストです","サインインが必要です" }
  */
 
 use models\GroupMember as GroupMemberModel;
 use models\Chat as ChatModel;
-
 
 try{
 
@@ -75,7 +74,7 @@ try{
     $data = [
         'joined_groups' => $joinedGroups
     ];
-    lib\Util::responseSuccess($data,'ダッシュボード情報を取得しました');
+    lib\Util::responseSuccess('ダッシュボード情報を取得しました', $data);
     }
 
     catch(\Throwable $e){
