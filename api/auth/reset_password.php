@@ -53,12 +53,12 @@ try {
     }
 
     // トークンの検証 - トークンが存在し、有効期限内であることを確認
+    $timezone = new DateTimeZone('Asia/Tokyo');
     $result = models\ResetRequest::query()
         ->where('user_id', $user_id)
         ->where('token', $token)
-        ->where('expires_at', '>', now())
-        ->get(['id'])['id'] ?? null;
-    if ($result === null) {
+        ->first(['user_id','expires_at']) ?? null;
+    if ($result === null || $result['user_id'] === null || new DateTime($result['expires_at'], $timezone) < new DateTime('now', $timezone)) {
         lib\Util::responseError(400, '無効なトークンです');
     }
 

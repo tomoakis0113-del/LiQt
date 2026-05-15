@@ -1,4 +1,7 @@
 <?php
+
+use function Illuminate\Support\now;
+
 require_once __DIR__ .'/../../vendor/autoload.php';
 
 /**
@@ -44,12 +47,13 @@ try{
     // 既存のトークンを確認
     $existingToken = models\MailTemporary::query()
         ->where('user_id', $user_id)
-        ->first(['created_at']);
+        ->first(['created_at'])['created_at'] ?? null;
+
+    $timezone = new DateTimeZone('Asia/Tokyo');
 
     // 既存のトークンが1分以内に発行されているか確認
     if($existingToken){
-        $timezone = new DateTimeZone('Asia/Tokyo');
-        $createdAt = new DateTime($existingToken['created_at'], $timezone);
+        $createdAt = new DateTime($existingToken, $timezone);
         $interval = (new DateTime('now', $timezone))->getTimestamp() - $createdAt->getTimestamp();
 
         if($interval < 60){ // 60秒クールダウン
@@ -61,9 +65,11 @@ try{
 
     // トークン生成と保存
     $token = lib\Util::generateRandomString(5);
+    $now = new DateTime('now', $timezone);
     models\MailTemporary::query()->insert([
         'user_id' => $user_id,
-        'token' => $token
+        'token' => $token,
+        'created_at' => $now->format('Y-m-d H:i:s'),
     ]);
 
     // メール送信
