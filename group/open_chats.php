@@ -58,14 +58,28 @@
 // 初期ロード
 loadGroups();
 
-// 一覧取得
+// 一覧取得（仮データ）
 function loadGroups() {
-  fetch("api/get_public_groups.php")
-    .then(res => res.json())
-    .then(data => {
-      if (!data.success) return showError(data.message);
-      renderGroups(data.groups);
-    });
+
+  const dummyGroups = [
+
+    {
+      group_id: 1,
+      group_name: "Web開発コミュニティ",
+      group_icon: "https://placehold.jp/100x100.png",
+      latest_message: "Bootstrapでモック作成中！"
+    },
+
+    {
+      group_id: 2,
+      group_name: "Java勉強会",
+      group_icon: "https://placehold.jp/100x100.png",
+      latest_message: "今日は継承について勉強します"
+    }
+
+  ];
+
+  renderGroups(dummyGroups);
 }
 
 // 描画

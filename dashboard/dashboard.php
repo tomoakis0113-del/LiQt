@@ -1,121 +1,223 @@
-<?php
-session_start();
-
-// 🔐 認証チェック
-require_once __DIR__ . '/../component/auth_check.php';
-
-// モックAPIレスポンス（本来は api/get_dashboard.php をfetch）
-$response = [
-    'success' => true,
-    'message' => '',
-    'data' => [
-        'joined_groups' => [
-            [
-                'group_id' => 1,
-                'group_name' => '開発チーム',
-                'group_icon' => '👨‍💻',
-                'latest_message' => 'APIの仕様どうする？'
-            ],
-            [
-                'group_id' => 2,
-                'group_name' => '雑談部屋',
-                'group_icon' => '💬',
-                'latest_message' => '今日ラーメン行く？'
-            ],
-            [
-                'group_id' => 3,
-                'group_name' => 'ゲーム仲間',
-                'group_icon' => '🎮',
-                'latest_message' => '昨日の試合やばかった'
-            ]
-        ]
-    ]
-];
-?>
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
+  <!-- meta -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ダッシュボード</title>
+  <meta name="description" content="ダッシュボードページ">
+  <meta name="keywords" content="LiQt,SNS,コミュニティ,BLOG">
+  <meta name="author" content="乙成,島田,勝原">
 
+  <!-- title -->
+  <title>ダッシュボード | LiQt</title>
+
+  <!-- Bootstrap -->
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../custom/custom-theme.css">
+
+  <!-- Google Fonts Icons -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 </head>
 
-<!-- ✅ フッター固定 -->
-<body class="d-flex flex-column min-vh-100">
+<body class="bg-light">
 
-<!-- ヘッダー -->
-<?php require_once __DIR__ . '/../component/header.php'; ?>
+  <!-- ヘッダー -->
+  <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-<!-- メイン -->
-<main class="container p-4 flex-grow-1">
+  <!-- 本文 -->
+  <main class="container py-4" style="padding-bottom: 120px;">
 
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold">ダッシュボード</h2>
+    <!-- タイトル -->
+    <div class="mb-4">
 
-    <!-- グループ作成 -->
-    <a href="/create_group.php" class="btn btn-success">
-      ＋ グループ作成
-    </a>
-  </div>
+      <h1 class="fw-bold mb-1">
+        ダッシュボード
+      </h1>
 
-  <?php if (!$response['success']): ?>
-    <!-- エラー -->
-    <div class="alert alert-danger">
-      <?php echo htmlspecialchars($response['message']); ?>
+      <p class="text-muted mb-0">
+        所属チャット一覧
+      </p>
+
     </div>
-  <?php else: ?>
 
-    <div class="row g-3">
+    <!-- オープンチャット -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
 
-      <?php foreach ($response['data']['joined_groups'] as $group): ?>
+      <div class="card-body d-flex justify-content-between align-items-center">
 
-        <div class="col-md-6 col-lg-4">
+        <div>
 
-          <!-- グループカード -->
-          <a href="/chat.php?group_id=<?php echo $group['group_id']; ?>" 
-             class="text-decoration-none text-dark">
+          <h5 class="fw-bold mb-1">
+            オープンチャット
+          </h5>
 
-            <div class="card shadow-sm h-100 hover-shadow">
-
-              <div class="card-body d-flex align-items-center">
-
-                <!-- アイコン -->
-                <div class="fs-2 me-3">
-                  <?php echo htmlspecialchars($group['group_icon']); ?>
-                </div>
-
-                <!-- 情報 -->
-                <div>
-                  <h5 class="mb-1">
-                    <?php echo htmlspecialchars($group['group_name']); ?>
-                  </h5>
-
-                  <small class="text-muted">
-                    <?php echo htmlspecialchars($group['latest_message']); ?>
-                  </small>
-                </div>
-
-              </div>
-
-            </div>
-
-          </a>
+          <p class="text-muted mb-0">
+            新しいグループを探す
+          </p>
 
         </div>
 
-      <?php endforeach; ?>
+        <a href="/group/open_chats.php"
+           class="btn btn-success rounded-pill px-4">
+
+          <span class="material-symbols-outlined align-middle me-1">
+            groups
+          </span>
+
+          開く
+
+        </a>
+
+      </div>
 
     </div>
 
-  <?php endif; ?>
+    <!-- 所属チャット一覧 -->
 
-</main>
+    <!-- グループ1 -->
+    <a href="/group/chat.php?group_id=1"
+       class="text-decoration-none text-dark">
 
-<!-- フッター -->
-<?php require_once __DIR__ . '/../component/footer.php'; ?>
+      <div class="card border-0 shadow-sm rounded-4 mb-3">
+
+        <div class="card-body">
+
+          <div class="d-flex align-items-center">
+
+            <!-- アイコン -->
+            <img src="https://placehold.jp/80x80.png"
+                 class="rounded-circle me-3"
+                 width="65"
+                 height="65">
+
+            <!-- グループ情報 -->
+            <div class="flex-grow-1">
+
+              <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="fw-bold mb-1">
+                  Web開発チーム
+                </h5>
+
+                <small class="text-muted">
+                  14:22
+                </small>
+
+              </div>
+
+              <p class="text-muted mb-0 text-truncate">
+                最新メッセージ：Bootstrapモック完成しました！
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </a>
+
+    <!-- グループ2 -->
+    <a href="/chat/chat.php?group_id=2"
+       class="text-decoration-none text-dark">
+
+      <div class="card border-0 shadow-sm rounded-4 mb-3">
+
+        <div class="card-body">
+
+          <div class="d-flex align-items-center">
+
+            <!-- アイコン -->
+            <img src="https://placehold.jp/80x80.png"
+                 class="rounded-circle me-3"
+                 width="65"
+                 height="65">
+
+            <!-- グループ情報 -->
+            <div class="flex-grow-1">
+
+              <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="fw-bold mb-1">
+                  Java勉強会
+                </h5>
+
+                <small class="text-muted">
+                  昨日
+                </small>
+
+              </div>
+
+              <p class="text-muted mb-0 text-truncate">
+                最新メッセージ：継承の課題終わった？
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </a>
+
+    <!-- グループ3 -->
+    <a href="/chat/chat.php?group_id=3"
+       class="text-decoration-none text-dark">
+
+      <div class="card border-0 shadow-sm rounded-4 mb-3">
+
+        <div class="card-body">
+
+          <div class="d-flex align-items-center">
+
+            <!-- アイコン -->
+            <img src="https://placehold.jp/80x80.png"
+                 class="rounded-circle me-3"
+                 width="65"
+                 height="65">
+
+            <!-- グループ情報 -->
+            <div class="flex-grow-1">
+
+              <div class="d-flex justify-content-between align-items-center">
+
+                <h5 class="fw-bold mb-1">
+                  PHPチーム
+                </h5>
+
+                <small class="text-muted">
+                  5/13
+                </small>
+
+              </div>
+
+              <p class="text-muted mb-0 text-truncate">
+                最新メッセージ：ログイン機能追加しました！
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </a>
+
+  </main>
+
+  <!-- フッター -->
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
 </body>
 </html>

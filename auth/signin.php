@@ -1,65 +1,119 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+
   <!-- meta -->
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="サインイン">
-  <meta name="keywords" content="LiQt,SNS,コミュニティ,BLOG">
-  <meta name="author" content="乙成,島田,勝原">
 
-  <!-- title -->
-  <title>サインイン</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>
+    サインイン | LiQt
+  </title>
 
   <!-- Bootstrap -->
-  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet"
+        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- custom -->
-  <link rel="stylesheet" href="../custom/custom-theme.css">
+  <style>
+
+    body {
+
+      background-color: #f5f7fb;
+
+    }
+
+    .signin-card {
+
+      max-width: 500px;
+      border-radius: 24px;
+
+    }
+
+  </style>
+
 </head>
 
 <body>
+
   <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
   <!-- 本文 -->
-  <main class="container d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <main class="container py-5"
+        style="padding-bottom: 120px;">
 
-    <div class="card shadow-sm p-4" style="width: 100%; max-width: 400px;">
+    <div class="mx-auto signin-card card border-0 shadow">
 
-      <h3 class="text-center mb-4">サインイン</h3>
+      <div class="card-body p-5">
 
-      <!-- エラーメッセージ（モック） -->
-      <div id="errorMsg" class="alert alert-danger d-none">
-        メールアドレスまたはパスワードが間違っています
-      </div>
+        <!-- タイトル -->
+        <h2 class="fw-bold text-center mb-4">
 
-      <form id="loginForm">
+          サインイン
 
-        <!-- メール -->
-        <div class="mb-3">
-          <label class="form-label">メールアドレス</label>
-          <input type="email" id="email" class="form-control" placeholder="メールアドレスを入力">
-        </div>
+        </h2>
 
-        <!-- パスワード -->
-        <div class="mb-3">
-          <label class="form-label">パスワード</label>
-          <input type="password" id="password" class="form-control" placeholder="パスワードを入力">
-        </div>
+        <!-- エラーメッセージ -->
+        <div id="messageBox"></div>
 
-        <!-- ログインボタン -->
-        <button type="submit" class="btn w-100 text-white" style="background-color: #06C755;">
-          サインインする
-        </button>
+        <!-- フォーム -->
+        <form id="signinForm">
 
-      </form>
+          <!-- メールアドレス -->
+          <div class="mb-4">
 
-      <!-- リンク -->
-      <div class="text-center mt-3">
-        <a href="#" class="text-decoration-none d-block">パスワードをお忘れですか？</a>
-        <a href="signup.php" class="text-decoration-none">新規登録はこちら</a>
+            <label class="form-label fw-bold">
+
+              メールアドレス
+
+            </label>
+
+            <input type="email"
+                   id="mailAddress"
+                   class="form-control form-control-lg"
+                   placeholder="sample@example.com">
+
+          </div>
+
+          <!-- パスワード -->
+          <div class="mb-4">
+
+            <label class="form-label fw-bold">
+
+              パスワード
+
+            </label>
+
+            <input type="password"
+                   id="password"
+                   class="form-control form-control-lg"
+                   placeholder="パスワード">
+
+          </div>
+
+          <!-- CSRF -->
+          <input type="hidden"
+                 id="csrfToken"
+                 value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+
+          <!-- ボタン -->
+          <div class="d-grid">
+
+            <button type="submit"
+                    class="btn btn-success btn-lg rounded-pill">
+
+              サインイン
+
+            </button>
+
+          </div>
+
+        </form>
+
       </div>
 
     </div>
@@ -69,23 +123,115 @@
   <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-  <!-- 🔹 モック用JS -->
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function(e) {
+
+    // フォーム
+    const form =
+      document.getElementById("signinForm");
+
+    // submit
+    form.addEventListener("submit", async (e) => {
+
+      // 通常送信停止
       e.preventDefault();
 
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+      // 値取得
+      const mailAddress =
+        document.getElementById("mailAddress").value;
 
-      // モック判定（適当）
-      if (email === "test@test.com" && password === "1234") {
-        // 成功 → ダッシュボードへ
-        window.location.href = "dashboard.php";
-      } else {
-        // 失敗 → エラー表示
-        document.getElementById("errorMsg").classList.remove("d-none");
+      const password =
+        document.getElementById("password").value;
+
+      const csrfToken =
+        document.getElementById("csrfToken").value;
+
+      // FormData
+      const formData = new FormData();
+
+      formData.append("mail_address", mailAddress);
+      formData.append("password", password);
+      formData.append("csrf_token", csrfToken);
+
+      try {
+
+        // fetch
+        const response =
+          await fetch("../api/auth/signin.php", {
+
+            method: "POST",
+            body: formData
+
+          });
+
+        // json
+        const data =
+          await response.json();
+
+        // 成功
+        if (data.success) {
+
+          showMessage(
+            data.message,
+            "success"
+          );
+
+          // 遷移
+          setTimeout(() => {
+
+            location.href =
+              "../dashboard/dashboard.php";
+
+          }, 1000);
+
+        }
+
+        // エラー
+        else {
+
+          showMessage(
+            data.message,
+            "danger"
+          );
+
+        }
+
       }
+
+      // 通信エラー
+      catch (error) {
+
+        showMessage(
+          "通信エラーが発生しました",
+          "danger"
+        );
+
+        console.error(error);
+
+      }
+
     });
+
+    // =========================
+    // メッセージ表示
+    // =========================
+
+    function showMessage(message, type) {
+
+      const box =
+        document.getElementById("messageBox");
+
+      box.innerHTML = `
+
+        <div class="alert alert-${type}">
+
+          ${message}
+
+        </div>
+
+      `;
+
+    }
+
   </script>
 
 </body>

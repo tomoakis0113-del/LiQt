@@ -1,173 +1,337 @@
 <!DOCTYPE html>
+
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- meta -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="グループチャットページ">
+  <meta name="keywords" content="LiQt,SNS,コミュニティ,BLOG">
+  <meta name="author" content="乙成,島田,勝原">
 
-<title>グループチャット</title>
+  <!-- title -->
+  <title>グループチャット | LiQt</title>
 
-<link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
-<script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Bootstrap -->
+  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- markdown -->
-<script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  <!-- CSS -->
+  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../custom/custom-theme.css">
 
-<style>
-.chat-box {
-  height: 400px;
-  overflow-y: auto;
-  border: 1px solid #ddd;
-  padding: 10px;
-  background: #f8f9fa;
-}
+  <!-- markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
-.message {
-  margin-bottom: 15px;
-}
+  <style>
 
-.message img {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-}
+    html,
+    body {
+      height: 100%;
+    }
 
-.preview-box {
-  background: #fff;
-  border: 1px dashed #ccc;
-  padding: 10px;
-  margin-top: 10px;
-}
-</style>
+    body {
+      background: #f8f9fa;
+    }
+
+    /* ページ全体余白 */
+    main {
+      padding-top: 50px !important;
+      padding-bottom: 260px !important;
+    }
+
+    /* 各ブロック余白 */
+    .section-card {
+      margin-bottom: 45px;
+    }
+
+    .chat-box {
+      min-height: 450px;
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      padding: 25px;
+    }
+
+    .message {
+      margin-bottom: 30px;
+    }
+
+    .message-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .message-content {
+      background: #fff;
+      border-radius: 18px;
+      padding: 18px;
+      margin-top: 10px;
+    }
+
+    .preview-box {
+      background: #fff;
+      border: 1px dashed #ccc;
+      border-radius: 15px;
+      padding: 20px;
+      min-height: 120px;
+    }
+
+    .list-group-item {
+      border-radius: 16px !important;
+      padding: 20px;
+    }
+
+    .blog-item {
+      margin-bottom: 20px;
+    }
+
+  </style>
 </head>
 
 <body>
 
-<?php require_once __DIR__ . '/../component/header.php'; ?>
+  <!-- ヘッダー -->
+  <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-<main class="container p-4">
+  <!-- 本文 -->
+  <main class="container py-5 px-4">
 
-  <!-- グループ情報 -->
-  <div class="d-flex align-items-center mb-4">
-    <img id="groupIcon" src="" width="60" height="60" class="rounded me-3">
-    <div>
-      <h4 id="groupName"></h4>
-      <a id="editLink" class="btn btn-sm btn-outline-secondary">編集</a>
-    </div>
-  </div>
+    <!-- グループ情報 -->
+    <div class="card border-0 shadow-sm rounded-4 section-card">
 
-  <!-- ブログ一覧 -->
-  <div class="mb-4">
-    <h5>グループブログ</h5>
-    <ul id="blogList" class="list-group"></ul>
-  </div>
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
 
-  <!-- チャット -->
-  <div class="chat-box mb-3" id="chatBox"></div>
+        <div class="d-flex align-items-center">
 
-  <!-- 投稿フォーム -->
-  <form id="messageForm">
+          <img id="groupIcon"
+               src="https://placehold.jp/100x100.png"
+               width="80"
+               height="80"
+               class="rounded-circle me-4">
 
-    <textarea class="form-control mb-2" name="message_content" id="messageInput" placeholder="メッセージ（Markdown対応）"></textarea>
+          <div>
 
-    <input type="file" class="form-control mb-2" name="image_upload">
+            <h2 id="groupName" class="fw-bold mb-2">
+              Web開発チーム
+            </h2>
 
-    <!-- プレビュー -->
-    <div class="preview-box" id="preview"></div>
+            <p class="text-muted mb-0">
+              グループチャット
+            </p>
 
-    <button class="btn btn-primary w-100">送信</button>
-  </form>
+          </div>
 
-</main>
-
-<?php require_once __DIR__ . '/../component/footer.php'; ?>
-
-<script>
-const md = window.markdownit();
-
-// URLからgroup_id取得
-const params = new URLSearchParams(location.search);
-const groupId = params.get("group_id");
-
-// 初期ロード
-fetch(`api/get_group_chat.php?group_id=${groupId}`)
-  .then(res => res.json())
-  .then(data => {
-    if (!data.success) {
-      alert(data.message);
-      return;
-    }
-
-    const d = data.data;
-
-    // グループ情報
-    document.getElementById("groupName").textContent = d.group_name;
-    document.getElementById("groupIcon").src = d.group_icon;
-    document.getElementById("editLink").href = `edit_group.php?group_id=${groupId}`;
-
-    // ブログ
-    const blogList = document.getElementById("blogList");
-    d.group_blogs.forEach(blog => {
-      blogList.innerHTML += `
-        <li class="list-group-item">
-          <a href="blog_detail.php?blog_id=${blog.blog_id}">${blog.title}</a>
-          <div class="text-muted small">${blog.tags}</div>
-        </li>
-      `;
-    });
-
-    // メッセージ
-    renderMessages(d.messages);
-  });
-
-// メッセージ描画
-function renderMessages(messages) {
-  const box = document.getElementById("chatBox");
-  box.innerHTML = "";
-
-  messages.forEach(msg => {
-    box.innerHTML += `
-      <div class="message d-flex">
-        <img src="${msg.sender_icon}" class="me-2">
-        <div>
-          <a href="profile.php?user_id=${msg.sender_user_id}">
-            ${msg.sender_display_name}
-          </a>
-          <div>${md.render(msg.content)}</div>
         </div>
+
+        <!-- 編集 -->
+        <a id="editLink"
+           href="edit_group.php?group_id=1"
+           class="btn btn-outline-secondary rounded-pill px-4 py-2">
+
+          編集
+
+        </a>
+
       </div>
-    `;
-  });
 
-  box.scrollTop = box.scrollHeight;
-}
+    </div>
 
-// プレビュー
-document.getElementById("messageInput").addEventListener("input", function() {
-  document.getElementById("preview").innerHTML = md.render(this.value);
-});
+    <!-- チャット -->
+    <div class="card border-0 shadow-sm rounded-4 section-card">
 
-// 送信
-document.getElementById("messageForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+      <div class="card-body p-4">
 
-  const formData = new FormData(e.target);
-  formData.append("group_id", groupId);
+        <h4 class="fw-bold mb-4">
+          チャット
+        </h4>
 
-  const res = await fetch("api/send_message.php", {
-    method: "POST",
-    body: formData
-  });
+        <div class="chat-box mb-5" id="chatBox">
 
-  const data = await res.json();
+          <!-- メッセージ1 -->
+          <div class="message d-flex">
 
-  if (data.success) {
-    // 再取得（簡易モック）
-    location.reload();
-  } else {
-    alert(data.message);
-  }
-});
-</script>
+            <img src="https://placehold.jp/100x100.png"
+                 class="message-icon me-3">
+
+            <div>
+
+              <a href="profile.php?user_id=1"
+                 class="fw-bold text-decoration-none">
+
+                山田太郎
+
+              </a>
+
+              <div class="message-content shadow-sm">
+
+                Bootstrapでチャット画面作りました！
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- メッセージ2 -->
+          <div class="message d-flex">
+
+            <img src="https://placehold.jp/100x100.png"
+                 class="message-icon me-3">
+
+            <div>
+
+              <a href="profile.php?user_id=2"
+                 class="fw-bold text-decoration-none">
+
+                佐藤花子
+
+              </a>
+
+              <div class="message-content shadow-sm">
+
+                **Markdown** も使えるようにしたい！
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- 投稿フォーム -->
+        <form id="messageForm">
+
+          <!-- メッセージ -->
+          <textarea
+            class="form-control mb-4"
+            id="messageInput"
+            name="message_content"
+            rows="5"
+            placeholder="Markdown対応メッセージ"></textarea>
+
+          <!-- 画像 -->
+          <input
+            type="file"
+            class="form-control mb-4"
+            name="image_upload">
+
+          <!-- プレビュー -->
+          <div class="mb-5">
+
+            <label class="fw-bold mb-3">
+              プレビュー
+            </label>
+
+            <div id="preview"
+                 class="preview-box">
+
+              ここにMarkdownプレビューが表示されます
+
+            </div>
+
+          </div>
+
+          <!-- ボタン -->
+          <button class="btn btn-success w-100 py-3 rounded-pill">
+
+            送信
+
+          </button>
+
+        </form>
+
+      </div>
+
+    </div>
+
+    <!-- グループブログ -->
+    <div class="card border-0 shadow-sm rounded-4" style="margin-bottom: 500px;">
+
+      <div class="card-body p-4">
+
+        <h4 class="fw-bold mb-4">
+          グループブログ
+        </h4>
+
+        <ul class="list-group" id="blogList">
+
+          <!-- ブログ1 -->
+          <li class="list-group-item blog-item">
+
+            <a href="blog_detail.php?blog_id=1"
+               class="fw-bold text-decoration-none fs-5">
+
+              Bootstrapでモック作成
+
+            </a>
+
+            <div class="mt-3">
+
+              <span class="badge bg-primary me-2">
+                Bootstrap
+              </span>
+
+              <span class="badge bg-success">
+                HTML
+              </span>
+
+            </div>
+
+          </li>
+
+          <!-- ブログ2 -->
+          <li class="list-group-item">
+
+            <a href="blog_detail.php?blog_id=2"
+               class="fw-bold text-decoration-none fs-5">
+
+              Java継承について
+
+            </a>
+
+            <div class="mt-3">
+
+              <span class="badge bg-primary me-2">
+                Java
+              </span>
+
+              <span class="badge bg-warning text-dark">
+                オブジェクト指向
+              </span>
+
+            </div>
+
+          </li>
+
+        </ul>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- フッター -->
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
+
+  <script>
+
+    // markdown
+    const md = window.markdownit();
+
+    // プレビュー
+    document.getElementById("messageInput")
+      .addEventListener("input", function () {
+
+        document.getElementById("preview").innerHTML =
+          md.render(this.value);
+
+      });
+
+  </script>
 
 </body>
 </html>
