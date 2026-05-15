@@ -1,3 +1,14 @@
+<?php
+
+session_start();
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// CSRF生成
+$csrfToken = new lib\CSRFToken();
+
+?>
+
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -10,7 +21,9 @@
         content="width=device-width, initial-scale=1.0">
 
   <title>
+
     サインイン | LiQt
+
   </title>
 
   <!-- Bootstrap -->
@@ -47,7 +60,7 @@
   <main class="container py-5"
         style="padding-bottom: 120px;">
 
-    <div class="mx-auto signin-card card border-0 shadow">
+    <div class="card border-0 shadow signin-card mx-auto">
 
       <div class="card-body p-5">
 
@@ -58,13 +71,13 @@
 
         </h2>
 
-        <!-- エラーメッセージ -->
+        <!-- メッセージ -->
         <div id="messageBox"></div>
 
         <!-- フォーム -->
         <form id="signinForm">
 
-          <!-- メールアドレス -->
+          <!-- メール -->
           <div class="mb-4">
 
             <label class="form-label fw-bold">
@@ -76,7 +89,8 @@
             <input type="email"
                    id="mailAddress"
                    class="form-control form-control-lg"
-                   placeholder="sample@example.com">
+                   placeholder="sample@example.com"
+                   required>
 
           </div>
 
@@ -92,14 +106,16 @@
             <input type="password"
                    id="password"
                    class="form-control form-control-lg"
-                   placeholder="パスワード">
+                   placeholder="パスワード"
+                   required>
 
           </div>
 
           <!-- CSRF -->
           <input type="hidden"
-                 id="csrfToken"
-                 value="<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>">
+                 id="csrf_token"
+                 name="csrf_token"
+                 value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
 
           <!-- ボタン -->
           <div class="d-grid">
@@ -144,14 +160,26 @@
         document.getElementById("password").value;
 
       const csrfToken =
-        document.getElementById("csrfToken").value;
+        document.getElementById("csrf_token").value;
 
       // FormData
-      const formData = new FormData();
+      const formData =
+        new FormData();
 
-      formData.append("mail_address", mailAddress);
-      formData.append("password", password);
-      formData.append("csrf_token", csrfToken);
+      formData.append(
+        "mail_address",
+        mailAddress
+      );
+
+      formData.append(
+        "password",
+        password
+      );
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
 
       try {
 
@@ -164,12 +192,18 @@
 
           });
 
-        // json
+        // 生レスポンス
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        // JSON変換
         const data =
-          await response.json();
+          JSON.parse(text);
 
         // 成功
-        if (data.success) {
+        if (data.success === true) {
 
           showMessage(
             data.message,
@@ -186,11 +220,11 @@
 
         }
 
-        // エラー
+        // 失敗
         else {
 
           showMessage(
-            data.message,
+            data.message || "ログインに失敗しました",
             "danger"
           );
 
@@ -198,15 +232,15 @@
 
       }
 
-      // 通信エラー
+      // エラー
       catch (error) {
+
+        console.error(error);
 
         showMessage(
           "通信エラーが発生しました",
           "danger"
         );
-
-        console.error(error);
 
       }
 
