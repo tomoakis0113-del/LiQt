@@ -5,7 +5,12 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * ブロックAPI
  * 必要なパラメータ:
  * - csrf_token
- * - user_id: ブロックしたいユーザーID
+ * - user_id: ブロックしたいユーザーID 5文字以上20文字以下
+ * 
+ * レスポンス:
+ * - 成功: { "success": true, "message": "ブログ一覧を取得します" }
+ * - エラー: { "success": false, "message": "不正なリクエストです" ,"サインインが必要です"}
+ * -"data" : "すでにブロック済みです" 
  */
 try{
     if($_SERVER['REQUEST_METHOD'] !== 'POST'){
@@ -23,8 +28,8 @@ try{
     }
 
     // ユーザーIDのバリデーション
-    if(!preg_match('/^[A-Za-z0-9]{8}$/', $targetUserId)){
-        lib\Util::responseError(400,'ユーザーIDは英数字8文字で入力してください');
+    if(!preg_match('/^[A-Za-z0-9]{5,20}$/', $targetUserId)){
+        lib\Util::responseError(400,'ユーザーIDは英数字5-20文字で入力してください');
     }
 
     $sessionHandler = new lib\Session();

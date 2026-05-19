@@ -8,7 +8,7 @@
 - [x] `api/profile/update_profile.php`
 - [x] `api/profile/start_chat.php`
 - [x] `api/profile/block_user.php`
-- [ ] `api/dashboard/get_dashboard.php`
+- [x] `api/dashboard/get_dashboard.php`
 - [x] `api/group/create_group.php`
 - [x] `api/group/get_group_chat.php`
 - [x] `api/group/send_message.php`

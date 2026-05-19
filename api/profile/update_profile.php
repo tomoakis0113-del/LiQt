@@ -9,6 +9,14 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - introduction
  * - tags
  * - icon 任意
+ * 
+ * レスポンス:
+ * - 成功:
+ * {
+ *   "success": true,
+ *   "message": "プロフィール更新に成功しました",
+ *   "data": []
+ * }
  */
 try{
     if($_SERVER['REQUEST_METHOD'] !== 'POST'){
@@ -98,7 +106,7 @@ try{
             ]);
     }
 
-    lib\Util::responseSuccess([], 'プロフィールを更新しました');
+    lib\Util::responseSuccess( 'プロフィールを更新しました');
 }
 catch(\Throwable $e){
     error_log("エラーが発生しました: " . $e->getMessage());
