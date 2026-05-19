@@ -101,7 +101,7 @@ try {
     }
 
     $data = [
-        'chat_link' => 'chat.php?group_id=' . $groupId
+        'chat_link' => '/group/chat.php?group_id=' . $groupId
     ];
 
     lib\Util::responseSuccess('チャットを開始しました',$data);
