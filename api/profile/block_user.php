@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - user_id: ブロックしたいユーザーID 5文字以上20文字以下
  * 
  * レスポンス:
- * - 成功: { "success": true, "message": "ブログ一覧を取得します" }
+ * - 成功: { "success": true, "message": "ユーザーをブロックしました"}
  * - エラー: { "success": false, "message": "不正なリクエストです" ,"サインインが必要です"}
  * -"data" : "すでにブロック済みです" 
  */

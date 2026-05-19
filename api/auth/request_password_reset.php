@@ -47,12 +47,14 @@ try {
     models\ResetRequest::query()->where('user_id', $user_id)->delete();
 
     // トークンを生成(5分間有効)して保存
+    $timezone = new DateTimeZone('Asia/Tokyo');
+    $now = new DateTime('now', $timezone);
     $token = lib\Util::generateRandomString(5);
     models\ResetRequest::query()->insert([
         'user_id' => $user_id,
         'token' => $token,
-        'created_at' => date('Y-m-d H:i:s'),
-        'expires_at' => date('Y-m-d H:i:s', strtotime('+5 minutes'))
+        'created_at' => $now->format('Y-m-d H:i:s'),
+        'expires_at' => $now->add(new DateInterval('PT5M'))->format('Y-m-d H:i:s'),
     ]);
 
     // メール送信
