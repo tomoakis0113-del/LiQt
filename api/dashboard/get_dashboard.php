@@ -8,6 +8,26 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * 
  * レスポンス:
  * - 成功: { "success": true, "message": "ダッシュボード情報を取得しました" }
+ * {
+ *         "success": true,
+ *         "message": "ダッシュボード情報を取得しました",
+ *     "data": {
+ *     "joined_groups": [
+ *      {
+ *        "group_id": 1,
+ *        "group_name": "General Chat",
+ *        "group_icon": "",
+ *        "latest_message": "Hello everyone!"
+ *      },
+ *      {
+ *        "group_id": 2,
+ *        "group_name": "Private Club",
+ *        "group_icon": "",
+ *        "latest_message": ""
+ *      }
+ *   ]
+ *  }
+ * }
  * - エラー: { "success": false, "message": "不正なリクエストです","サインインが必要です" }
  */
 
