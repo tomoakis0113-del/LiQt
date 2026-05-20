@@ -7,7 +7,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - csrf_token: CSRFトークン
  * 
  * レスポンス:
- * - 成功: { "success": true, "message": "ダッシュボード情報を取得しました" }
+ * - 成功:
  * {
  *         "success": true,
  *         "message": "ダッシュボード情報を取得しました",
