@@ -1,106 +1,826 @@
 <?php
+
 session_start();
 
-// 🔐 認証チェック（必要なら）
-require_once __DIR__ . '/../component/auth_check.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// GETパラメータ（なければ自分）
-$user_id = $_GET['user_id'] ?? $_SESSION['user_id'];
+// CSRF生成
+$csrfToken = new lib\CSRFToken();
 
-// 自分 or 他人 判定
-$is_my_profile = ($user_id == $_SESSION['user_id']);
-
-// モックデータ
-$user = [
-  'id' => $user_id,
-  'name' => $is_my_profile ? '自分ユーザー' : '他ユーザー',
-  'bio' => 'ここに自己紹介が入ります。よろしくお願いします！'
-];
 ?>
+
 <!DOCTYPE html>
 <html lang="ja">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>プロフィール</title>
 
-  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>
+
+    プロフィール | LiQt
+
+  </title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet"
+        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+
+  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Icons -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+  <style>
+
+    body {
+
+      background-color: #f5f7fb;
+
+    }
+
+    .avatar-image {
+
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+
+    }
+
+    .tag-badge {
+
+      margin-right: 6px;
+      margin-bottom: 6px;
+
+    }
+
+    .blog-card {
+
+      transition: 0.2s;
+
+    }
+
+    .blog-card:hover {
+
+      transform: translateY(-2px);
+
+    }
+
+  </style>
+
 </head>
 
-<!-- ✅ フッター固定のための設定 -->
-
-<body class="d-flex flex-column min-vh-100">
+<body>
 
   <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <!-- メイン -->
-  <main class="container p-4 flex-grow-1">
+  <!-- 本文 -->
+  <main class="container py-4"
+        style="max-width: 900px; padding-bottom: 120px;">
 
-    <div class="card shadow-sm p-4">
+    <!-- メッセージ -->
+    <div id="messageBox"></div>
 
-      <!-- 上部 -->
-      <div class="d-flex align-items-center mb-4">
-        <div class="rounded-circle bg-secondary text-white d-flex justify-content-center align-items-center"
-          style="width:80px;height:80px;font-size:32px;">
-          👤
+    <!-- プロフィール -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+      <div class="card-body text-center p-4">
+
+        <!-- アイコン -->
+        <div class="mb-3">
+
+          <img id="profileIcon"
+               src="https://placehold.jp/120x120.png"
+               class="avatar-image">
+
         </div>
 
-        <div class="ms-3">
-          <h4 class="mb-1"><?php echo htmlspecialchars($user['name']); ?></h4>
-          <small class="text-muted">ID: <?php echo htmlspecialchars($user['id']); ?></small>
+        <!-- 表示名 -->
+        <h2 id="displayName"
+            class="fw-bold mb-1">
+
+          読み込み中...
+
+        </h2>
+
+        <!-- ユーザーID -->
+        <p id="userId"
+           class="text-muted mb-3">
+
+          @loading
+
+        </p>
+
+        <!-- 自己紹介 -->
+        <p id="introduction"
+           class="mb-4">
+
+          読み込み中...
+
+        </p>
+
+        <!-- タグ -->
+        <div id="tagArea"
+             class="mb-4"></div>
+
+        <!-- ボタン -->
+        <div id="buttonArea"
+             class="d-flex justify-content-center gap-2 flex-wrap"></div>
+
+      </div>
+
+    </div>
+
+    <!-- 投稿一覧 -->
+    <div class="card border-0 shadow-sm rounded-4">
+
+      <div class="card-header bg-white border-0 pt-4 pb-0">
+
+        <h4 class="fw-bold">
+
+          投稿一覧
+
+        </h4>
+
+      </div>
+
+      <div class="card-body"
+           id="blogList">
+
+        <div class="text-muted">
+
+          読み込み中...
+
         </div>
-      </div>
 
-      <!-- 自己紹介 -->
-      <div class="mb-4">
-        <h5>自己紹介</h5>
-        <p><?php echo htmlspecialchars($user['bio']); ?></p>
       </div>
-
-      <!-- ボタン -->
-      <?php if ($is_my_profile): ?>
-        <a href="#" class="btn btn-success">プロフィール編集</a>
-      <?php else: ?>
-        <button class="btn btn-primary">フォロー</button>
-      <?php endif; ?>
 
     </div>
 
   </main>
 
-  <!-- フッター（これ使う） -->
-  <footer class="mt-auto border-top" style="background-color: #06C755;">
-    <div class="container py-3">
+  <!-- 編集モーダル -->
+  <div class="modal fade"
+       id="editModal"
+       tabindex="-1">
 
-      <div class="row text-center">
-        <div class="col">
-          <a href="/dashboard.php" class="text-white text-decoration-none d-block">
-            🏠<br>ダッシュボード
-          </a>
-        </div>
+    <div class="modal-dialog modal-dialog-centered">
 
-        <div class="col">
-          <a href="/blogs.php" class="text-white text-decoration-none d-block">
-            📝<br>ブログ
-          </a>
-        </div>
+      <div class="modal-content border-0 rounded-4 shadow">
 
-        <div class="col">
-          <a href="/profile.php" class="text-white text-decoration-none d-block">
-            👤<br>プロフィール
-          </a>
-        </div>
-      </div>
+        <form id="editProfileForm">
 
-      <div class="text-center small text-white-50 mt-2">
-        © <?php echo date('Y'); ?> LiQt
+          <div class="modal-header">
+
+            <h5 class="modal-title fw-bold">
+
+              プロフィール編集
+
+            </h5>
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"></button>
+
+          </div>
+
+          <div class="modal-body">
+
+            <!-- 表示名 -->
+            <div class="mb-3">
+
+              <label class="form-label fw-bold">
+
+                表示名
+
+              </label>
+
+              <input type="text"
+                     name="display_name"
+                     id="editDisplayName"
+                     class="form-control"
+                     required>
+
+            </div>
+
+            <!-- 自己紹介 -->
+            <div class="mb-3">
+
+              <label class="form-label fw-bold">
+
+                自己紹介
+
+              </label>
+
+              <textarea name="introduction"
+                        id="editIntroduction"
+                        class="form-control"
+                        rows="4"></textarea>
+
+            </div>
+
+            <!-- タグ -->
+            <div class="mb-3">
+
+              <label class="form-label fw-bold">
+
+                タグ
+
+              </label>
+
+              <input type="text"
+                     name="tags"
+                     id="editTags"
+                     class="form-control"
+                     placeholder="Java,PHP,Bootstrap">
+
+            </div>
+
+            <!-- アイコン -->
+            <div class="mb-3">
+
+              <label class="form-label fw-bold">
+
+                アイコン
+
+              </label>
+
+              <input type="file"
+                     name="icon"
+                     class="form-control"
+                     accept="image/*">
+
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+
+            <button type="button"
+                    class="btn btn-light"
+                    data-bs-dismiss="modal">
+
+              キャンセル
+
+            </button>
+
+            <button type="submit"
+                    class="btn btn-success">
+
+              保存
+
+            </button>
+
+          </div>
+
+        </form>
+
       </div>
 
     </div>
-  </footer>
+
+  </div>
+
+  <!-- フッター -->
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
+
+  <!-- CSRF -->
+  <input type="hidden"
+         id="csrf_token"
+         value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
+
+  <script>
+
+    // URLパラメータ
+    const params =
+      new URLSearchParams(location.search);
+
+    // user_id
+    const userId =
+      params.get("user_id")??"";
+
+    // CSRF
+    const csrfToken =
+      document.getElementById("csrf_token").value;
+
+    // 初期ロード
+    loadProfile();
+
+    // =========================
+    // プロフィール取得
+    // =========================
+
+    async function loadProfile() {
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "user_id",
+        userId
+      );
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
+
+      try {
+
+        const response =
+          await fetch(
+            "../api/profile/get_profile.php",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        const result =
+          JSON.parse(text);
+
+        // エラー
+        if (!result.success) {
+
+          showMessage(
+            result.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        const data =
+          result.data;
+
+        // 表示
+        renderProfile(data);
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showMessage(
+          "通信エラーが発生しました",
+          "danger"
+        );
+
+      }
+
+    }
+
+    // =========================
+    // 表示
+    // =========================
+
+    function renderProfile(data) {
+
+      // アイコン
+      document.getElementById("profileIcon").src =
+        data.icon_url || "https://placehold.jp/120x120.png";
+
+      // 表示名
+      document.getElementById("displayName").textContent =
+        data.display_name;
+
+      // ユーザーID
+      document.getElementById("userId").textContent =
+        "@" + data.user_id;
+
+      // 自己紹介
+      document.getElementById("introduction").textContent =
+        data.introduction || "自己紹介はありません";
+
+      // タグ
+      renderTags(data.tags);
+
+      // ボタン
+      renderButtons(data);
+
+      // 投稿
+      renderBlogs(data.blogs);
+
+      // 編集フォーム
+      if (data.is_mine) {
+
+        document.getElementById("editDisplayName").value =
+          data.display_name;
+
+        document.getElementById("editIntroduction").value =
+          data.introduction;
+
+        document.getElementById("editTags").value =
+          data.tags;
+
+      }
+
+    }
+
+    // =========================
+    // タグ
+    // =========================
+
+    function renderTags(tags) {
+
+      const area =
+        document.getElementById("tagArea");
+
+      area.innerHTML = "";
+
+      if (!tags || tags.trim() === "") {
+
+        return;
+
+      }
+
+      tags.split(",").forEach(tag => {
+
+        area.innerHTML += `
+
+          <span class="badge bg-success tag-badge">
+
+            ${tag.trim()}
+
+          </span>
+
+        `;
+
+      });
+
+    }
+
+    // =========================
+    // ボタン
+    // =========================
+
+    function renderButtons(data) {
+
+      const area =
+        document.getElementById("buttonArea");
+
+      area.innerHTML = "";
+
+      // 自分
+      if (data.is_mine) {
+
+        area.innerHTML = `
+
+          <button class="btn btn-success px-4"
+                  data-bs-toggle="modal"
+                  data-bs-target="#editModal">
+
+            編集
+
+          </button>
+
+        `;
+
+      }
+
+      // 他人
+      else {
+
+        area.innerHTML = `
+
+          <button class="btn btn-outline-primary"
+                  onclick="startChat('${data.user_id}')">
+
+            チャット
+
+          </button>
+
+          <button class="btn btn-outline-danger"
+                  onclick="blockUser('${data.user_id}')">
+
+            ブロック
+
+          </button>
+
+        `;
+
+      }
+
+    }
+
+    // =========================
+    // 投稿
+    // =========================
+
+    function renderBlogs(blogs) {
+
+      const list =
+        document.getElementById("blogList");
+
+      list.innerHTML = "";
+
+      // 投稿なし
+      if (!blogs || blogs.length === 0) {
+
+        list.innerHTML = `
+
+          <div class="text-muted">
+
+            投稿はありません
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+      blogs.forEach(blogId => {
+
+        list.innerHTML += `
+
+          <a href="/blog/blog_detail.php?blog_id=${blogId}"
+             class="text-decoration-none text-dark">
+
+            <div class="border rounded-4 p-3 mb-3 blog-card">
+
+              <div class="fw-bold">
+
+                ブログID :
+                ${blogId}
+
+              </div>
+
+              <div class="text-muted small">
+
+                詳細を見る
+
+              </div>
+
+            </div>
+
+          </a>
+
+        `;
+
+      });
+
+    }
+
+    // =========================
+    // チャット開始
+    // =========================
+
+    async function startChat(targetUserId) {
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
+
+      formData.append(
+        "user_id",
+        targetUserId
+      );
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/profile/start_chat.php",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        const result =
+          JSON.parse(text);
+
+        if (!result.success) {
+
+          showMessage(
+            result.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        showMessage(
+          result.message,
+          "success"
+        );
+
+        // 遷移
+        location.href =
+          result.data.chat_link;
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showMessage(
+          "通信エラーが発生しました",
+          "danger"
+        );
+
+      }
+
+    }
+
+    // =========================
+    // ブロック
+    // =========================
+
+    async function blockUser(targetUserId) {
+
+      if (!confirm("このユーザーをブロックしますか？")) {
+
+        return;
+
+      }
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
+
+      formData.append(
+        "user_id",
+        targetUserId
+      );
+
+      try {
+
+        const response =
+          await fetch(
+            "/api/profile/block_user.php",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        const result =
+          JSON.parse(text);
+
+        if (!result.success) {
+
+          showMessage(
+            result.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        showMessage(
+          result.message,
+          "success"
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showMessage(
+          "通信エラーが発生しました",
+          "danger"
+        );
+
+      }
+
+    }
+
+    // =========================
+    // 更新
+    // =========================
+
+    document
+      .getElementById("editProfileForm")
+      .addEventListener("submit", async (e) => {
+
+        e.preventDefault();
+
+        const formData =
+          new FormData(e.target);
+
+        formData.append(
+          "csrf_token",
+          csrfToken
+        );
+
+        try {
+
+          const response =
+            await fetch(
+              "/api/profile/update_profile.php",
+              {
+                method: "POST",
+                body: formData
+              }
+            );
+
+          const text =
+            await response.text();
+
+          console.log(text);
+
+          const result =
+            JSON.parse(text);
+
+          if (!result.success) {
+
+            showMessage(
+              result.message,
+              "danger"
+            );
+
+            return;
+
+          }
+
+          showMessage(
+            result.message,
+            "success"
+          );
+
+          // モーダル閉じる
+          bootstrap.Modal
+            .getInstance(
+              document.getElementById("editModal")
+            )
+            .hide();
+
+          // 再取得
+          loadProfile();
+
+        }
+
+        catch (error) {
+
+          console.error(error);
+
+          showMessage(
+            "通信エラーが発生しました",
+            "danger"
+          );
+
+        }
+
+      });
+
+    // =========================
+    // メッセージ
+    // =========================
+
+    function showMessage(message, type) {
+
+      document.getElementById("messageBox").innerHTML = `
+
+        <div class="alert alert-${type}">
+
+          ${message}
+
+        </div>
+
+      `;
+
+    }
+
+  </script>
 
 </body>
 

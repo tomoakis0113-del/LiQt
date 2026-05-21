@@ -1,123 +1,372 @@
 <?php
+
 session_start();
 
-// 🔐 認証チェック
-require_once __DIR__ . '/../component/auth_check.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// モックAPIレスポンス（本来は api/get_dashboard.php をfetch）
-$response = [
-  'success' => true,
-  'message' => '',
-  'data' => [
-    'joined_groups' => [
-      [
-        'group_id' => 1,
-        'group_name' => '開発チーム',
-        'group_icon' => '👨‍💻',
-        'latest_message' => 'APIの仕様どうする？'
-      ],
-      [
-        'group_id' => 2,
-        'group_name' => '雑談部屋',
-        'group_icon' => '💬',
-        'latest_message' => '今日ラーメン行く？'
-      ],
-      [
-        'group_id' => 3,
-        'group_name' => 'ゲーム仲間',
-        'group_icon' => '🎮',
-        'latest_message' => '昨日の試合やばかった'
-      ]
-    ]
-  ]
-];
+// CSRF生成
+$csrfToken = new lib\CSRFToken();
+
 ?>
+
 <!DOCTYPE html>
+
 <html lang="ja">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ダッシュボード</title>
 
-  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
-  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <!-- meta -->
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <meta name="description"
+        content="ダッシュボードページ">
+
+  <meta name="keywords"
+        content="LiQt,SNS,コミュニティ,BLOG">
+
+  <meta name="author"
+        content="乙成,島田,勝原">
+
+  <!-- title -->
+  <title>
+
+    ダッシュボード | LiQt
+
+  </title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet"
+        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+
+  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- CSS -->
+  <link rel="stylesheet"
+        href="../custom/custom-theme.css">
+
+  <!-- Google Fonts Icons -->
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+  <style>
+
+    body {
+
+      background-color: #f5f7fb;
+
+    }
+
+    .group-card {
+
+      transition: 0.2s;
+
+    }
+
+    .group-card:hover {
+
+      transform: translateY(-2px);
+
+    }
+
+    .group-icon {
+
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      object-fit: cover;
+
+    }
+
+  </style>
+
 </head>
 
-<!-- ✅ フッター固定 -->
-
-<body class="d-flex flex-column min-vh-100">
+<body class="bg-light">
 
   <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <!-- メイン -->
-  <main class="container p-4 flex-grow-1">
+  <!-- 本文 -->
+  <main class="container py-4"
+        style="padding-bottom: 120px;">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="fw-bold">ダッシュボード</h2>
+    <!-- タイトル -->
+    <div class="mb-4">
 
-      <!-- グループ作成 -->
-      <a href="/create_group.php" class="btn btn-success">
-        ＋ グループ作成
-      </a>
+      <h1 class="fw-bold mb-1">
+
+        ダッシュボード
+
+      </h1>
+
+      <p class="text-muted mb-0">
+
+        所属チャット一覧
+
+      </p>
+
     </div>
 
-    <?php if (!$response['success']): ?>
-      <!-- エラー -->
-      <div class="alert alert-danger">
-        <?php echo htmlspecialchars($response['message']); ?>
+    <!-- メッセージ -->
+    <div id="messageBox"></div>
+
+    <!-- オープンチャット -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4">
+
+      <div class="card-body d-flex justify-content-between align-items-center">
+
+        <div>
+
+          <h5 class="fw-bold mb-1">
+
+            オープンチャット
+
+          </h5>
+
+          <p class="text-muted mb-0">
+
+            新しいグループを探す
+
+          </p>
+
+        </div>
+
+        <a href="/group/open_chats.php"
+           class="btn btn-success rounded-pill px-4">
+
+          <span class="material-symbols-outlined align-middle me-1">
+
+            groups
+
+          </span>
+
+          開く
+
+        </a>
+
       </div>
-    <?php else: ?>
 
-      <div class="row g-3">
+    </div>
 
-        <?php foreach ($response['data']['joined_groups'] as $group): ?>
+    <!-- グループ一覧 -->
+    <div id="groupList"></div>
 
-          <div class="col-md-6 col-lg-4">
+  </main>
 
-            <!-- グループカード -->
-            <a href="/chat.php?group_id=<?php echo $group['group_id']; ?>"
-              class="text-decoration-none text-dark">
+  <!-- フッター -->
+  <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-              <div class="card shadow-sm h-100 hover-shadow">
+  <!-- CSRF -->
+  <input type="hidden"
+         id="csrf_token"
+         value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
 
-                <div class="card-body d-flex align-items-center">
+  <script>
+
+    // 初期ロード
+    loadDashboard();
+
+    // =========================
+    // ダッシュボード取得
+    // =========================
+
+    async function loadDashboard() {
+
+      // CSRF取得
+      const csrfToken =
+        document.getElementById("csrf_token").value;
+
+      // FormData
+      const formData =
+        new FormData();
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
+
+      try {
+
+        // fetch
+        const response =
+          await fetch("../api/dashboard/get_dashboard.php", {
+
+            method: "POST",
+            body: formData
+
+          });
+
+        // text
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        // JSON
+        const data =
+          JSON.parse(text);
+
+        // エラー
+        if (!data.success) {
+
+          showMessage(
+            data.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        // 成功
+        showMessage(
+          data.message,
+          "success"
+        );
+
+        // グループ表示
+        renderGroups(
+          data.data.joined_groups
+        );
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showMessage(
+          "通信エラーが発生しました",
+          "danger"
+        );
+
+      }
+
+    }
+
+    // =========================
+    // グループ表示
+    // =========================
+
+    function renderGroups(groups) {
+
+      const groupList =
+        document.getElementById("groupList");
+
+      // 初期化
+      groupList.innerHTML = "";
+
+      // グループなし
+      if (!groups || groups.length === 0) {
+
+        groupList.innerHTML = `
+
+          <div class="card border-0 shadow-sm rounded-4">
+
+            <div class="card-body text-center text-muted py-5">
+
+              参加中のグループはありません
+
+            </div>
+
+          </div>
+
+        `;
+
+        return;
+
+      }
+
+      // ループ
+      groups.forEach(group => {
+
+        // アイコン
+        const icon =
+          group.group_icon && group.group_icon !== ""
+          ? group.group_icon
+          : "https://placehold.jp/80x80.png";
+
+        // メッセージ
+        const latestMessage =
+          group.latest_message && group.latest_message !== ""
+          ? group.latest_message
+          : "まだメッセージはありません";
+
+        // HTML追加
+        groupList.innerHTML += `
+
+          <a href="/group/chat.php?group_id=${group.group_id}"
+             class="text-decoration-none text-dark">
+
+            <div class="card border-0 shadow-sm rounded-4 mb-3 group-card">
+
+              <div class="card-body">
+
+                <div class="d-flex align-items-center">
 
                   <!-- アイコン -->
-                  <div class="fs-2 me-3">
-                    <?php echo htmlspecialchars($group['group_icon']); ?>
-                  </div>
+                  <img src="${icon}"
+                       class="group-icon me-3">
 
-                  <!-- 情報 -->
-                  <div>
-                    <h5 class="mb-1">
-                      <?php echo htmlspecialchars($group['group_name']); ?>
+                  <!-- グループ情報 -->
+                  <div class="flex-grow-1">
+
+                    <!-- グループ名 -->
+                    <h5 class="fw-bold mb-2">
+
+                      ${group.group_name}
+
                     </h5>
 
-                    <small class="text-muted">
-                      <?php echo htmlspecialchars($group['latest_message']); ?>
-                    </small>
+                    <!-- 最新メッセージ -->
+                    <p class="text-muted mb-0 text-truncate">
+
+                      最新メッセージ：
+                      ${latestMessage}
+
+                    </p>
+
                   </div>
 
                 </div>
 
               </div>
 
-            </a>
+            </div>
 
-          </div>
+          </a>
 
-        <?php endforeach; ?>
+        `;
 
-      </div>
+      });
 
-    <?php endif; ?>
+    }
 
-  </main>
+    // =========================
+    // メッセージ表示
+    // =========================
 
-  <!-- フッター -->
-  <?php require_once __DIR__ . '/../component/footer.php'; ?>
+    function showMessage(message, type) {
+
+      const box =
+        document.getElementById("messageBox");
+
+      box.innerHTML = `
+
+        <div class="alert alert-${type}">
+
+          ${message}
+
+        </div>
+
+      `;
+
+    }
+
+  </script>
 
 </body>
 

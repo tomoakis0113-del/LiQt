@@ -4,19 +4,42 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 /**
  * プロフィール取得API
  * 必要なパラメータ:
- * - user_id: 8文字以上のユーザーID
+ * - user_id: 5文字以上20文字以上のユーザーID
  * - csrf_token: CSRFトークン
  * 
  * レスポンス:
- * icon.url: アイコンURL
- * user_id: ユーザーID
- * display_name: 表示名
- * introduction: 自己紹介
- * tags: タグ
- * blogs: ブログ一覧
- * is_mine: 自分のプロフィールが表示されてるか（true/false）
+ * - 成功: {"user_id": "他の人のユーザーID"}
+ * {
+ *  "success": true,
+ *  "message": "プロフィールを取得しました", 
+ *  "data": {
+ *       "icon_url": "アイコンURL",
+ *       "user_id": "ユーザーID",
+ *       "display_name": "表示名",
+ *       "introduction": "自己紹介文",
+ *       "tags": 
+ *       "blogs": [ブログID],
+ *       "is_mine": false
+ *   }
+ * }
  * 
- */
+ * -成功: {"user_id": "自分のユーザーID","空白"}
+ *{
+ *   "success": true,
+ *   "message": "プロフィールを取得しました",　
+ *    "data": {
+ *       "icon_url": "アイコンURL",
+ *       "user_id": "自分のユーザーID",
+ *       "display_name": "自分の表示名",
+ *       "introduction": "自己紹介文",
+ *       "tags": "",
+ *       "blogs": [ブログID],
+ *       "is_mine": true
+ *   }
+ * }
+ * 
+ * - エラー: { "success": false, "message": "エラーメッセージ" : "ユーザーIDは英数字5-20文字で入力してください"}
+*/
 try {
     // POST以外を拒否
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -51,18 +74,28 @@ try {
         $targetUserId = $userId;
     }
     // ユーザーIDは8文字のみ
-    else if (!preg_match('/^[A-Za-z0-9]{8}$/', $targetUserId)) {
-        lib\Util::responseError(400, 'ユーザーIDは英数字8文字で入力してください');
+    else if (!preg_match('/^[A-Za-z0-9]{5,20}$/', $targetUserId)) {
+        lib\Util::responseError(400, 'ユーザーIDは英数字5-20文字で入力してください');
     }
     
-    $profile = models\Profile::query()
+    $targetUser = models\User::query()
         ->where('user_id', $targetUserId)
-        ->first(['user_id', 'display_name', 'introduction', 'icon_url', 'tags']);
-    if (!$profile) {
+        ->first(['id', 'user_id']);
+
+    if(!$targetUser){
+        lib\Util::responseError(404, 'ユーザーが見つかりません');
+    }
+
+    $targetInternalId = $targetUser->id;
+
+    $profile = models\Profile::query()
+        ->where('user_id', $targetInternalId)
+        ->first(['display_name', 'introduction', 'icon_url', 'tags']);
+
+    if(!$profile){
         lib\Util::responseError(404, 'プロフィールが見つかりません');
     }
 
-    $targetInternalId = $profile->id;
     $blogs = models\Blog::query()
         ->where('author_id', $targetInternalId)
         ->where('visibility', 'public')
@@ -78,7 +111,7 @@ try {
 
     $data = [
         'icon_url'     => $profile->icon_url,
-        'user_id'      => $profile->user_id,
+        'user_id'      => $targetUser->user_id,
         'display_name' => $profile->display_name,
         'introduction' => $profile->introduction,
         'tags'         => $profile->tags,
@@ -86,7 +119,7 @@ try {
         'is_mine'      => $currentUserId == $targetInternalId
     ];
 
-    lib\Util::responseSuccess($data, 'プロフィールを取得しました');
+    lib\Util::responseSuccess('プロフィールを取得しました',$data);
 } catch (\Throwable $e) {
     error_log("エラーが発生しました: " . $e->getMessage());
     lib\Util::responseError(500, 'サーバーエラーが発生しました');

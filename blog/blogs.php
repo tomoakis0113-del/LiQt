@@ -85,65 +85,119 @@
     // 初期ロード
     loadBlogs();
 
-    // 取得
-    function loadBlogs() {
-      fetch("api/get_blogs.php")
-        .then(res => res.json())
-        .then(data => {
-          if (!data.success) return showError(data.message);
+// 仮データ取得
+function loadBlogs() {
 
-          renderBlogs("publicList", data.public_blogs);
-          renderBlogs("privateList", data.private_blogs);
-          renderMyBlogs(data.my_blogs);
-        });
+  const publicBlogs = [
+    {
+      blog_id: 1,
+      title: "Bootstrapでプロフィールページ作成",
+      tags: "Bootstrap,HTML,CSS"
+    },
+    {
+      blog_id: 2,
+      title: "Javaの継承について解説",
+      tags: "Java,オブジェクト指向"
     }
+  ];
 
-    // 共通描画
-    function renderBlogs(targetId, blogs) {
-      const list = document.getElementById(targetId);
-      list.innerHTML = "";
+  const privateBlogs = [
+    {
+      blog_id: 3,
+      title: "PHPログイン機能メモ",
+      tags: "PHP,Session"
+    },
+    {
+      blog_id: 4,
+      title: "SQL勉強ノート",
+      tags: "SQL,Database"
+    }
+  ];
 
-      if (!blogs || blogs.length === 0) {
-        list.innerHTML = `<div class="text-muted">記事なし</div>`;
-        return;
-      }
+  const myBlogs = [
+    {
+      blog_id: 5,
+      title: "Qiita風ブログ開発日記",
+      tags: "PHP,Bootstrap",
+      visibility: "公開"
+    },
+    {
+      blog_id: 6,
+      title: "Laravel学習メモ",
+      tags: "Laravel,PHP",
+      visibility: "非公開"
+    }
+  ];
 
-      blogs.forEach(b => {
-        list.innerHTML += `
+  // 描画
+  renderBlogs("publicList", publicBlogs);
+  renderBlogs("privateList", privateBlogs);
+  renderMyBlogs(myBlogs);
+}
+
+
+// 共通描画
+function renderBlogs(targetId, blogs) {
+
+  const list = document.getElementById(targetId);
+
+  list.innerHTML = "";
+
+  blogs.forEach(b => {
+
+    list.innerHTML += `
       <a href="blog_detail.php?blog_id=${b.blog_id}"
-         class="list-group-item blog-card">
-        <div class="fw-bold">${b.title}</div>
-        <div>${renderTags(b.tags)}</div>
+         class="list-group-item blog-card mb-2">
+
+        <div class="fw-bold">
+          ${b.title}
+        </div>
+
+        <div>
+          ${renderTags(b.tags)}
+        </div>
+
       </a>
     `;
-      });
-    }
+  });
+}
 
-    // 自分の投稿
-    function renderMyBlogs(blogs) {
-      const list = document.getElementById("myList");
-      list.innerHTML = "";
 
-      blogs.forEach(b => {
-        list.innerHTML += `
+
+// 自分の投稿
+function renderMyBlogs(blogs) {
+
+  const list = document.getElementById("myList");
+
+  list.innerHTML = "";
+
+  blogs.forEach(b => {
+
+    list.innerHTML += `
       <a href="blog_detail.php?blog_id=${b.blog_id}"
-         class="list-group-item blog-card">
+         class="list-group-item blog-card mb-2">
 
-        <div class="fw-bold">${b.title}</div>
+        <div class="fw-bold">
+          ${b.title}
+        </div>
 
-        <div>${renderTags(b.tags)}</div>
+        <div class="mb-1">
+          ${renderTags(b.tags)}
+        </div>
 
-        <span class="badge bg-secondary mt-1">
+        <span class="badge bg-secondary">
           ${b.visibility}
         </span>
+
       </a>
     `;
       });
     }
 
-    // タグ表示
-    function renderTags(tags) {
-      if (!tags) return "";
+// タグ表示
+function renderTags(tags) {
+
+  if (!tags) return "";
 
       return tags.split(",").map(tag =>
         `<span class="badge bg-primary tag-badge">${tag.trim()}</span>`

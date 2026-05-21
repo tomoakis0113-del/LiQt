@@ -21,11 +21,11 @@
 - [ ] `api/group/get_public_groups.php`
 - [ ] `api/group/join_group.php`
 - [ ] `api/group/search_groups.php`
-- [x] `api/blog/get_blogs.php`
+- [ ] `api/blog/get_blogs.php`
 - [ ] `api/blog/search_blogs.php`
 - [ ] `api/blog/get_blog_detail.php`
 - [ ] `api/blog/create_blog.php`
-- [ ] `api/blog/delete_blog.php`
+- [ ] `api/b/delete_blog.php`
 - [x] `api/auth/signout.php`
 - [x] `api/auth/request_password_reset.php`
 - [x] `api/auth/reset_password.php`

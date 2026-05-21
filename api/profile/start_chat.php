@@ -5,7 +5,19 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * チャット開始API
  * 必要なパラメータ:
  * - csrf_token
- * - user_id: 相手のユーザーID
+ * - user_id: 相手のユーザーID　5文字以上20文字以下
+ * 
+ * -成功: {"user_id": "相手のユーザーID"} 
+ * {
+ *    "success": true,
+ *    "message": "チャットを開始しました",
+ *    "data": {
+ *      "chat_link" : "chat.php?group_id=グループID" 
+ *    }
+ *}
+ * 
+ * - エラー: { "success": false, "message": "ユーザーIDは英数字5-20文字で入力してください" ,"自分とはチャットできません","サインインが必要です"}
+ * 
  */
 try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -22,8 +34,8 @@ try {
         lib\Util::responseError(400, '不正リクエストです');
     }
 
-    if (!preg_match('/^[A-Za-z0-9]{8}$/', $targetUserId)) {
-        lib\Util::responseError(400, 'ユーザーIDは英数字8文字で入力してください');
+    if (!preg_match('/^[A-Za-z0-9]{5,20}$/', $targetUserId)) {
+        lib\Util::responseError(400, 'ユーザーIDは英数字5-20文字で入力してください');
     }
 
     // サインイン状態の確認
@@ -37,11 +49,13 @@ try {
     // 相手ユーザーの内部IDを取得 自分がブロックされていない場合のみ進む
     $targetUser = models\User::query()
         ->where('user_id', $targetUserId)
-        ->whereDoesntHave(models\BlockList::class, function ($query) use ($currentUserId, $targetUserId) {
-            $query->where('blocked_user_id', $currentUserId)
-                ->where('user_id', $targetUserId);
-        })
         ->first(['id']);
+
+    if(!$targetUser){
+        lib\Util::responseError(404, '相手ユーザーが見つかりません');
+    }
+
+    $targetInternalId = $targetUser->id;
 
     // 相手の内部IDを取得
     $targetInternalId = $targetUser ? $targetUser->id : null;
@@ -58,7 +72,11 @@ try {
 
     $existingGroup = models\Group::query()
         ->where('name', $groupName)
-        ->first(['id'])['id'] ?? null;
+        ->first(['id']);
+
+    if($existingGroup){
+        $groupId = $existingGroup->id;
+    }
 
     if ($existingGroup) {
         $groupId = $existingGroup->id;
@@ -83,10 +101,10 @@ try {
     }
 
     $data = [
-        'chat_link' => 'chat.php?group_id=' . $groupId
+        'chat_link' => '/group/chat.php?group_id=' . $groupId
     ];
 
-    lib\Util::responseSuccess($data, 'チャットを開始しました');
+    lib\Util::responseSuccess('チャットを開始しました',$data);
 } catch (\Throwable $e) {
     error_log("エラーが発生しました: " . $e->getMessage());
     lib\Util::responseError(500, 'サーバーエラーが発生しました');
