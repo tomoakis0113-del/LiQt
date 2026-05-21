@@ -11,7 +11,7 @@ try{
 
     // ユーザ操作系
     $session = new lib\Session();
-    $session->tryLogin('username', 'password', true); // ユーザ名、パスワードを用いてサインインを試行する。true:サインインを維持
+    $session->trySignin('username', 'password', true); // ユーザ名、パスワードを用いてサインインを試行する。true:サインインを維持
     $session->isSignedIn(); // サインイン済みかどうか
     $session->signout(); // サインアウト
 

@@ -44,7 +44,7 @@ try{
 
     //dbに接続
     $sessionHandler = new lib\Session();
-    $isSuccess = $sessionHandler->tryLogin($mailaddress, $password);
+    $isSuccess = $sessionHandler->trySignin($mailaddress, $password);
 
     if($isSuccess){
         session_regenerate_id(true);

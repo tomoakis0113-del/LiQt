@@ -64,6 +64,10 @@ try{
         'display_name' => $display_name,
     ]);
 
+    // 初回ログイン
+    $sessionHandler = new lib\Session();
+    $sessionHandler->trySignin($mail_address, $password);
+
     lib\Util::responseSuccess('ユーザーの作成に成功しました。');
 } catch (Exception $e){
     error_log("エラーが発生しました: " . $e->getMessage());

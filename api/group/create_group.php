@@ -5,7 +5,7 @@ require_once __DIR__.'/../../vendor/autoload.php';
  * グループ作成API
  * 必要なパラメータ:
  * - group_name: グループ名
- * - group_icon: グループアイコンURL（任意）
+ * - group_icon: グループアイコン（任意）
  * - is_public: グループの公開設定（true/false）
  * - invite_user_ids: 招待するユーザIDの配列（任意）
  * - csrf_token: CSRFトークン
@@ -17,7 +17,7 @@ require_once __DIR__.'/../../vendor/autoload.php';
 try{
     // データ受け取り
     $group_name     = $_POST['group_name'] ?? null;
-    $group_icon     = $_POST['group_icon'] ?? null;
+    $group_icon     = $_FILES['group_icon'] ?? null;
     $is_public      = $_POST['is_public'] ?? null;
     $invite_user_ids= $_POST['invite_user_ids'] ?? null; // invite_user_ids[]
     $csrf_token     = $_POST['csrf_token'] ?? null;    
@@ -40,17 +40,35 @@ try{
         lib\Util::responseError(401,'サインインが必要です');
     }
 
-
     // すでに同じグループ名が存在するか確認
     $existingGroup = models\Group::where('name', $group_name)->first(['id']);
     if($existingGroup){
         lib\Util::responseError(400,'同じグループ名が既に存在しています');
     }
 
+    $group_icon_path = null;
+    if($group_icon && $group_icon['error'] === UPLOAD_ERR_OK){
+        $uploadDir = __DIR__.'/../../uploads/group_icons/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $fileName = basename($group_icon['name']);
+        $targetFilePath = $uploadDir . (new DateTime())->format('Ymd_His') . '_' . $fileName;
+
+        if (move_uploaded_file($group_icon['tmp_name'], $targetFilePath)) {
+            $group_icon_path = 'uploads/group_icons/' . $fileName; // データベースに保存するパス
+        } else {
+            lib\Util::responseError(500, 'グループアイコンのアップロードに失敗しました');
+        }
+    } else {
+        $group_icon_path = null;
+    }
+
     // グループ作成
     $group_id = models\Group::insertGetId([
         'name' => $group_name,
-        'group_icon_url' => $group_icon,
+        'group_icon_url' => $group_icon_path,
         'is_public' => $is_public ? 1 : 0,
     ]);
     models\GroupMember::insert([
