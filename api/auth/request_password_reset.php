@@ -40,7 +40,7 @@ try {
         ->first(['id'])['id'] ?? null;
     
     if (!$user_id) {
-        lib\Util::responseSuccess('パスワード再発行のメールを送信しました');
+        lib\Util::responseError(404, 'ユーザーが見つかりません');
     }
 
     // トークンを削除
