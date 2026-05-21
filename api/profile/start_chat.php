@@ -16,7 +16,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  *    }
  *}
  * 
- * - エラー: { "success": false, "message": "ユーザーIDは英数字5-20文字で入力してください" ,"サインインが必要です"}
+ * - エラー: { "success": false, "message": "ユーザーIDは英数字5-20文字で入力してください" ,"自分とはチャットできません","サインインが必要です"}
  * 
  */
 try {
