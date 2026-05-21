@@ -63,6 +63,9 @@ $csrfToken = new lib\CSRFToken();
 
       transition: 0.2s;
 
+      /* 下マージン追加 */
+      margin-bottom: 1.5rem;
+
     }
 
     .group-card:hover {
@@ -80,6 +83,20 @@ $csrfToken = new lib\CSRFToken();
 
     }
 
+    /* カード同士の下マージン */
+    .dashboard-card {
+
+      margin-bottom: 1.75rem;
+
+    }
+
+    /* 一番下の余白を大きめに追加 */
+    #groupList {
+
+      margin-bottom: 8rem;
+
+    }
+
   </style>
 
 </head>
@@ -94,9 +111,9 @@ $csrfToken = new lib\CSRFToken();
         style="padding-bottom: 120px;">
 
     <!-- タイトル -->
-    <div class="mb-4">
+    <div class="mb-5">
 
-      <h1 class="fw-bold mb-1">
+      <h1 class="fw-bold mb-2">
 
         ダッシュボード
 
@@ -111,10 +128,11 @@ $csrfToken = new lib\CSRFToken();
     </div>
 
     <!-- メッセージ -->
-    <div id="messageBox"></div>
+    <div id="messageBox"
+         class="mb-4"></div>
 
     <!-- オープンチャット -->
-    <div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card border-0 shadow-sm rounded-4 dashboard-card">
 
       <div class="card-body d-flex justify-content-between align-items-center">
 
@@ -144,6 +162,44 @@ $csrfToken = new lib\CSRFToken();
           </span>
 
           開く
+
+        </a>
+
+      </div>
+
+    </div>
+
+    <!-- グループ作成 -->
+    <div class="card border-0 shadow-sm rounded-4 dashboard-card">
+
+      <div class="card-body d-flex justify-content-between align-items-center">
+
+        <div>
+
+          <h5 class="fw-bold mb-1">
+
+            グループ作成
+
+          </h5>
+
+          <p class="text-muted mb-0">
+
+            新しいグループを作る
+
+          </p>
+
+        </div>
+
+        <a href="/group/create_group.php"
+           class="btn btn-primary rounded-pill px-4">
+
+          <span class="material-symbols-outlined align-middle me-1">
+
+            add
+
+          </span>
+
+          作成
 
         </a>
 
@@ -221,12 +277,6 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
-        // 成功
-        showMessage(
-          data.message,
-          "success"
-        );
-
         // グループ表示
         renderGroups(
           data.data.joined_groups
@@ -264,7 +314,7 @@ $csrfToken = new lib\CSRFToken();
 
         groupList.innerHTML = `
 
-          <div class="card border-0 shadow-sm rounded-4">
+          <div class="card border-0 shadow-sm rounded-4 mb-5">
 
             <div class="card-body text-center text-muted py-5">
 
@@ -301,7 +351,7 @@ $csrfToken = new lib\CSRFToken();
           <a href="/group/chat.php?group_id=${group.group_id}"
              class="text-decoration-none text-dark">
 
-            <div class="card border-0 shadow-sm rounded-4 mb-3 group-card">
+            <div class="card border-0 shadow-sm rounded-4 group-card">
 
               <div class="card-body">
 
@@ -356,7 +406,7 @@ $csrfToken = new lib\CSRFToken();
 
       box.innerHTML = `
 
-        <div class="alert alert-${type}">
+        <div class="alert alert-${type} mb-4">
 
           ${message}
 
