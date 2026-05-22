@@ -245,7 +245,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - グループ名表示   : `group_name`
         - アイコン表示     : `group_icon`
         - 公開/非公開表示  : `is_public`
-        - メンバ一覧表示   : `manage_members[]`
+        - メンバ一覧表示   : `members[]`
             - アイコン表示      : `icon_url`
             - ユーザID          : `user_id`
             - ユーザ名表示      : `display_name` **ユーザIDではなく表示名を表示すること。表示名をクリックでプロフィールページへ遷移(`profile.php?user_id=xxx`)**
@@ -256,9 +256,9 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - アイコンアップロード  : `group_icon`
         - 公開/非公開設定       : `is_public`
         - メンバ管理
-            - メンバ追加 : `add_user_id` **ユーザID入力（検索可）**
-            - メンバ削除 : `remove_user_id` **自分以外を削除可能**
-            - 権限変更   : `change_role_user_id` + `new_role`
+            - メンバ追加 : `add_user_ids` **ユーザID入力（検索可）**
+            - メンバ削除 : `remove_user_ids` **自分以外を削除可能**
+            - 権限変更   : `change_role_user_ids` + `new_roles` **ユーザID入力（検索可） + 新しいロール[owner/manager/member]**
                 - オーナーは自分の権限を管理者に変更可能（ただし、オーナーは必ず1人以上必要）
                 - 管理者は自分以外のメンバの権限を変更可能（ただし、オーナーの権限は変更不可）
 
@@ -278,7 +278,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - グループ名表示   : `group_name`
         - アイコン表示     : `group_icon`
         - 公開/非公開表示  : `is_public`
-        - メンバ一覧表示   : `manage_members[]`
+        - メンバ一覧表示   : `members[]`
             - アイコン表示      : `icon_url`
             - ユーザID          : `user_id`
             - 表示名            : `display_name` **表示名をクリックすると `profile.php?user_id=xxx` に遷移**

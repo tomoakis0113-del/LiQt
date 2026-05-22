@@ -12,11 +12,10 @@
 - [x] `api/group/create_group.php`
 - [x] `api/group/get_group_chat.php`
 - [x] `api/group/send_message.php`
-- [ ] `api/group/get_user_role.php`
-- [ ] `api/group/get_group_info.php`
-- [ ] `api/group/update_group.php`
+- [x] `api/group/get_user_role.php`
+- [x] `api/group/get_group_info.php`
+- [x] `api/group/update_group.php`
 - [ ] `api/group/delete_group.php`
-- [ ] `api/group/get_group_info.php`
 - [ ] `api/group/leave_group.php`
 - [ ] `api/group/get_public_groups.php`
 - [ ] `api/group/join_group.php`
