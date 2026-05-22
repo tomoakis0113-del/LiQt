@@ -25,13 +25,11 @@ $csrfToken = new lib\CSRFToken();
 
   </title>
 
-  <!-- Bootstrap -->
   <link rel="stylesheet"
         href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Icons -->
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
@@ -77,22 +75,17 @@ $csrfToken = new lib\CSRFToken();
 
 <body>
 
-  <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <!-- 本文 -->
   <main class="container py-4"
-        style="max-width: 900px; padding-bottom: 120px;">
+        style="max-width: 900px; padding-bottom: 180px !important;">
 
-    <!-- メッセージ -->
     <div id="messageBox"></div>
 
-    <!-- プロフィール -->
     <div class="card border-0 shadow-sm rounded-4 mb-4">
 
       <div class="card-body text-center p-4">
 
-        <!-- アイコン -->
         <div class="mb-3">
 
           <img id="profileIcon"
@@ -101,7 +94,6 @@ $csrfToken = new lib\CSRFToken();
 
         </div>
 
-        <!-- 表示名 -->
         <h2 id="displayName"
             class="fw-bold mb-1">
 
@@ -109,7 +101,6 @@ $csrfToken = new lib\CSRFToken();
 
         </h2>
 
-        <!-- ユーザーID -->
         <p id="userId"
            class="text-muted mb-3">
 
@@ -117,7 +108,6 @@ $csrfToken = new lib\CSRFToken();
 
         </p>
 
-        <!-- 自己紹介 -->
         <p id="introduction"
            class="mb-4">
 
@@ -125,11 +115,9 @@ $csrfToken = new lib\CSRFToken();
 
         </p>
 
-        <!-- タグ -->
         <div id="tagArea"
              class="mb-4"></div>
 
-        <!-- ボタン -->
         <div id="buttonArea"
              class="d-flex justify-content-center gap-2 flex-wrap"></div>
 
@@ -137,7 +125,6 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- 投稿一覧 -->
     <div class="card border-0 shadow-sm rounded-4">
 
       <div class="card-header bg-white border-0 pt-4 pb-0">
@@ -165,7 +152,6 @@ $csrfToken = new lib\CSRFToken();
 
   </main>
 
-  <!-- 編集モーダル -->
   <div class="modal fade"
        id="editModal"
        tabindex="-1">
@@ -192,7 +178,6 @@ $csrfToken = new lib\CSRFToken();
 
           <div class="modal-body">
 
-            <!-- 表示名 -->
             <div class="mb-3">
 
               <label class="form-label fw-bold">
@@ -209,7 +194,6 @@ $csrfToken = new lib\CSRFToken();
 
             </div>
 
-            <!-- 自己紹介 -->
             <div class="mb-3">
 
               <label class="form-label fw-bold">
@@ -225,7 +209,6 @@ $csrfToken = new lib\CSRFToken();
 
             </div>
 
-            <!-- タグ -->
             <div class="mb-3">
 
               <label class="form-label fw-bold">
@@ -242,7 +225,6 @@ $csrfToken = new lib\CSRFToken();
 
             </div>
 
-            <!-- アイコン -->
             <div class="mb-3">
 
               <label class="form-label fw-bold">
@@ -287,10 +269,8 @@ $csrfToken = new lib\CSRFToken();
 
   </div>
 
-  <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-  <!-- CSRF -->
   <input type="hidden"
          id="csrf_token"
          value="<?= htmlspecialchars($csrfToken->getToken()) ?>">

@@ -26,7 +26,9 @@
 
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <main class="container p-4" style="max-width:900px;">
+  <!-- 下側margin追加 -->
+  <main class="container p-4"
+        style="max-width:900px; margin-bottom:120px;">
 
     <h3 class="mb-4">ブログ編集</h3>
 
@@ -37,43 +39,72 @@
       <!-- タイトル -->
       <div class="mb-3">
         <label class="form-label">タイトル</label>
-        <input type="text" name="title" id="titleInput" class="form-control">
+
+        <input
+          type="text"
+          name="title"
+          id="titleInput"
+          class="form-control">
       </div>
 
       <!-- タグ -->
       <div class="mb-3">
         <label class="form-label">タグ</label>
-        <input type="text" name="tags" id="tagsInput" class="form-control">
+
+        <input
+          type="text"
+          name="tags"
+          id="tagsInput"
+          class="form-control">
       </div>
 
       <!-- 本文 -->
       <div class="mb-3">
         <label class="form-label">本文（Markdown）</label>
-        <textarea name="content" id="contentInput" class="form-control" rows="8"></textarea>
+
+        <textarea
+          name="content"
+          id="contentInput"
+          class="form-control"
+          rows="8"></textarea>
       </div>
 
       <!-- プレビュー -->
       <div class="mb-3">
         <label class="form-label">プレビュー</label>
+
         <div id="preview" class="preview-box"></div>
       </div>
 
       <!-- 公開設定 -->
       <div class="mb-3">
         <label class="form-label">公開設定</label>
-        <select name="visibility" id="visibility" class="form-select">
+
+        <select
+          name="visibility"
+          id="visibility"
+          class="form-select">
+
           <option value="public">公開</option>
           <option value="private">非公開</option>
           <option value="group">グループ</option>
+
         </select>
       </div>
 
       <!-- 更新 -->
-      <button class="btn btn-primary w-100 mb-2">更新する</button>
+      <button class="btn btn-primary w-100 mb-2">
+        更新する
+      </button>
 
       <!-- 削除 -->
-      <button type="button" id="deleteBtn" class="btn btn-danger w-100">
+      <button
+        type="button"
+        id="deleteBtn"
+        class="btn btn-danger w-100">
+
         削除する
+
       </button>
 
     </form>
@@ -83,6 +114,7 @@
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
+
     const md = window.markdownit();
 
     // blog_id取得
@@ -93,14 +125,19 @@
     fetch(`api/get_blog_detail.php?blog_id=${blogId}`)
       .then(res => res.json())
       .then(data => {
-        if (!data.success) return redirect();
+
+        if (!data.success) {
+          return redirect();
+        }
 
         const d = data;
 
-        // 投稿者チェック（モック：is_authorで判断想定）
+        // 投稿者チェック
         if (!d.is_author) {
+
           redirect();
           return;
+
         }
 
         // フォーム反映
@@ -111,68 +148,112 @@
 
         // 初期プレビュー
         updatePreview();
+
       });
 
     // プレビュー
-    document.getElementById("contentInput").addEventListener("input", updatePreview);
+    document
+      .getElementById("contentInput")
+      .addEventListener("input", updatePreview);
 
     function updatePreview() {
-      const text = document.getElementById("contentInput").value;
-      document.getElementById("preview").innerHTML = md.render(text);
+
+      const text =
+        document.getElementById("contentInput").value;
+
+      document.getElementById("preview").innerHTML =
+        md.render(text);
+
     }
 
     // 更新
-    document.getElementById("editForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+    document
+      .getElementById("editForm")
+      .addEventListener("submit", async (e) => {
 
-      const formData = new FormData(e.target);
-      formData.append("blog_id", blogId);
+        e.preventDefault();
 
-      const res = await fetch("api/update_blog.php", {
-        method: "POST",
-        body: formData
+        const formData = new FormData(e.target);
+
+        formData.append("blog_id", blogId);
+
+        const res = await fetch(
+          "api/update_blog.php",
+          {
+            method: "POST",
+            body: formData
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.success) {
+
+          location.href =
+            `blog_detail.php?blog_id=${blogId}`;
+
+        } else {
+
+          showError(data.message);
+
+        }
+
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        location.href = `blog_detail.php?blog_id=${blogId}`;
-      } else {
-        showError(data.message);
-      }
-    });
 
     // 削除
-    document.getElementById("deleteBtn").addEventListener("click", async () => {
-      if (!confirm("本当に削除する？")) return;
+    document
+      .getElementById("deleteBtn")
+      .addEventListener("click", async () => {
 
-      const res = await fetch("api/delete_blog.php", {
-        method: "POST",
-        body: new URLSearchParams({
-          blog_id: blogId
-        })
+        if (!confirm("本当に削除する？")) {
+          return;
+        }
+
+        const res = await fetch(
+          "api/delete_blog.php",
+          {
+            method: "POST",
+            body: new URLSearchParams({
+              blog_id: blogId
+            })
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.success) {
+
+          location.href = "blogs.php";
+
+        } else {
+
+          showError(data.message);
+
+        }
+
       });
-
-      const data = await res.json();
-
-      if (data.success) {
-        location.href = "blogs.php";
-      } else {
-        showError(data.message);
-      }
-    });
 
     // リダイレクト
     function redirect() {
-      location.href = `blog_detail.php?blog_id=${blogId}`;
+
+      location.href =
+        `blog_detail.php?blog_id=${blogId}`;
+
     }
 
     // エラー
     function showError(msg) {
-      const box = document.getElementById("alertBox");
+
+      const box =
+        document.getElementById("alertBox");
+
       box.textContent = msg;
-      box.className = "alert alert-danger";
+
+      box.className =
+        "alert alert-danger";
+
     }
+
   </script>
 
 </body>
