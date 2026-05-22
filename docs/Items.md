@@ -245,7 +245,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - グループ名表示   : `group_name`
         - アイコン表示     : `group_icon`
         - 公開/非公開表示  : `is_public`
-        - メンバ一覧表示   : `manage_members[]`
+        - メンバ一覧表示   : `members[]`
             - アイコン表示      : `icon_url`
             - ユーザID          : `user_id`
             - ユーザ名表示      : `display_name` **ユーザIDではなく表示名を表示すること。表示名をクリックでプロフィールページへ遷移(`profile.php?user_id=xxx`)**
@@ -278,7 +278,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - グループ名表示   : `group_name`
         - アイコン表示     : `group_icon`
         - 公開/非公開表示  : `is_public`
-        - メンバ一覧表示   : `manage_members[]`
+        - メンバ一覧表示   : `members[]`
             - アイコン表示      : `icon_url`
             - ユーザID          : `user_id`
             - 表示名            : `display_name` **表示名をクリックすると `profile.php?user_id=xxx` に遷移**
