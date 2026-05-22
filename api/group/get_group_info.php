@@ -19,7 +19,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  *              {
  *                  "user_id": 1,
  *                  "display_name": "ユーザ名",
- *                  "icon_url": "アイコンURL"
+ *                  "icon_url": "アイコンURL",
+ *                  "role": "owner/manager/member"
  *              }, ...
  *          ]
  *      }
@@ -77,11 +78,11 @@ try {
     $members = models\GroupMember::query()
         ->where('group_id', '=', $group_id)
         ->join('profiles', 'group_members.user_id', '=', 'profiles.user_id')
-        ->get(['profiles.display_name', 'profiles.icon_url', 'group_members.user_id'])
+        ->get(['profiles.display_name', 'profiles.icon_url', 'group_members.user_id', 'group_members.role'])
         ->toArray();
 
     lib\Util::responseSuccess(
-        'ユーザーのロールを取得しました',
+        'グループ情報の取得に成功しました',
         [
             'group_name' => $groupInfo->name,
             'group_icon' => $groupInfo->group_icon_url,
