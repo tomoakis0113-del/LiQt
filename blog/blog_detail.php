@@ -1,224 +1,143 @@
+<?php
+session_start();
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// 💡 CSRFトークンの生成
+$csrfToken = new lib\CSRFToken();
+?>
 <!DOCTYPE html>
 <html lang="ja">
 
 <head>
 
-  <!-- meta -->
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+  <title>ブログ詳細 | LiQt</title>
 
-  <title>
-    ブログ詳細 | LiQt
-  </title>
-
-  <!-- Bootstrap -->
-  <link rel="stylesheet"
-        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
-
+  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- markdown -->
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
-  <!-- Icons -->
-  <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
   <style>
-
     /* 投稿者アイコン */
     .author-icon,
     .comment-icon {
-
       width: 48px;
       height: 48px;
       border-radius: 50%;
       object-fit: cover;
-
     }
 
     /* タグ */
     .tag-badge {
-
       margin-right: 6px;
-
     }
 
     /* 本文 */
     #content {
-
       line-height: 1.9;
-
     }
 
     /* 関連記事 */
     .related-link {
-
       text-decoration: none;
       transition: 0.2s;
-
     }
 
     .related-link:hover {
-
       transform: translateY(-2px);
       background-color: #f8f9fa;
-
     }
-
   </style>
 
 </head>
 
 <body>
 
-  <!-- ヘッダー -->
+  <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
+
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <!-- 本文 -->
-  <main class="container py-4"
-        style="max-width: 900px; padding-bottom: 120px;">
+  <main class="container py-4" style="max-width: 900px; padding-bottom: 240px;">
 
-    <!-- ブログカード -->
     <div class="card border-0 shadow-sm rounded-4">
-
       <div class="card-body p-4">
 
-        <!-- タイトル＋編集 -->
         <div class="d-flex justify-content-between align-items-start mb-3">
+          <h1 id="title" class="fw-bold mb-0"></h1>
 
-          <!-- タイトル -->
-          <h1 id="title"
-              class="fw-bold mb-0">
-          </h1>
-
-          <!-- 編集ボタン -->
-          <a id="editButton"
-             href="#"
-             class="btn btn-outline-primary d-none">
-
+          <a id="editButton" href="#" class="btn btn-outline-primary d-none">
             編集
-
           </a>
-
         </div>
 
-        <!-- タグ -->
-        <div id="tags"
-             class="mb-4">
-        </div>
+        <div id="tags" class="mb-4"></div>
 
-        <!-- 投稿者 -->
         <div class="d-flex align-items-center mb-4">
+          <img id="authorIcon" class="author-icon me-3" alt="投稿者アイコン">
 
-          <!-- アイコン -->
-          <img id="authorIcon"
-               class="author-icon me-3"
-               alt="投稿者アイコン">
-
-          <!-- 名前 -->
           <div>
-
-            <a id="authorName"
-               class="fw-bold text-decoration-none">
-            </a>
-
+            <a id="authorName" class="fw-bold text-decoration-none"></a>
           </div>
-
         </div>
 
-        <!-- 本文 -->
-        <div id="content"
-             class="mb-5">
-        </div>
+        <div id="content" class="mb-5"></div>
 
-        <!-- いいね -->
         <div class="mb-4">
-
-          <button id="likeButton"
-                  class="btn btn-outline-danger rounded-pill"
-                  onclick="toggleLike()">
-
+          <button id="likeButton" class="btn btn-outline-danger rounded-pill" onclick="toggleLike()">
             ❤️ いいね
-            <span id="likes"></span>
-
+            <span id="likes">0</span>
           </button>
-
         </div>
 
         <hr class="my-4">
 
-        <!-- コメント -->
-        <h4 class="fw-bold mb-4">
+        <h4 class="fw-bold mb-4">コメント</h4>
 
-          コメント
-
-        </h4>
-
-        <!-- コメント入力 -->
         <div class="card border-0 bg-light rounded-4 mb-4">
-
           <div class="card-body">
-
-            <textarea id="commentInput"
-                      class="form-control mb-3"
-                      rows="3"
-                      placeholder="コメントを書く">
-            </textarea>
-
+            <textarea id="commentInput" class="form-control mb-3" rows="3" placeholder="コメントを書く"></textarea>
             <div class="text-end">
-
-              <button class="btn btn-success px-4"
-                      onclick="postComment()">
-
+              <button class="btn btn-success px-4" onclick="postComment()">
                 コメント投稿
-
               </button>
-
             </div>
-
           </div>
-
         </div>
 
-        <!-- コメント一覧 -->
         <div id="commentList"></div>
 
         <hr class="my-4">
 
-        <!-- 関連記事 -->
-        <h4 class="fw-bold mb-4">
+        <h4 class="fw-bold mb-4">関連記事</h4>
 
-          関連記事
-
-        </h4>
-
-        <!-- 関連記事一覧 -->
         <div id="relatedList"></div>
 
       </div>
-
     </div>
+
+    <div style="margin-bottom: 12rem;"></div>
 
   </main>
 
-  <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
-
     // markdown
     const md = window.markdownit();
 
     // URLパラメータ
-    const params =
-      new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.search);
 
     // blog_id取得
-    const blogId =
-      params.get("blog_id");
+    const blogId = params.get("blog_id");
+
+    // HTMLに埋め込んだCSRFトークンの取得
+    const csrfToken = document.getElementById("csrf_token").value;
 
     // いいね状態
     let liked = false;
@@ -227,353 +146,206 @@
     loadBlog();
 
     // =========================
-    // ブログ取得
+    // ブログ取得（POSTメソッド形式）
     // =========================
-
     function loadBlog() {
+      if (!blogId) {
+        alert("ブログIDが指定されていません");
+        return;
+      }
 
-      fetch(`api/get_blog_detail.php?blog_id=${blogId}`)
+      // 💡 POST送信用にFormDataオブジェクトを作成し、必要なパラメータを追加
+      const formData = new FormData();
+      formData.append("blog_id", blogId);
+      formData.append("csrf_token", csrfToken);
+
+      // 指示に基づき、エンドポイントへのリクエストをPOSTメソッドに変更
+      fetch("/api/blog/get_blog_detail.php", {
+        method: "POST",
+        body: formData
+      })
         .then(res => res.json())
-        .then(data => {
+        .then(result => {
 
-          // エラー
-          if (!data.success) {
-
-            alert(data.message);
+          // エラーハンドリング
+          if (!result.success) {
+            alert(result.message);
             return;
-
           }
 
-          // データ
-          const d = data;
+          // 新しいAPIレスポンスの構造（result.data）に合わせてデータを抽出
+          const blogData = result.data;
 
           // タイトル
-          document.getElementById("title").textContent =
-            d.title;
+          document.getElementById("title").textContent = blogData.title;
 
-          // 編集ボタン
-          if (d.is_author) {
+          // 編集ボタンへの遷移先設定（作成者フラグ等、必要に応じて条件分岐を行ってください）
+          const editButton = document.getElementById("editButton");
+          editButton.href = `/blog/edit_blog.php?blog_id=${blogData.id}`;
+          editButton.classList.remove("d-none"); 
 
-            const editButton =
-              document.getElementById("editButton");
+          // タグのレンダリング
+          document.getElementById("tags").innerHTML = renderTags(blogData.tags);
 
-            editButton.href =
-              `/blog/blog_edit.php?blog_id=${blogId}`;
-
-            editButton.classList.remove("d-none");
-
+          // 投稿者情報（フォールバック対応付き）
+          if (blogData.author) {
+            document.getElementById("authorIcon").src = blogData.author.icon_url || "https://placehold.jp/48x48.png";
+            document.getElementById("authorName").textContent = blogData.author.display_name || "ユーザー";
+            document.getElementById("authorName").href = `/profile/profile.php?user_id=${blogData.author.user_id}`;
+          } else {
+            document.getElementById("authorIcon").src = "https://placehold.jp/48x48.png";
+            document.getElementById("authorName").textContent = "投稿ユーザー";
+            document.getElementById("authorName").href = "#";
           }
 
-          // タグ
-          document.getElementById("tags").innerHTML =
-            renderTags(d.tags);
+          // 本文 (Markdown変換)
+          document.getElementById("content").innerHTML = md.render(blogData.content || "");
 
-          // 投稿者
-          document.getElementById("authorIcon").src =
-            d.author.icon_url;
+          // いいね件数
+          document.getElementById("likes").textContent = blogData.likes !== undefined ? blogData.likes : 0;
 
-          document.getElementById("authorName").textContent =
-            d.author.display_name;
+          // コメント・関連記事一覧表示
+          renderComments(blogData.comments || []);
+          renderRelated(blogData.related_blogs || []);
 
-          document.getElementById("authorName").href =
-            `/profile/profile.php?user_id=${d.author.user_id}`;
-
-          // 本文
-          document.getElementById("content").innerHTML =
-            md.render(d.content);
-
-          // いいね
-          document.getElementById("likes").textContent =
-            d.likes;
-
-          // コメント
-          renderComments(d.comments);
-
-          // 関連記事
-          renderRelated(d.related_blogs);
-
+        })
+        .catch(error => {
+          console.error("Error fetching blog details:", error);
+          alert("ブログ詳細の取得中に通信エラーが発生しました");
         });
-
     }
 
     // =========================
     // タグ表示
     // =========================
-
     function renderTags(tags) {
-
-      // タグなし
       if (!tags) {
-
         return "";
-
       }
-
-      // カンマ区切り
       return tags.split(",").map(tag =>
-
         `
           <span class="badge bg-success tag-badge">
-
             ${tag.trim()}
-
           </span>
         `
-
       ).join("");
-
     }
 
     // =========================
     // コメント表示
     // =========================
-
     function renderComments(comments) {
-
-      const commentList =
-        document.getElementById("commentList");
-
-      // 初期化
+      const commentList = document.getElementById("commentList");
       commentList.innerHTML = "";
 
-      // コメントなし
       if (!comments || comments.length === 0) {
-
-        commentList.innerHTML = `
-
-          <div class="text-muted">
-
-            コメントはまだありません
-
-          </div>
-
-        `;
-
+        commentList.innerHTML = `<div class="text-muted">コメントはまだありません</div>`;
         return;
-
       }
 
-      // コメントループ
       comments.forEach(comment => {
+        const iconUrl = comment.author && comment.author.icon_url ? comment.author.icon_url : "https://placehold.jp/48x48.png";
+        const displayName = comment.author && comment.author.display_name ? comment.author.display_name : "名無しユーザー";
+        const userId = comment.author && comment.author.user_id ? comment.author.user_id : "#";
 
         commentList.innerHTML += `
-
           <div class="d-flex mb-4">
-
-            <!-- アイコン -->
-            <img src="${comment.author.icon_url}"
-                 class="comment-icon me-3"
-                 alt="コメント投稿者">
-
-            <!-- 内容 -->
+            <img src="${iconUrl}" class="comment-icon me-3" alt="コメント投稿者">
             <div class="w-100">
-
-              <!-- 名前 -->
-              <a href="/profile/profile.php?user_id=${comment.author.user_id}"
-                 class="fw-bold text-decoration-none">
-
-                ${comment.author.display_name}
-
+              <a href="/profile/profile.php?user_id=${userId}" class="fw-bold text-decoration-none">
+                ${displayName}
               </a>
-
-              <!-- コメント -->
               <div class="mt-1">
-
                 ${comment.content}
-
               </div>
-
             </div>
-
           </div>
-
         `;
-
       });
-
     }
 
     // =========================
     // 関連記事表示
     // =========================
-
     function renderRelated(blogs) {
-
-      const relatedList =
-        document.getElementById("relatedList");
-
-      // 初期化
+      const relatedList = document.getElementById("relatedList");
       relatedList.innerHTML = "";
 
-      // 関連記事なし
       if (!blogs || blogs.length === 0) {
-
-        relatedList.innerHTML = `
-
-          <div class="text-muted">
-
-            関連記事はありません
-
-          </div>
-
-        `;
-
+        relatedList.innerHTML = `<div class="text-muted">関連記事はありません</div>`;
         return;
-
       }
 
-      // 関連記事ループ
       blogs.forEach(blog => {
-
         relatedList.innerHTML += `
-
           <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
-             class="related-link
-                    d-block
-                    border
-                    rounded-4
-                    p-3
-                    mb-3
-                    shadow-sm
-                    text-dark">
-
-            <!-- タイトル -->
+             class="related-link d-block border rounded-4 p-3 mb-3 shadow-sm text-dark">
             <div class="fw-bold fs-5 mb-2">
-
               ${blog.title}
-
             </div>
-
-            <!-- タグ -->
             <div>
-
               ${renderTags(blog.tags)}
-
             </div>
-
           </a>
-
         `;
-
       });
-
     }
 
     // =========================
     // コメント投稿
     // =========================
-
     function postComment() {
+      const comment = document.getElementById("commentInput").value.trim();
 
-      // 入力取得
-      const comment =
-        document.getElementById("commentInput").value.trim();
-
-      // 空チェック
       if (!comment) {
-
         alert("コメントを入力してください");
         return;
-
       }
 
-      // コメント一覧
-      const commentList =
-        document.getElementById("commentList");
+      const commentList = document.getElementById("commentList");
 
-      // コメントなし削除
       if (commentList.innerHTML.includes("コメントはまだありません")) {
-
         commentList.innerHTML = "";
-
       }
 
-      // コメント追加
       commentList.innerHTML =
-
         `
           <div class="d-flex mb-4">
-
-            <!-- アイコン -->
-            <img src="https://placehold.jp/48x48.png"
-                 class="comment-icon me-3">
-
-            <!-- 内容 -->
+            <img src="https://placehold.jp/48x48.png" class="comment-icon me-3">
             <div class="w-100">
-
-              <!-- 名前 -->
-              <a href="/profile/profile.php?user_id=999"
-                 class="fw-bold text-decoration-none">
-
-                あなた
-
-              </a>
-
-              <!-- コメント -->
+              <a href="#" class="fw-bold text-decoration-none">あなた</a>
               <div class="mt-1">
-
                 ${comment}
-
               </div>
-
             </div>
-
           </div>
-        `
+        ` + commentList.innerHTML;
 
-        + commentList.innerHTML;
-
-      // 入力リセット
       document.getElementById("commentInput").value = "";
-
     }
 
     // =========================
     // いいね
     // =========================
-
     function toggleLike() {
+      let likes = parseInt(document.getElementById("likes").textContent);
+      const button = document.getElementById("likeButton");
 
-      // 現在の数
-      let likes =
-        parseInt(document.getElementById("likes").textContent);
-
-      // ボタン
-      const button =
-        document.getElementById("likeButton");
-
-      // いいね済み
       if (liked) {
-
         likes--;
-
         button.classList.remove("btn-danger");
         button.classList.add("btn-outline-danger");
-
         liked = false;
-
-      }
-
-      // 未いいね
-      else {
-
+      } else {
         likes++;
-
         button.classList.remove("btn-outline-danger");
         button.classList.add("btn-danger");
-
         liked = true;
-
       }
 
-      // 更新
-      document.getElementById("likes").textContent =
-        likes;
-
+      document.getElementById("likes").textContent = likes;
     }
-
   </script>
 
 </body>
-
 </html>
