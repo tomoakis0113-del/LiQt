@@ -21,8 +21,6 @@
 
   <!-- markdown -->
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
-  <!-- markdown -->
-  <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
   <!-- Icons -->
   <link rel="stylesheet"
@@ -88,10 +86,24 @@
 
       <div class="card-body p-4">
 
-        <!-- タイトル -->
-        <h1 id="title"
-            class="fw-bold mb-3">
-        </h1>
+        <!-- タイトル＋編集 -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+
+          <!-- タイトル -->
+          <h1 id="title"
+              class="fw-bold mb-0">
+          </h1>
+
+          <!-- 編集ボタン -->
+          <a id="editButton"
+             href="#"
+             class="btn btn-outline-primary d-none">
+
+            編集
+
+          </a>
+
+        </div>
 
         <!-- タグ -->
         <div id="tags"
@@ -191,7 +203,6 @@
     </div>
 
   </main>
-  </main>
 
   <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
@@ -239,6 +250,19 @@
           // タイトル
           document.getElementById("title").textContent =
             d.title;
+
+          // 編集ボタン
+          if (d.is_author) {
+
+            const editButton =
+              document.getElementById("editButton");
+
+            editButton.href =
+              `/blog/blog_edit.php?blog_id=${blogId}`;
+
+            editButton.classList.remove("d-none");
+
+          }
 
           // タグ
           document.getElementById("tags").innerHTML =
