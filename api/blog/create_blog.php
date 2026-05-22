@@ -6,8 +6,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * 必要なパラメータ:
  * - csrf_token: CSRFトークン
  * - blog_title: ブログタイトル
- * - blog_body: ブログ本文
- * - blog_content: ブログコンテンツ
+ * - blog_content: ブログ本文
  * - blog_tags: ブログタグ
  * - blog_visibility: ブログの公開設定
  * - group_id: グループID
@@ -79,14 +78,14 @@ try{
     //group投稿の場合
     if($visibility === 'group'){
         if($groupId === null){
-            lib\Util::responseError(400,'グループを選択してください');
+            lib\Util::responseError(405,'グループを選択してください');
         }
     }
 
 // group投稿の場合だけ所属グループ確認
 if($visibility === 'group'){
     if($groupId === null){
-        lib\Util::responseError(400,'グループを選択してください');
+        lib\Util::responseError(406,'グループを選択してください');
     }
 
     $member = models\GroupMember::query()
@@ -95,7 +94,7 @@ if($visibility === 'group'){
         ->first(['group_id']);
 
     if(!$member){
-        lib\Util::responseError(400,'所属グループがありません');
+        lib\Util::responseError(407,'所属グループがありません');
     }
 }else{
     $groupId = null;
