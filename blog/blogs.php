@@ -4,10 +4,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// CSRFトークンの生成（存在しない場合のみ）
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+// 💡 lib\CSRFToken クラスから安全に生成
+require_once __DIR__ . '/../vendor/autoload.php';
+$csrfToken = new lib\CSRFToken();
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -16,70 +15,101 @@ if (empty($_SESSION['csrf_token'])) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ブログ一覧</title>
+  <title>ブログ一覧 | LiQt</title>
 
   <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
   <style>
+    /* 💡 動的マージン完全対応：
+       タブの切り替えやブログ件数の増減（コンテンツの長さ）に関わらず、
+       画面最下部の固定メニューの上に必ず十分な余白を確保するため、
+       body要素の最下部に強制パディングを設定します。
+    */
+    body {
+      background-color: #f5f7fb;
+      padding-bottom: 240px !important; /* 👈 固定メニューに絶対に被らなくする絶対余白 */
+    }
+
     .tag-badge {
       margin-right: 5px;
     }
 
+    .blog-card-link {
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .blog-card {
+      transition: transform 0.2s, background-color 0.2s;
+    }
+
     .blog-card:hover {
       background: #f8f9fa;
+      transform: translateY(-2px);
     }
   </style>
 </head>
 
 <body>
 
+  <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
+
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <main class="container p-4" style="max-width:900px; margin-bottom:120px;">
+  <main class="container p-4" style="max-width:900px;">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="mb-0">ブログ一覧</h3>
-      <a href="/blog/create_blog.php" class="btn btn-success">
+      <h3 class="mb-0 fw-bold">ブログ一覧</h3>
+      <a href="/blog/create_blog.php" class="btn btn-success rounded-pill px-4">
         ＋ ブログ作成
       </a>
     </div>
 
     <div id="alertBox" class="alert d-none"></div>
 
-    <form id="searchForm" class="row g-2 mb-4">
-      <div class="col-md-6">
-        <input type="text" class="form-control" name="tag_search" placeholder="タグ検索（例: Java,PHP）">
-      </div>
-      <div class="col-md-4">
-        <input type="text" class="form-control" name="group_filter" placeholder="グループID">
-      </div>
-      <div class="col-md-2">
-        <button type="submit" class="btn btn-primary w-100">検索</button>
+    <form id="searchForm" class="mb-4">
+      <div class="input-group shadow-sm rounded-3 overflow-hidden">
+        <input type="text" name="search_word" class="form-control border-0 px-3" placeholder="ブログのタイトル、タグで検索...">
+        <button class="btn btn-primary px-4" type="submit">検索</button>
       </div>
     </form>
 
-    <ul class="nav nav-tabs mb-3" id="blogTabs">
-      <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#public">公開</button>
+    <ul class="nav nav-pills mb-4 bg-white p-2 rounded-4 shadow-sm" id="blogTab" role="tablist">
+      <li class="nav-item flex-fill text-center" role="presentation">
+        <button class="nav-link active w-100 rounded-3 fw-bold" data-bs-toggle="tab" data-bs-target="#public" type="button" role="tab">
+          公開ブログ
+        </button>
       </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#private">非公開</button>
+      <li class="nav-item flex-fill text-center" role="presentation">
+        <button class="nav-link w-100 rounded-3 fw-bold" data-bs-toggle="tab" data-bs-target="#private" type="button" role="tab">
+          非公開ブログ
+        </button>
       </li>
-      <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#my">自分の投稿</button>
+      <li class="nav-item flex-fill text-center" role="presentation">
+        <button class="nav-link w-100 rounded-3 fw-bold" data-bs-toggle="tab" data-bs-target="#myblogs" type="button" role="tab">
+          自分のブログ
+        </button>
       </li>
     </ul>
 
-    <div class="tab-content">
-      <div class="tab-pane fade show active" id="public">
-        <div id="publicList" class="list-group"></div>
+    <div class="tab-content" id="blogTabContent">
+      <div class="tab-pane fade show active" id="public" role="tabpanel">
+        <div id="publicList" class="d-flex flex-column gap-3">
+          <div class="text-center text-muted py-4">読み込み中...</div>
+        </div>
       </div>
-      <div class="tab-pane fade" id="private">
-        <div id="privateList" class="list-group"></div>
+
+      <div class="tab-pane fade" id="private" role="tabpanel">
+        <div id="privateList" class="d-flex flex-column gap-3">
+          <div class="text-center text-muted py-4">読み込み中...</div>
+        </div>
       </div>
-      <div class="tab-pane fade" id="my">
-        <div id="myList" class="list-group"></div>
+
+      <div class="tab-pane fade" id="myblogs" role="tabpanel">
+        <div id="myblogsList" class="d-flex flex-column gap-3">
+          <div class="text-center text-muted py-4">読み込み中...</div>
+        </div>
       </div>
     </div>
 
@@ -88,116 +118,87 @@ if (empty($_SESSION['csrf_token'])) {
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
-    // ページのロードが完了したらブログ一覧を取得
+    // HTMLに埋め込んだCSRFトークンの取得
+    const csrfToken = document.getElementById("csrf_token").value;
+
+    // 画面初期ロード時にブログ一覧を自動取得
     document.addEventListener("DOMContentLoaded", () => {
-      loadBlogs();
+      loadAllBlogs();
     });
 
-    // CSRFトークンをPHPからJavaScriptへ安全に渡す
-    const csrfToken = "<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>";
-
     // =========================
-    // APIからブログ一覧データを取得
+    // ブログ一覧取得APIの統合
     // =========================
-    async function loadBlogs() {
+    async function loadAllBlogs() {
       clearError();
 
-      // FormDataにAPI仕様で要求されているcsrf_tokenを積載する
       const formData = new FormData();
       formData.append("csrf_token", csrfToken);
 
       try {
-        const res = await fetch("/api/blog/get_blogs.php", {
-          method: "POST", // トークンを送るため通常はPOST、もしくはGETのパラメータに付与
+        const response = await fetch("/api/blog/get_blogs.php", {
+          method: "POST",
           body: formData
         });
 
-        if (!res.ok) {
-          throw new Error("サーバーとの通信に失敗しました。");
-        }
+        if (!response.ok) throw new Error("ブログ一覧の取得に失敗しました。");
 
-        const data = await res.json();
+        const result = await response.json();
 
-        if (data.success) {
-          // 取得成功時：レスポンスから各属性のブログ配列を抽出して描画
-          // ※API側の出力キー名称に合わせて調整してください（以下は一般的な設計に基づいています）
-          const publicBlogs  = data.public_blogs  || [];
-          const privateBlogs = data.private_blogs || [];
-          const myBlogs      = data.my_blogs      || [];
-
-          renderBlogs("publicList", publicBlogs);
-          renderBlogs("privateList", privateBlogs);
-          renderMyBlogs(myBlogs);
+        if (result.success && result.data) {
+          // 仕様に基づく各リストデータへのレンダリングマッピング
+          renderBlogs("publicList", result.data.public_blogs || []);
+          renderBlogs("privateList", result.data.private_blogs || []);
+          renderBlogs("myblogsList", result.data.my_blogs || [], true);
         } else {
-          showError(data.message);
+          showError(result.message || "ブログ一覧を取得できませんでした。");
         }
-      } catch (err) {
-        showError("ブログ一覧の取得中にエラーが発生しました。");
+      } catch (error) {
+        console.error(error);
+        showError("サーバーとの通信中にエラーが発生しました。");
       }
     }
 
     // =========================
-    // 共通描画 (公開 / 非公開)
+    // 動的ブログリストの描画処理
     // =========================
-    function renderBlogs(targetId, blogs) {
-      const list = document.getElementById(targetId);
-      list.innerHTML = "";
+    function renderBlogs(elementId, blogs, isMyBlogTab = false) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = "";
 
       if (blogs.length === 0) {
-        list.innerHTML = '<div class="text-muted p-3 text-center">該当するブログはありません。</div>';
+        container.innerHTML = `<div class="card border-0 shadow-sm rounded-4 p-4 text-center text-muted">ブログがありません</div>`;
         return;
       }
 
-      blogs.forEach(b => {
-        list.innerHTML += `
-          <a href="blog_detail.php?blog_id=${b.blog_id}" class="list-group-item blog-card mb-2 text-decoration-none text-dark">
-            <div class="fw-bold mb-1">${escapeHtml(b.title || b.blog_title)}</div>
-            <div>${renderTags(b.tags || b.blog_tags)}</div>
+      blogs.forEach(blog => {
+        // タグのパースとトリミング
+        const tagsHtml = blog.tags ? blog.tags.split(",").map(tag => 
+          `<span class="badge bg-success tag-badge">${escapeHtml(tag.trim())}</span>`
+        ).join("") : "";
+
+        // 自分のブログタブの場合のみ公開ステータス（visibility）を表示
+        let visibilityBadge = "";
+        if (isMyBlogTab && blog.visibility) {
+          const isPublic = blog.visibility === "public";
+          visibilityBadge = `<span class="badge ${isPublic ? 'bg-primary' : 'bg-secondary'} me-2">${isPublic ? '公開' : '非公開'}</span>`;
+        }
+
+        // ブログ詳細への正しいリンクパス構造
+        container.innerHTML += `
+          <a href="/blog/blog_detail.php?blog_id=${encodeURIComponent(blog.blog_id)}" class="blog-card-link">
+            <div class="card border-0 shadow-sm rounded-4 blog-card mb-1">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-2">
+                  ${visibilityBadge}
+                  <h4 class="card-title fw-bold mb-0 text-truncate">${escapeHtml(blog.title)}</h4>
+                </div>
+                <div class="card-tags">${tagsHtml}</div>
+              </div>
+            </div>
           </a>
         `;
       });
-    }
-
-    // =========================
-    // 自分の投稿 描画
-    // =========================
-    function renderMyBlogs(blogs) {
-      const list = document.getElementById("myList");
-      list.innerHTML = "";
-
-      if (blogs.length === 0) {
-        list.innerHTML = '<div class="text-muted p-3 text-center">投稿したブログはありません。</div>';
-        return;
-      }
-
-      blogs.forEach(b => {
-        // 公開ステータスに応じたバッジ色の選定
-        const visibility = b.visibility || b.blog_visibility || "public";
-        const badgeClass = visibility === "public" ? "bg-success" : (visibility === "private" ? "bg-secondary" : "bg-info");
-        const badgeLabel = visibility === "public" ? "公開" : (visibility === "private" ? "非公開" : "グループ");
-
-        list.innerHTML += `
-          <a href="blog_detail.php?blog_id=${b.blog_id}" class="list-group-item blog-card mb-2 text-decoration-none text-dark">
-            <div class="fw-bold mb-1">${escapeHtml(b.title || b.blog_title)}</div>
-            <div class="mb-2">${renderTags(b.tags || b.blog_tags)}</div>
-            <span class="badge ${badgeClass}">${badgeLabel}</span>
-          </a>
-        `;
-      });
-    }
-
-    // =========================
-    // タグ表示用ヘルパー
-    // =========================
-    function renderTags(tags) {
-      if (!tags) return "";
-      return tags
-        .split(",")
-        .map(tag => {
-          if (!tag.trim()) return "";
-          return `<span class="badge bg-primary tag-badge">${escapeHtml(tag.trim())}</span>`;
-        })
-        .join("");
     }
 
     // =========================
@@ -208,7 +209,7 @@ if (empty($_SESSION['csrf_token'])) {
       clearError();
 
       const formData = new FormData(e.target);
-      formData.append("csrf_token", csrfToken); // 検索時にもトークンを付与
+      formData.append("csrf_token", csrfToken);
 
       try {
         const res = await fetch("api/search_blogs.php", {
@@ -221,7 +222,6 @@ if (empty($_SESSION['csrf_token'])) {
         const data = await res.json();
 
         if (data.success) {
-          // 検索結果を公開リスト等に反映し、公開タブを強制アクティブ化
           renderBlogs("publicList", data.blogs || []);
           document.querySelector('[data-bs-target="#public"]').click();
         } else {
@@ -233,12 +233,12 @@ if (empty($_SESSION['csrf_token'])) {
     });
 
     // =========================
-    // ユーティリティ（エラー・エスケープ）
+    // ユーティリティ
     // =========================
     function showError(msg) {
       const box = document.getElementById("alertBox");
       box.textContent = msg;
-      box.className = "alert alert-danger mb-4";
+      box.className = "alert alert-danger mb-4 shadow-sm rounded-3";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -260,5 +260,4 @@ if (empty($_SESSION['csrf_token'])) {
   </script>
 
 </body>
-
 </html>

@@ -48,12 +48,12 @@ if (empty($_SESSION['csrf_token'])) {
 
       <div class="mb-3">
         <label class="form-label">タイトル</label>
-        <input type="text" name="blog_title" class="form-control" placeholder="ブログのタイトルを入力してください" required>
+        <input type="text" name="title" class="form-control" placeholder="ブログのタイトルを入力してください" required>
       </div>
 
       <div class="mb-3">
         <label class="form-label">本文（Markdown）</label>
-        <textarea name="blog_body" id="contentInput" class="form-control" rows="8" placeholder="Markdown形式で本文を入力してください" required></textarea>
+        <textarea name="content" id="contentInput" class="form-control" rows="8" placeholder="Markdown形式で本文を入力してください" required></textarea>
         <input type="hidden" name="blog_content" id="blogContentHidden">
       </div>
 
@@ -64,7 +64,7 @@ if (empty($_SESSION['csrf_token'])) {
 
       <div class="mb-3">
         <label class="form-label">公開設定</label>
-        <select name="blog_visibility" id="visibility" class="form-select" required>
+        <select name="visibility" id="visibility" class="form-select" required>
           <option value="public">公開</option>
           <option value="private">非公開</option>
           <option value="group">グループ</option>
@@ -78,7 +78,7 @@ if (empty($_SESSION['csrf_token'])) {
 
       <div class="mb-3">
         <label class="form-label">タグ（カンマ区切り）</label>
-        <input type="text" name="blog_tags" class="form-control" placeholder="Java,PHP,HTML">
+        <input type="text" name="tags" class="form-control" placeholder="Java,PHP,HTML">
       </div>
 
       <button type="submit" id="submitBtn" class="btn btn-primary w-100 mb-5">
@@ -167,11 +167,6 @@ if (empty($_SESSION['csrf_token'])) {
           method: "POST",
           body: formData
         });
-
-        if (!res.ok) {
-          throw new Error("サーバー内でエラーが発生しました。");
-        }
-
         const data = await res.json();
 
         if (data.success) {
@@ -183,6 +178,7 @@ if (empty($_SESSION['csrf_token'])) {
           setSubmitting(false);
         }
       } catch (err) {
+        console.error(err);
         showError("通信エラーまたは予期せぬエラーが発生しました。");
         setSubmitting(false);
       }
