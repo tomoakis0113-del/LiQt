@@ -48,23 +48,68 @@ try{
         'tags' => $tags
     ];
 
-    //入力チェックをする
-    $validator = new lib\Validator($blogData);
-
-    $validator->required('title');
-    $validator->required('content');
-    $validator->required('visibility');
-    $validator->required('tags');
-
-    if($validator->errors()){
-        lib\Util::responseError(400,$validator->errors());
+    //入力チェック
+    if($blogId === ''){
+        lib\Util::responseError(400,'ブログIDが指定されていません');
     }
 
+    if(!ctype_digit((string)$blogId)){
+        lib\Util::responseError(400,'ブログIDの形式が正しくありません');
+    }
+
+    if(trim($title) === ''){
+        lib\Util::responseError(400,'タイトルを入力してください');
+    }
+
+    if(trim($content) === ''){
+        lib\Util::responseError(400,'本文を入力してください');
+    }
+
+    if(!in_array($visibility, ['public', 'private', 'group'], true)){
+        lib\Util::responseError(400,'公開設定が正しくありません');
+    }
+
+    if(mb_strlen($title) > 255){
+        lib\Util::responseError(400,'タイトルは255文字以内で入力してください');
+    }
     //編集対象のブログをDBから探す
-    $blog = new models\Blog();
-    $blog = $blog->find($blogId);
-    
-    //
+    $blog = models\Blog::query()
+        ->where('id', $blogId)
+        ->first();    
+    //投稿者本人か確認する
+    if($blog->author_id !== $sessionHandler->getCurrentUserID()){
+        lib\Util::responseError(403,'編集権限がありません');
+    }
+
+$currentUserId = $sessionHandler->getCurrentUserID();
+
+$member = models\GroupMember::query()
+    ->where('user_id', $currentUserId)
+    ->where('group_id', $blog->group_id)
+    ->first(['group_id']);
+
+    //blogsテーブルを更新する
+    $blog->title = $title;
+    $blog->content = $content;
+    $blog->visibility = $visibility;
+    $blog->tags = $tags;
+    $blog->save();
+
+    $blog = [
+        'id' => $blog->id,
+        'title' => $blog->title,
+        'content' => $blog->content,
+        'visibility' => $blog->visibility,
+        'tags' => $blog->tags,
+        'created_at' => $blog->created_at,
+        'updated_at' => $blog->updated_at,
+    ];
+
+    lib\Util::responseSuccess('ブログを更新しました',  $blog);
+
+}catch(Exception $e){
+    lib\Util::responseError(500,$e->getMessage());
+}
 
  
 
