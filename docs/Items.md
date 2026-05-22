@@ -405,6 +405,12 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：ブログ一覧ページへ遷移
             - 失敗：エラーメッセージ表示
+    
+    - 編集ボタン
+        - 編集処理（`api/blog/update_blog.php`）
+            - レスポンス: `success`->true/false, `message`->エラーメッセージ
+            - 成功：編集後のブログ詳細ページへ遷移(`blog_detail.php?blog_id=xxx`)
+            - 失敗：エラーメッセージ表示
 
 ### 追加: サインアウト・パスワード再設定（不足していた認証フロー）
 

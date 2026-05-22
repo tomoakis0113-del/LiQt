@@ -87,6 +87,7 @@ try{
         $iconUrl = '/uploads/icons/' . $fileName;
     }
 
+    // プロフィール更新
     if($iconUrl !== null){
         models\Profile::query()
             ->where('user_id', $currentUserId)

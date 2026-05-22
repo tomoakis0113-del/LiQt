@@ -25,7 +25,8 @@
 - [ ] `api/blog/search_blogs.php`
 - [ ] `api/blog/get_blog_detail.php`
 - [x] `api/blog/create_blog.php`
-- [ ] `api/b/delete_blog.php`
+- [x] `api/b/delete_blog.php`
+- [ ] `api/blog/update_blog.php`
 - [x] `api/auth/signout.php`
 - [x] `api/auth/request_password_reset.php`
 - [x] `api/auth/reset_password.php`

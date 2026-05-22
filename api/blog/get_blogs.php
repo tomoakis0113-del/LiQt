@@ -8,6 +8,29 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * 
  * レスポンス:
  * - 成功: { "success": true, "message": "ブログ一覧を取得します" }
+ * {
+ * "success": true,
+ * "message": "ブログ一覧を取得します",
+ * "data": {
+ *   "public_blogs": [
+ *     {
+ *       "blog_id": "ブログID",
+ *       "title": "ブログのタイトル",
+ *       "tags": "ブログのタグ"
+ *     },
+ *   ], *
+ *   "private_blogs": [],
+ *   "my_blogs": [
+ *     {
+ *       "blog_id": "ブログID",
+ *       "title": "ブログのタイトル",
+ *       "tags": "ブログのタグ",
+ *       "visibility": "public"
+ *     },
+ *
+ *   ]
+ * }
+ *
  * - エラー: { "success": false, "message": "不正なリクエストです" ,"サインインが必要です"}
  */
    use models\Blog as BlogModel;

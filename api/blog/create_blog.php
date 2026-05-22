@@ -16,9 +16,9 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - 成功: { "success": true, "message": "ブログの作成に成功しました" }
  * {
  * "success": true,
- * "message": "ブログの作成に成功しました",
+ * "message": [],
  * "data": {
- *   "blog_id": 6
+ *   "blog_id": ""
  * }
  *}
  * - エラー: { "success": false, "message": "エラーメッセージ" ,"サインインが必要です","不正なリクエストです","タイトルを入力してください","本文を入力してください","公開設定を選択してください","不正なクエリパラメータです"}
@@ -40,9 +40,9 @@ try{
 
     // パラメータを受け取り
     $sentToken = $_POST['csrf_token'] ?? '';
-    $title   = $_POST['blog_title'] ?? '';
-    $content = $_POST['blog_content'] ?? '';
-    $visibility = $_POST['blog_visibility'] ?? '';
+    $title   = $_POST['title'] ?? '';
+    $content = $_POST['content'] ?? '';
+    $visibility = $_POST['visibility'] ?? '';
     $group_id = $_POST['group_id'] ?? '';
     $tags = $_POST['tags'] ?? '';
 

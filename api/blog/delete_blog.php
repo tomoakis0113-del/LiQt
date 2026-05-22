@@ -8,7 +8,14 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - blog_id: 削除したいブログID
  * 
  * レスポンス:
+ * - 成功: { "success": true, "message": "ブログの削除に成功しました" }
+ * {
+ * "success": true,
+ * "message": [],
+ * "data": ""
+ *}
  * 
+ * - エラー: { "success": false, "message": "不正なリクエストです","ブログIDが指定されていません","このブログは削除できません","ブログが見つかりません" ,"サインインが必要です"}
  * 
  */
 
