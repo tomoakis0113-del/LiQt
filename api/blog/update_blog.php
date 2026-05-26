@@ -2,12 +2,32 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
+ * //必要なパラメータ
+ * - csrf_token: CSRFトークン
+ * - blog_id: 更新したいブログのID
+ * - title: タイトル
+ * - content: 内容
+ * - visibility: 公開/非公開/グループ
+ * - tags: タグ
  * 
  * 
+ * //レスポンス
+ * - 成功: { "success": true, "message": "ブログを更新しました" }
+ * {
+ *  "success": true,
+ *  "message": "[]",
+ *  "data": {
+ *    "id": "ブログID",
+ *    "title": "ブログのタイトル",
+ *    "content": "ブログの内容",
+ *    "visibility": "public / private / group",
+ *    "tags": "ブログのタグ",
+ *    "created_at": "2026-05-22T05:18:14.000000Z",
+ *    "updated_at": "2026-05-26T04:44:30.000000Z"
+ *  }
+ *}
  * 
- * 
- * 
- * 
+ * - 失敗: { "success": false, "message": "エラーッセージ","サインインが必要です","不正なリクエストです","ブログIDが指定されていません"}
  */
 
 
