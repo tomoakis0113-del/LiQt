@@ -15,11 +15,11 @@
 - [x] `api/group/get_user_role.php`
 - [x] `api/group/get_group_info.php`
 - [x] `api/group/update_group.php`
-- [ ] `api/group/delete_group.php`
-- [ ] `api/group/leave_group.php`
-- [ ] `api/group/get_public_groups.php`
-- [ ] `api/group/join_group.php`
-- [ ] `api/group/search_groups.php`
+- [x] `api/group/delete_group.php`
+- [x] `api/group/leave_group.php`
+- [x] `api/group/get_public_groups.php`
+- [x] `api/group/join_public_group.php`
+- [x] `api/group/search_groups.php`
 - [x] `api/blog/get_blogs.php`
 - [ ] `api/blog/search_blogs.php`
 - [ ] `api/blog/get_blog_detail.php`
