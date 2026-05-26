@@ -338,7 +338,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 - 検索ボタン
     - 検索処理(`api/blog/search_blogs.php`)
         - レスポンス : `success`->true/false, `message`->エラーメッセージ, `blogs[]`
-        - 成功：検索結果を表示
+        - 成功：検索結果を表示(blog_id, title, tags)
         - 失敗：エラーメッセージ表示
     
 #### ブログ詳細ページ（`blog_detail.php`）
