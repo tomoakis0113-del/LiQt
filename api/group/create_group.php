@@ -48,18 +48,16 @@ try{
 
     $group_icon_path = null;
     if($group_icon && $group_icon['error'] === UPLOAD_ERR_OK){
-        $uploadDir = __DIR__.'/../../uploads/group_icons/';
+        $uploadDir = __DIR__ . '/../../uploads/group_icons/';
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            mkdir($uploadDir, 0777, true);
         }
-
-        $fileName = basename($group_icon['name']);
-        $targetFilePath = $uploadDir . (new DateTime())->format('Ymd_His') . '_' . $fileName;
-
-        if (move_uploaded_file($group_icon['tmp_name'], $targetFilePath)) {
-            $group_icon_path = '/uploads/group_icons/' . $fileName; // データベースに保存するパス
-        } else {
-            lib\Util::responseError(500, 'グループアイコンのアップロードに失敗しました');
+        $ext = pathinfo($group_icon['name'], PATHINFO_EXTENSION);
+        $iconName = 'group_' . time() . '.' . $ext;
+        $iconPath = $uploadDir . $iconName;
+        if (move_uploaded_file($group_icon['tmp_name'], $iconPath)) {
+            $group_icon_path = '/uploads/group_icons/' . $iconName;
+            $updated = true;
         }
     } else {
         $group_icon_path = null;
