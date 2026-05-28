@@ -89,6 +89,8 @@ $csrfToken = new lib\CSRFToken();
       border-radius: 20px;
       padding: 25px;
 
+      scroll-behavior: smooth;
+
     }
 
     .message {
@@ -112,6 +114,8 @@ $csrfToken = new lib\CSRFToken();
       border-radius: 18px;
       padding: 18px;
       margin-top: 10px;
+
+      word-break: break-word;
 
     }
 
@@ -150,6 +154,12 @@ $csrfToken = new lib\CSRFToken();
 
       margin-right: 6px;
       margin-top: 8px;
+
+    }
+
+    .alert {
+
+      border-radius: 16px;
 
     }
 
@@ -237,7 +247,8 @@ $csrfToken = new lib\CSRFToken();
         </div>
 
         <!-- 投稿フォーム -->
-        <form id="messageForm">
+        <form id="messageForm"
+              enctype="multipart/form-data">
 
           <!-- メッセージ -->
           <textarea
@@ -251,6 +262,7 @@ $csrfToken = new lib\CSRFToken();
           <input
             type="file"
             class="form-control mb-4"
+            id="imageUpload"
             name="image_upload"
             accept="image/*">
 
@@ -273,7 +285,8 @@ $csrfToken = new lib\CSRFToken();
           </div>
 
           <!-- ボタン -->
-          <button class="btn btn-success w-100 py-3 rounded-pill">
+          <button id="submitButton"
+                  class="btn btn-success w-100 py-3 rounded-pill">
 
             送信
 
@@ -325,8 +338,11 @@ $csrfToken = new lib\CSRFToken();
   <script>
 
     // markdown
-    const md =
-      window.markdownit();
+    const md = window.markdownit({
+      html: false,
+      linkify: true,
+      typographer: true
+    });
 
     // group_id
     const params =
@@ -338,6 +354,24 @@ $csrfToken = new lib\CSRFToken();
     // csrf
     const csrfToken =
       document.getElementById("csrf_token").value;
+
+    // 初回ロード
+    let firstLoad = true;
+
+    // =========================
+    // group_idチェック
+    // =========================
+
+    if (!groupId) {
+
+      showMessage(
+        "グループIDが存在しません",
+        "danger"
+      );
+
+      throw new Error("group_id not found");
+
+    }
 
     // =========================
     // 初期ロード
@@ -351,12 +385,9 @@ $csrfToken = new lib\CSRFToken();
 
     setInterval(() => {
 
-      loadGroupChat();
+      loadGroupChat(false);
 
     }, 3000);
-
-    // 初期ロード
-    loadGroupChat();
 
     // =========================
     // Markdownプレビュー
@@ -371,10 +402,86 @@ $csrfToken = new lib\CSRFToken();
       });
 
     // =========================
+    // 画像プレビュー
+    // =========================
+
+    document.getElementById("imageUpload")
+      .addEventListener("change", function (e) {
+
+        const file =
+          e.target.files[0];
+
+        // リセット
+        const preview =
+          document.getElementById("preview");
+
+        preview.innerHTML =
+          md.render(
+            document.getElementById("messageInput").value
+          );
+
+        if (!file) {
+
+          return;
+
+        }
+
+        // 画像チェック
+        if (!file.type.startsWith("image/")) {
+
+          showMessage(
+            "画像ファイルを選択してください",
+            "danger"
+          );
+
+          e.target.value = "";
+
+          return;
+
+        }
+
+        // 5MB制限
+        if (file.size > 5 * 1024 * 1024) {
+
+          showMessage(
+            "画像サイズは5MB以下にしてください",
+            "danger"
+          );
+
+          e.target.value = "";
+
+          return;
+
+        }
+
+        const reader =
+          new FileReader();
+
+        reader.onload = function (event) {
+
+          preview.innerHTML += `
+
+            <div class="mt-4">
+
+              <img src="${event.target.result}"
+                   class="img-fluid rounded-4 shadow-sm"
+                   style="max-height:300px;">
+
+            </div>
+
+          `;
+
+        };
+
+        reader.readAsDataURL(file);
+
+      });
+
+    // =========================
     // グループ取得
     // =========================
 
-    async function loadGroupChat() {
+    async function loadGroupChat(scrollBottom = true) {
 
       // FormData
       const formData =
@@ -384,12 +491,6 @@ $csrfToken = new lib\CSRFToken();
       formData.append(
         "group_id",
         groupId
-      );
-
-      // csrf
-      formData.append(
-        "csrf_token",
-        csrfToken
       );
 
       try {
@@ -411,8 +512,26 @@ $csrfToken = new lib\CSRFToken();
         console.log(text);
 
         // json
-        const result =
-          JSON.parse(text);
+        let result;
+
+        try {
+
+          result = JSON.parse(text);
+
+        }
+
+        catch {
+
+          console.error(text);
+
+          showMessage(
+            "APIレスポンス形式が不正です",
+            "danger"
+          );
+
+          return;
+
+        }
 
         // エラー
         if (!result.success) {
@@ -433,7 +552,10 @@ $csrfToken = new lib\CSRFToken();
         renderGroupInfo(data);
 
         // メッセージ
-        renderMessages(data.messages);
+        renderMessages(
+          data.messages,
+          scrollBottom
+        );
 
         // ブログ
         renderBlogs(data.group_blogs);
@@ -461,7 +583,7 @@ $csrfToken = new lib\CSRFToken();
 
       // 名前
       document.getElementById("groupName").textContent =
-        data.group_name;
+        data.group_name || "名称未設定";
 
       // アイコン
       document.getElementById("groupIcon").src =
@@ -477,10 +599,16 @@ $csrfToken = new lib\CSRFToken();
     // メッセージ表示
     // =========================
 
-    function renderMessages(messages) {
+    function renderMessages(messages, scrollBottom = true) {
 
       const chatBox =
         document.getElementById("chatBox");
+
+      // スクロール位置
+      const isNearBottom =
+        chatBox.scrollHeight -
+        chatBox.scrollTop -
+        chatBox.clientHeight < 150;
 
       // 初期化
       chatBox.innerHTML = "";
@@ -519,17 +647,17 @@ $csrfToken = new lib\CSRFToken();
               <a href="/profile/profile.php?user_id=${message.sender_user_id}"
                  class="fw-bold text-decoration-none">
 
-                ${message.sender_display_name}
+                ${escapeHtml(message.sender_display_name)}
 
               </a>
 
               <!-- 本文 -->
               <div class="message-content shadow-sm">
 
-                ${md.render(message.content)}
+                ${md.render(message.content || "")}
 
                 ${message.image_url
-                  ? `<img src="${message.image_url}"
+                  ? `<img src="/${message.image_url}"
                           class="message-image img-fluid">`
                   : ""
                 }
@@ -539,7 +667,7 @@ $csrfToken = new lib\CSRFToken();
               <!-- 日時 -->
               <div class="small text-muted mt-2">
 
-                ${message.created_at}
+                ${message.created_at || ""}
 
               </div>
 
@@ -550,6 +678,16 @@ $csrfToken = new lib\CSRFToken();
         `;
 
       });
+
+      // スクロール
+      if (firstLoad || isNearBottom || scrollBottom) {
+
+        chatBox.scrollTop =
+          chatBox.scrollHeight;
+
+      }
+
+      firstLoad = false;
 
     }
 
@@ -593,14 +731,14 @@ $csrfToken = new lib\CSRFToken();
             <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
                class="fw-bold text-decoration-none fs-5">
 
-              ${blog.title}
+              ${escapeHtml(blog.title)}
 
             </a>
 
             <!-- 内容 -->
             <div class="mt-2 text-muted">
 
-              ${blog.content}
+              ${escapeHtml(blog.content)}
 
             </div>
 
@@ -614,7 +752,7 @@ $csrfToken = new lib\CSRFToken();
             <!-- 日時 -->
             <div class="small text-muted mt-3">
 
-              ${blog.created_at}
+              ${blog.created_at || ""}
 
             </div>
 
@@ -644,12 +782,33 @@ $csrfToken = new lib\CSRFToken();
 
           <span class="badge bg-success tag-badge">
 
-            ${tag.trim()}
+            ${escapeHtml(tag.trim())}
 
           </span>
 
         `)
         .join("");
+
+    }
+
+    // =========================
+    // HTMLエスケープ
+    // =========================
+
+    function escapeHtml(str) {
+
+      if (!str) {
+
+        return "";
+
+      }
+
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 
     }
 
@@ -662,15 +821,52 @@ $csrfToken = new lib\CSRFToken();
 
         e.preventDefault();
 
+        // ボタン
+        const submitButton =
+          document.getElementById("submitButton");
+
+        // 内容
+        const messageContent =
+          document.getElementById("messageInput")
+            .value
+            .trim();
+
+        // 画像
+        const imageFile =
+          document.getElementById("imageUpload")
+            .files[0];
+
+        // 空送信禁止
+        if (!messageContent && !imageFile) {
+
+          showMessage(
+            "メッセージを入力してください",
+            "danger"
+          );
+
+          return;
+
+        }
+
         // FormData
         const formData =
-          new FormData(e.target);
+          new FormData();
 
-        // csrf
+        // message
         formData.append(
-          "csrf_token",
-          csrfToken
+          "message_content",
+          messageContent
         );
+
+        // image
+        if (imageFile) {
+
+          formData.append(
+            "image_upload",
+            imageFile
+          );
+
+        }
 
         // group_id
         formData.append(
@@ -678,7 +874,19 @@ $csrfToken = new lib\CSRFToken();
           groupId
         );
 
+        // csrf
+        formData.append(
+          "csrf_token",
+          csrfToken
+        );
+
         try {
+
+          // ボタン無効
+          submitButton.disabled = true;
+
+          submitButton.innerHTML =
+            "送信中...";
 
           // fetch
           const response =
@@ -697,14 +905,33 @@ $csrfToken = new lib\CSRFToken();
           console.log(text);
 
           // json
-          const result =
-            JSON.parse(text);
+          let result;
+
+          try {
+
+            result = JSON.parse(text);
+
+          }
+
+          catch {
+
+            console.error(text);
+
+            showMessage(
+              "APIレスポンス形式が不正です",
+              "danger"
+            );
+
+            return;
+
+          }
 
           // エラー
           if (!result.success) {
 
             showMessage(
-              result.message,
+              result.message ||
+              "送信に失敗しました",
               "danger"
             );
 
@@ -714,19 +941,24 @@ $csrfToken = new lib\CSRFToken();
 
           // 成功
           showMessage(
-            result.message,
+            result.message ||
+            "送信しました",
             "success"
           );
 
-          // フォームリセット
+          // リセット
           e.target.reset();
 
-          // プレビュー初期化
+          // preview reset
           document.getElementById("preview").innerHTML =
             "ここにMarkdownプレビューが表示されます";
 
           // 再読み込み
-          loadGroupChat();
+          await loadGroupChat(true);
+
+          // フォーカス
+          document.getElementById("messageInput")
+            .focus();
 
         }
 
@@ -741,6 +973,16 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
+        finally {
+
+          // ボタン戻す
+          submitButton.disabled = false;
+
+          submitButton.innerHTML =
+            "送信";
+
+        }
+
       });
 
     // =========================
@@ -751,7 +993,7 @@ $csrfToken = new lib\CSRFToken();
 
       document.getElementById("messageBox").innerHTML = `
 
-        <div class="alert alert-${type}">
+        <div class="alert alert-${type} shadow-sm">
 
           ${message}
 
@@ -766,3 +1008,4 @@ $csrfToken = new lib\CSRFToken();
 </body>
 
 </html>
+```

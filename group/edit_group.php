@@ -1,273 +1,1219 @@
+<?php
+
+session_start();
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// csrf
+$csrfToken = new lib\CSRFToken();
+
+?>
+
 <!DOCTYPE html>
 <html lang="ja">
 
 <head>
+
+  <!-- meta -->
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>グループ編集</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <title>
+
+    グループ編集 | LiQt
+
+  </title>
+
+  <!-- bootstrap -->
+  <link rel="stylesheet"
+        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
   <style>
-    .member-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
+
+    body {
+
+      background: #f8f9fa;
+
     }
+
+    .card {
+
+      border-radius: 24px;
+
+    }
+
+    .group-icon {
+
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 24px;
+
+    }
+
+    .member-icon {
+
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+
+    }
+
+    .list-group-item {
+
+      border-radius: 18px !important;
+      margin-bottom: 14px;
+      border: none;
+
+    }
+
+    .alert {
+
+      border-radius: 18px;
+
+    }
+
+    .member-action-btn {
+
+      min-width: 90px;
+
+    }
+
   </style>
+
 </head>
 
 <body>
 
+  <!-- header -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <main class="container p-4" style="max-width:800px;">
+  <main class="container py-5"
+        style="max-width: 950px;">
 
-    <h3 class="mb-4">グループ編集</h3>
+    <!-- alert -->
+    <div id="alertBox"></div>
 
-    <div id="alertBox" class="alert d-none"></div>
+    <!-- title -->
+    <h2 class="fw-bold mb-4">
 
-    <!-- グループ情報 -->
-    <div class="mb-4 d-flex align-items-center">
-      <img id="groupIcon" width="60" height="60" class="rounded me-3">
-      <div>
-        <h5 id="groupName"></h5>
-        <div id="groupPublic"></div>
+      グループ編集
+
+    </h2>
+
+    <!-- group -->
+    <div class="card shadow-sm border-0 mb-5">
+
+      <div class="card-body p-4 d-flex align-items-center">
+
+        <!-- icon -->
+        <img id="groupIcon"
+             src="https://placehold.jp/150x150.png"
+             class="group-icon me-4">
+
+        <div>
+
+          <!-- name -->
+          <h3 id="groupName"
+              class="fw-bold mb-2">
+
+            読み込み中...
+
+          </h3>
+
+          <!-- public -->
+          <div id="groupPublic"
+               class="text-muted">
+
+          </div>
+
+        </div>
+
       </div>
+
     </div>
 
-    <!-- 編集フォーム（オーナー・管理者のみ） -->
-    <form id="editForm" class="d-none">
+    <!-- group edit -->
+    <form id="editForm"
+          class="card shadow-sm border-0 mb-5 d-none"
+          enctype="multipart/form-data">
 
-      <div class="mb-3">
-        <label>グループ名</label>
-        <input type="text" class="form-control" name="group_name" id="inputName">
-      </div>
+      <div class="card-body p-4">
 
-      <div class="mb-3">
-        <label>アイコン</label>
-        <input type="file" class="form-control" name="group_icon">
-      </div>
+        <h4 class="fw-bold mb-4">
 
-      <div class="mb-3">
-        <label>公開設定</label>
-        <select class="form-select" name="is_public" id="inputPublic">
-          <option value="1">公開</option>
-          <option value="0">非公開</option>
-        </select>
-      </div>
+          グループ設定
 
-      <!-- メンバー追加 -->
-      <div class="mb-3">
-        <label>メンバー追加</label>
-        <div class="input-group">
-          <input type="text" id="addUserInput" class="form-control" placeholder="ユーザID">
-          <button type="button" class="btn btn-outline-primary" onclick="addUser()">追加</button>
+        </h4>
+
+        <!-- group name -->
+        <div class="mb-4">
+
+          <label class="form-label fw-bold">
+
+            グループ名
+
+          </label>
+
+          <input type="text"
+                 class="form-control"
+                 id="inputName"
+                 name="group_name">
+
         </div>
+
+        <!-- group icon -->
+        <div class="mb-4">
+
+          <label class="form-label fw-bold">
+
+            グループアイコン
+
+          </label>
+
+          <input type="file"
+                 class="form-control"
+                 id="groupIconInput"
+                 name="group_icon"
+                 accept="image/*">
+
+        </div>
+
+        <!-- public -->
+        <div class="mb-4">
+
+          <label class="form-label fw-bold">
+
+            公開設定
+
+          </label>
+
+          <select class="form-select"
+                  id="inputPublic"
+                  name="is_public">
+
+            <option value="1">
+
+              公開
+
+            </option>
+
+            <option value="0">
+
+              非公開
+
+            </option>
+
+          </select>
+
+        </div>
+
+        <!-- update -->
+        <button id="updateButton"
+                class="btn btn-primary w-100 py-3 rounded-pill">
+
+          グループ設定を更新する
+
+        </button>
+
+        <!-- delete -->
+        <button type="button"
+                id="deleteBtn"
+                class="btn btn-danger w-100 py-3 rounded-pill mt-3 d-none">
+
+          グループ削除
+
+        </button>
+
       </div>
-
-      <button class="btn btn-primary w-100 mb-2">更新</button>
-
-      <!-- 削除（オーナーのみ） -->
-      <button type="button" id="deleteBtn" class="btn btn-danger w-100 d-none">
-        グループ削除
-      </button>
 
     </form>
 
-    <!-- メンバー一覧 -->
-    <h5>メンバー一覧</h5>
-    <ul id="memberList" class="list-group"></ul>
+    <!-- member manage -->
+    <form id="memberManageForm"
+          class="card shadow-sm border-0 mb-5 d-none">
 
-    <!-- メンバー用 -->
-    <div id="memberOnly" class="d-none mt-4">
-      <button class="btn btn-warning w-100" onclick="leaveGroup()">退会する</button>
+      <div class="card-body p-4">
+
+        <h4 class="fw-bold mb-4">
+
+          メンバー管理
+
+        </h4>
+
+        <!-- add user -->
+        <div class="mb-4">
+
+          <label class="form-label fw-bold">
+
+            メンバー追加（ユーザーIDをカンマ区切り）
+
+          </label>
+
+          <input type="text"
+                 class="form-control"
+                 id="addUserIds"
+                 placeholder="1,2,3">
+
+        </div>
+
+        <!-- member list -->
+        <ul id="memberList"
+            class="list-group mb-4">
+
+          <li class="list-group-item">
+
+            読み込み中...
+
+          </li>
+
+        </ul>
+
+        <!-- update -->
+        <button id="memberUpdateButton"
+                type="submit"
+                class="btn btn-primary w-100 py-3 rounded-pill">
+
+          メンバー情報を更新する
+
+        </button>
+
+      </div>
+
+    </form>
+
+    <!-- leave -->
+    <div id="memberOnly"
+         class="d-none mb-5">
+
+      <button class="btn btn-warning w-100 py-3 rounded-pill"
+              onclick="leaveGroup()">
+
+        グループを退会する
+
+      </button>
+
     </div>
 
   </main>
 
+  <!-- footer -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
+  <!-- csrf -->
+  <input type="hidden"
+         id="csrf_token"
+         value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
+
   <script>
-    const params = new URLSearchParams(location.search);
-    const groupId = params.get("group_id");
 
-    let myRole = "";
+    // params
+    const params =
+      new URLSearchParams(location.search);
 
-    // ロール取得
-    fetch(`api/get_user_role.php?group_id=${groupId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (!data.success) return alert(data.message);
+    // group id
+    const groupId =
+      params.get("group_id");
 
-        myRole = data.role;
+    // csrf
+    const csrfToken =
+      document.getElementById("csrf_token").value;
 
-        if (myRole === "owner" || myRole === "manager") {
-          document.getElementById("editForm").classList.remove("d-none");
-        } else {
-          document.getElementById("memberOnly").classList.remove("d-none");
+    // role
+    let myRole =
+      "member";
+
+    // remove ids
+    let removeUserIds =
+      [];
+
+    // role changes
+    let roleChanges =
+      [];
+
+    // =========================
+    // check
+    // =========================
+
+    if (!groupId) {
+
+      showAlert(
+        "グループIDが存在しません",
+        "danger"
+      );
+
+      throw new Error(
+        "group_id not found"
+      );
+
+    }
+
+    // =========================
+    // init
+    // =========================
+
+    loadUserRole();
+
+    // =========================
+    // load role
+    // =========================
+
+    async function loadUserRole() {
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
+
+      formData.append(
+        "group_id",
+        groupId
+      );
+
+      try {
+
+        const response =
+          await fetch(
+            "../api/group/get_user_role.php",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        let result;
+
+        try {
+
+          result =
+            JSON.parse(text);
+
         }
 
+        catch {
+
+          console.error(text);
+
+          showAlert(
+            "APIレスポンス形式が不正です",
+            "danger"
+          );
+
+          return;
+
+        }
+
+        if (!result.success) {
+
+          showAlert(
+            result.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        myRole =
+          result.data.role;
+
+        // edit
+        if (
+          myRole === "owner" ||
+          myRole === "manager"
+        ) {
+
+          document.getElementById("editForm")
+            .classList
+            .remove("d-none");
+
+          document.getElementById("memberManageForm")
+            .classList
+            .remove("d-none");
+
+        }
+
+        // delete
         if (myRole === "owner") {
-          document.getElementById("deleteBtn").classList.remove("d-none");
+
+          document.getElementById("deleteBtn")
+            .classList
+            .remove("d-none");
+
+        }
+
+        // member
+        if (myRole === "member") {
+
+          document.getElementById("memberOnly")
+            .classList
+            .remove("d-none");
+
         }
 
         loadGroup();
-      });
 
-    // グループ情報取得
-    function loadGroup() {
-      fetch(`api/get_group_info.php?group_id=${groupId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.success) return alert(data.message);
+      }
 
-          const d = data.data;
+      catch (error) {
 
-          document.getElementById("groupName").textContent = d.group_name;
-          document.getElementById("groupIcon").src = d.group_icon;
-          document.getElementById("groupPublic").textContent =
-            d.is_public ? "公開グループ" : "非公開グループ";
+        console.error(error);
 
-          document.getElementById("inputName").value = d.group_name;
-          document.getElementById("inputPublic").value = d.is_public ? 1 : 0;
+        showAlert(
+          "通信エラーが発生しました",
+          "danger"
+        );
 
-          renderMembers(d.manage_members);
-        });
+      }
+
     }
 
-    // メンバー表示
-    function renderMembers(members) {
-      const list = document.getElementById("memberList");
-      list.innerHTML = "";
+    // =========================
+    // load group
+    // =========================
 
-      members.forEach(m => {
+    async function loadGroup() {
 
-        let controls = "";
+      const formData =
+        new FormData();
 
-        if (myRole === "owner" || myRole === "manager") {
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
 
-          // 削除
-          if (m.role !== "owner") {
-            controls += `<button class="btn btn-sm btn-danger ms-2"
-          onclick="removeUser('${m.user_id}')">削除</button>`;
-          }
+      formData.append(
+        "group_id",
+        groupId
+      );
 
-          // 権限変更
-          if (myRole === "owner" || (myRole === "manager" && m.role !== "owner")) {
-            controls += `
-          <select onchange="changeRole('${m.user_id}', this.value)" class="ms-2">
-            <option value="member">メンバー</option>
-            <option value="manager">管理者</option>
-          </select>
-        `;
-          }
+      try {
+
+        const response =
+          await fetch(
+            "../api/group/get_group_info.php",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        let result;
+
+        try {
+
+          result =
+            JSON.parse(text);
+
         }
 
-        list.innerHTML += `
-      <li class="list-group-item d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center">
-          <img src="${m.icon_url}" class="member-icon me-2">
-          <div>
-            <a href="profile.php?user_id=${m.user_id}">
-              ${m.display_name}
-            </a>
-            <div class="small text-muted">${m.role}</div>
-          </div>
-        </div>
-        <div>${controls}</div>
-      </li>
-    `;
-      });
-    }
+        catch {
 
-    // 更新
-    document.getElementById("editForm").addEventListener("submit", async e => {
-      e.preventDefault();
+          console.error(text);
 
-      const formData = new FormData(e.target);
-      formData.append("group_id", groupId);
+          showAlert(
+            "APIレスポンス形式が不正です",
+            "danger"
+          );
 
-      const res = await fetch("api/update_group.php", {
-        method: "POST",
-        body: formData
-      });
+          return;
 
-      const data = await res.json();
+        }
 
-      if (data.success) {
-        location.href = `chat.php?group_id=${groupId}`;
-      } else {
-        showAlert(data.message);
+        if (!result.success) {
+
+          showAlert(
+            result.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        const data =
+          result.data;
+
+        renderGroupInfo(data);
+
+        renderMembers(data.members);
+
       }
-    });
 
-    // 追加
-    function addUser() {
-      const id = document.getElementById("addUserInput").value;
-      alert("モック: " + id + " を追加");
+      catch (error) {
+
+        console.error(error);
+
+        showAlert(
+          "通信エラーが発生しました",
+          "danger"
+        );
+
+      }
+
     }
 
-    // 削除
-    function removeUser(id) {
-      alert("モック: " + id + " を削除");
+    // =========================
+    // render group
+    // =========================
+
+    function renderGroupInfo(data) {
+
+      document.getElementById("groupName").textContent =
+        data.group_name || "名称未設定";
+
+      document.getElementById("groupIcon").src =
+        data.group_icon ||
+        "https://placehold.jp/150x150.png";
+
+      document.getElementById("groupPublic").textContent =
+        data.is_public
+          ? "公開グループ"
+          : "非公開グループ";
+
+      document.getElementById("inputName").value =
+        data.group_name || "";
+
+      document.getElementById("inputPublic").value =
+        data.is_public
+          ? 1
+          : 0;
+
     }
 
-    // 権限変更
-    function changeRole(id, role) {
-      alert("モック: " + id + " → " + role);
-    }
+    // =========================
+    // render members
+    // =========================
 
-    // 削除
-    document.getElementById("deleteBtn").addEventListener("click", async () => {
-      if (!confirm("本当に削除する？")) return;
+    function renderMembers(members) {
 
-      const res = await fetch("api/delete_group.php", {
-        method: "POST",
-        body: new URLSearchParams({
-          group_id: groupId
-        })
+      const memberList =
+        document.getElementById("memberList");
+
+      memberList.innerHTML = "";
+
+      if (!members || members.length === 0) {
+
+        memberList.innerHTML = `
+
+          <li class="list-group-item">
+
+            メンバーはいません
+
+          </li>
+
+        `;
+
+        return;
+
+      }
+
+      members.forEach(member => {
+
+        const canManage =
+          myRole === "owner" ||
+          (
+            myRole === "manager" &&
+            member.role !== "owner"
+          );
+
+        let actionButtons = "";
+
+        if (canManage) {
+
+          actionButtons += `
+
+            <div class="d-flex flex-column gap-2">
+
+              <select class="form-select form-select-sm"
+                      onchange="changeRole(${member.user_id}, this.value)">
+
+                <option value="member"
+                  ${member.role === 'member' ? 'selected' : ''}>
+
+                  member
+
+                </option>
+
+                <option value="manager"
+                  ${member.role === 'manager' ? 'selected' : ''}>
+
+                  manager
+
+                </option>
+
+                ${myRole === "owner" ? `
+
+                  <option value="owner"
+                    ${member.role === 'owner' ? 'selected' : ''}>
+
+                    owner
+
+                  </option>
+
+                ` : ""}
+
+              </select>
+
+              <button type="button"
+                      class="btn btn-outline-danger btn-sm member-action-btn"
+                      onclick="removeMember(${member.user_id})">
+
+                削除
+
+              </button>
+
+            </div>
+
+          `;
+
+        }
+
+        memberList.innerHTML += `
+
+          <li class="list-group-item d-flex align-items-center justify-content-between shadow-sm">
+
+            <div class="d-flex align-items-center">
+
+              <img src="${member.icon_url || 'https://placehold.jp/100x100.png'}"
+                   class="member-icon me-3">
+
+              <div>
+
+                <a href="/profile/profile.php?user_id=${member.user_id}"
+                   class="fw-bold text-decoration-none">
+
+                  ${escapeHtml(member.display_name)}
+
+                </a>
+
+                <div class="small text-muted mt-1">
+
+                  ${escapeHtml(member.role)}
+
+                </div>
+
+              </div>
+
+            </div>
+
+            ${actionButtons}
+
+          </li>
+
+        `;
+
       });
 
-      const data = await res.json();
+    }
 
-      if (data.success) {
-        location.href = "dashboard.php";
-      } else {
-        showAlert(data.message);
+    // =========================
+    // remove member
+    // =========================
+
+    function removeMember(userId) {
+
+      if (!confirm("このメンバーを削除しますか？")) {
+
+        return;
+
       }
-    });
 
-    // 退会
-    function leaveGroup() {
-      if (!confirm("退会する？")) return;
+      if (!removeUserIds.includes(String(userId))) {
 
-      fetch("api/leave_group.php", {
-          method: "POST",
-          body: new URLSearchParams({
-            group_id: groupId
-          })
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            location.href = "dashboard.php";
-          } else {
-            showAlert(data.message);
-          }
+        removeUserIds.push(String(userId));
+
+      }
+
+      showAlert(
+        "メンバー更新ボタンを押すと反映されます",
+        "warning"
+      );
+
+    }
+
+    // =========================
+    // change role
+    // =========================
+
+    function changeRole(userId, role) {
+
+      const exists =
+        roleChanges.find(
+          item => item.user_id == userId
+        );
+
+      if (exists) {
+
+        exists.role = role;
+
+      }
+
+      else {
+
+        roleChanges.push({
+          user_id: userId,
+          role: role
         });
+
+      }
+
+      showAlert(
+        "メンバー更新ボタンを押すと反映されます",
+        "warning"
+      );
+
     }
 
-    // アラート
-    function showAlert(msg) {
-      const box = document.getElementById("alertBox");
-      box.textContent = msg;
-      box.className = "alert alert-danger";
+    // =========================
+    // group update
+    // =========================
+
+    document.getElementById("editForm")
+      .addEventListener("submit", async (e) => {
+
+        e.preventDefault();
+
+        const button =
+          document.getElementById("updateButton");
+
+        const formData =
+          new FormData(e.target);
+
+        formData.append(
+          "csrf_token",
+          csrfToken
+        );
+
+        formData.append(
+          "group_id",
+          groupId
+        );
+
+        try {
+
+          button.disabled = true;
+
+          button.innerHTML =
+            "更新中...";
+
+          const response =
+            await fetch(
+              "../api/group/update_group.php",
+              {
+                method: "POST",
+                body: formData
+              }
+            );
+
+          const text =
+            await response.text();
+
+          console.log(text);
+
+          const result =
+            JSON.parse(text);
+
+          if (!result.success) {
+
+            showAlert(
+              result.message,
+              "danger"
+            );
+
+            return;
+
+          }
+
+          showAlert(
+            result.message,
+            "success"
+          );
+
+          loadGroup();
+
+        }
+
+        catch (error) {
+
+          console.error(error);
+
+          showAlert(
+            "通信エラーが発生しました",
+            "danger"
+          );
+
+        }
+
+        finally {
+
+          button.disabled = false;
+
+          button.innerHTML =
+            "グループ設定を更新する";
+
+        }
+
+      });
+
+    // =========================
+    // member update
+    // =========================
+
+    document.getElementById("memberManageForm")
+      .addEventListener("submit", async (e) => {
+
+        e.preventDefault();
+
+        const button =
+          document.getElementById("memberUpdateButton");
+
+        const formData =
+          new FormData();
+
+        formData.append(
+          "csrf_token",
+          csrfToken
+        );
+
+        formData.append(
+          "group_id",
+          groupId
+        );
+
+        // add user ids
+        const addUserIds =
+          document.getElementById("addUserIds")
+            .value
+            .trim();
+
+        if (addUserIds) {
+
+          formData.append(
+            "add_user_ids",
+            addUserIds
+          );
+
+        }
+
+        // remove users
+        if (removeUserIds.length > 0) {
+
+          formData.append(
+            "remove_user_ids",
+            removeUserIds.join(",")
+          );
+
+        }
+
+        // role changes
+        if (roleChanges.length > 0) {
+
+          formData.append(
+            "change_role_user_ids",
+            roleChanges.map(
+              item => item.user_id
+            ).join(",")
+          );
+
+          formData.append(
+            "new_roles",
+            roleChanges.map(
+              item => item.role
+            ).join(",")
+          );
+
+        }
+
+        try {
+
+          button.disabled = true;
+
+          button.innerHTML =
+            "更新中...";
+
+          const response =
+            await fetch(
+              "../api/group/update_group.php",
+              {
+                method: "POST",
+                body: formData
+              }
+            );
+
+          const text =
+            await response.text();
+
+          console.log(text);
+
+          const result =
+            JSON.parse(text);
+
+          if (!result.success) {
+
+            showAlert(
+              result.message,
+              "danger"
+            );
+
+            return;
+
+          }
+
+          showAlert(
+            result.message,
+            "success"
+          );
+
+          removeUserIds = [];
+
+          roleChanges = [];
+
+          document.getElementById("addUserIds")
+            .value = "";
+
+          loadGroup();
+
+        }
+
+        catch (error) {
+
+          console.error(error);
+
+          showAlert(
+            "通信エラーが発生しました",
+            "danger"
+          );
+
+        }
+
+        finally {
+
+          button.disabled = false;
+
+          button.innerHTML =
+            "メンバー情報を更新する";
+
+        }
+
+      });
+
+    // =========================
+    // delete
+    // =========================
+
+    document.getElementById("deleteBtn")
+      .addEventListener("click", async () => {
+
+        if (!confirm("本当にグループを削除しますか？")) {
+
+          return;
+
+        }
+
+        try {
+
+          const formData =
+            new FormData();
+
+          formData.append(
+            "csrf_token",
+            csrfToken
+          );
+
+          formData.append(
+            "group_id",
+            groupId
+          );
+
+          const response =
+            await fetch(
+              "../api/group/delete_group.php",
+              {
+                method: "POST",
+                body: formData
+              }
+            );
+
+          const text =
+            await response.text();
+
+          console.log(text);
+
+          const result =
+            JSON.parse(text);
+
+          if (!result.success) {
+
+            showAlert(
+              result.message,
+              "danger"
+            );
+
+            return;
+
+          }
+
+          showAlert(
+            result.message,
+            "success"
+          );
+
+          setTimeout(() => {
+
+            location.href =
+              "/dashboard.php";
+
+          }, 1000);
+
+        }
+
+        catch (error) {
+
+          console.error(error);
+
+          showAlert(
+            "通信エラーが発生しました",
+            "danger"
+          );
+
+        }
+
+      });
+
+    // =========================
+    // leave
+    // =========================
+
+    async function leaveGroup() {
+
+      if (!confirm("グループを退会しますか？")) {
+
+        return;
+
+      }
+
+      try {
+
+        const formData =
+          new FormData();
+
+        formData.append(
+          "csrf_token",
+          csrfToken
+        );
+
+        formData.append(
+          "group_id",
+          groupId
+        );
+
+        const response =
+          await fetch(
+            "../api/group/leave_group.php",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const text =
+          await response.text();
+
+        console.log(text);
+
+        const result =
+          JSON.parse(text);
+
+        if (!result.success) {
+
+          showAlert(
+            result.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        location.href =
+          "/dashboard.php";
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showAlert(
+          "通信エラーが発生しました",
+          "danger"
+        );
+
+      }
+
     }
+
+    // =========================
+    // escape
+    // =========================
+
+    function escapeHtml(str) {
+
+      if (!str) {
+
+        return "";
+
+      }
+
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    }
+
+    // =========================
+    // alert
+    // =========================
+
+    function showAlert(message, type) {
+
+      document.getElementById("alertBox").innerHTML = `
+
+        <div class="alert alert-${type} shadow-sm">
+
+          ${message}
+
+        </div>
+
+      `;
+
+    }
+
   </script>
 
 </body>
 
 </html>
+```
