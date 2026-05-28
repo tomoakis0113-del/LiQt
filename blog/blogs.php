@@ -70,7 +70,9 @@ $csrfToken = new lib\CSRFToken();
 
     <form id="searchForm" class="mb-4">
       <div class="input-group shadow-sm rounded-3 overflow-hidden">
-        <input type="text" name="search_word" class="form-control border-0 px-3" placeholder="ブログのタイトル、タグで検索...">
+        <input type="text" name="search" class="form-control border-0 px-3" placeholder="ブログのタイトル、タグで検索...">
+        <input type="hidden" name="tag_search" id="tagSearchParam" value="">
+        <input type="hidden" name="group_filter" value="">
         <button class="btn btn-primary px-4" type="submit">検索</button>
       </div>
     </form>
@@ -78,7 +80,7 @@ $csrfToken = new lib\CSRFToken();
     <ul class="nav nav-pills mb-4 bg-white p-2 rounded-4 shadow-sm" id="blogTab" role="tablist">
       <li class="nav-item flex-fill text-center" role="presentation">
         <button class="nav-link active w-100 rounded-3 fw-bold" data-bs-toggle="tab" data-bs-target="#public" type="button" role="tab">
-          公開ブログ
+          公開・検索結果
         </button>
       </li>
       <li class="nav-item flex-fill text-center" role="presentation">
@@ -118,16 +120,22 @@ $csrfToken = new lib\CSRFToken();
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
-    // HTMLに埋め込んだCSRFトークンの取得
-    const csrfToken = document.getElementById("csrf_token").value;
+    // 💡 変数の定義のみを最初に行い、null参照エラーを防止
+    let csrfToken = "";
 
     // 画面初期ロード時にブログ一覧を自動取得
     document.addEventListener("DOMContentLoaded", () => {
+      // 💡 HTML要素の構築が完了したこのタイミングでトークンを安全に取得します
+      const tokenElement = document.getElementById("csrf_token");
+      if (tokenElement) {
+        csrfToken = tokenElement.value;
+      }
+      
       loadAllBlogs();
     });
 
     // =========================
-    // ブログ一覧取得APIの統合
+    // ブログ一覧取得API
     // =========================
     async function loadAllBlogs() {
       clearError();
@@ -146,7 +154,6 @@ $csrfToken = new lib\CSRFToken();
         const result = await response.json();
 
         if (result.success && result.data) {
-          // 仕様に基づく各リストデータへのレンダリングマッピング
           renderBlogs("publicList", result.data.public_blogs || []);
           renderBlogs("privateList", result.data.private_blogs || []);
           renderBlogs("myblogsList", result.data.my_blogs || [], true);
@@ -166,7 +173,7 @@ $csrfToken = new lib\CSRFToken();
       const container = document.getElementById(elementId);
       container.innerHTML = "";
 
-      if (blogs.length === 0) {
+      if (!blogs || blogs.length === 0) {
         container.innerHTML = `<div class="card border-0 shadow-sm rounded-4 p-4 text-center text-muted">ブログがありません</div>`;
         return;
       }
@@ -177,14 +184,13 @@ $csrfToken = new lib\CSRFToken();
           `<span class="badge bg-success tag-badge">${escapeHtml(tag.trim())}</span>`
         ).join("") : "";
 
-        // 自分のブログタブの場合のみ公開ステータス（visibility）を表示
+        // 自分のブログタブの場合のみ公開ステータスを表示
         let visibilityBadge = "";
         if (isMyBlogTab && blog.visibility) {
           const isPublic = blog.visibility === "public";
           visibilityBadge = `<span class="badge ${isPublic ? 'bg-primary' : 'bg-secondary'} me-2">${isPublic ? '公開' : '非公開'}</span>`;
         }
 
-        // ブログ詳細への正しいリンクパス構造
         container.innerHTML += `
           <a href="/blog/blog_detail.php?blog_id=${encodeURIComponent(blog.blog_id)}" class="blog-card-link">
             <div class="card border-0 shadow-sm rounded-4 blog-card mb-1">
@@ -202,32 +208,48 @@ $csrfToken = new lib\CSRFToken();
     }
 
     // =========================
-    // 検索処理
+    // 検索処理 (新API仕様適応・バグ修正版)
     // =========================
     document.getElementById("searchForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       clearError();
 
+      // 同期処理: 入力された文字を双方のパラメータ名に対応できるよう複製マッピング
+      const searchInput = e.target.querySelector('input[name="search"]');
+      const tagSearchHidden = document.getElementById("tagSearchParam");
+      if (searchInput && tagSearchHidden) {
+        tagSearchHidden.value = searchInput.value;
+      }
+
       const formData = new FormData(e.target);
       formData.append("csrf_token", csrfToken);
 
       try {
-        const res = await fetch("api/search_blogs.php", {
+        const res = await fetch("/api/blog/search_blogs.php", {
           method: "POST",
           body: formData
         });
 
-        if (!res.ok) throw new Error("検索処理に失敗しました。");
-
         const data = await res.json();
 
-        if (data.success) {
-          renderBlogs("publicList", data.blogs || []);
-          document.querySelector('[data-bs-target="#public"]').click();
+        if (res.ok && data.success) {
+          // 💡 仕様のレスポンス構造 data.message.blogs から配列を取得
+          const searchResults = (data.message && data.message.blogs) ? data.message.blogs : [];
+          
+          // 検索結果を一番左のリスト（publicList）にレンダリング
+          renderBlogs("publicList", searchResults);
+          
+          // 公開・検索結果タブに強制切り替え
+          const firstTab = document.querySelector('[data-bs-target="#public"]');
+          if (firstTab) {
+            bootstrap.Tab.getOrCreateInstance(firstTab).show();
+          }
         } else {
-          showError(data.message);
+          // 失敗時のエラーハンドリング
+          showError(data.message || "検索結果を取得できませんでした。");
         }
       } catch (err) {
+        console.error(err);
         showError("検索中に通信エラーが発生しました。");
       }
     });
@@ -237,7 +259,7 @@ $csrfToken = new lib\CSRFToken();
     // =========================
     function showError(msg) {
       const box = document.getElementById("alertBox");
-      box.textContent = msg;
+      box.textContent = typeof msg === 'string' ? msg : "検索処理でエラーが発生しました。";
       box.className = "alert alert-danger mb-4 shadow-sm rounded-3";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

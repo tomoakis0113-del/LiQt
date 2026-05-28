@@ -25,17 +25,14 @@ $csrfToken = new lib\CSRFToken();
 
   </title>
 
-  <!-- Bootstrap -->
   <link rel="stylesheet"
         href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- CSS -->
   <link rel="stylesheet"
         href="../custom/custom-theme.css">
 
-  <!-- Google Icons -->
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
@@ -95,14 +92,11 @@ $csrfToken = new lib\CSRFToken();
 
 <body>
 
-  <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <!-- 本文 -->
   <main class="container py-5 main-content"
         style="max-width: 720px;">
 
-    <!-- タイトル -->
     <div class="mb-5">
 
       <h1 class="fw-bold mb-2">
@@ -119,20 +113,16 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- メッセージ -->
     <div id="messageBox"
          class="mb-4"></div>
 
-    <!-- カード -->
     <div class="card shadow-sm card-custom mb-5">
 
       <div class="card-body p-5">
 
-        <!-- フォーム -->
         <form id="createGroupForm"
               enctype="multipart/form-data">
 
-          <!-- グループ名 -->
           <div class="form-section">
 
             <label class="form-label fw-semibold mb-3">
@@ -149,7 +139,6 @@ $csrfToken = new lib\CSRFToken();
 
           </div>
 
-          <!-- グループアイコン -->
           <div class="form-section">
 
             <label class="form-label fw-semibold mb-3">
@@ -170,7 +159,6 @@ $csrfToken = new lib\CSRFToken();
 
             </small>
 
-            <!-- プレビュー -->
             <div class="text-center mt-5 mb-3">
 
               <img id="iconPreview"
@@ -181,7 +169,6 @@ $csrfToken = new lib\CSRFToken();
 
           </div>
 
-          <!-- 公開設定 -->
           <div class="form-section">
 
             <label class="form-label fw-semibold mb-3">
@@ -209,7 +196,6 @@ $csrfToken = new lib\CSRFToken();
 
           </div>
 
-          <!-- 招待ユーザ -->
           <div class="form-section">
 
             <label class="form-label fw-semibold mb-3">
@@ -218,11 +204,9 @@ $csrfToken = new lib\CSRFToken();
 
             </label>
 
-            <!-- 招待一覧 -->
             <div id="inviteList"
                  class="mb-4"></div>
 
-            <!-- 入力 -->
             <div class="input-group input-group-lg">
 
               <input type="text"
@@ -252,12 +236,10 @@ $csrfToken = new lib\CSRFToken();
 
           </div>
 
-          <!-- CSRF -->
           <input type="hidden"
                  id="csrf_token"
                  value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
 
-          <!-- ボタン -->
           <div class="mt-5 pt-3">
 
             <button type="submit"
@@ -284,13 +266,25 @@ $csrfToken = new lib\CSRFToken();
 
   </main>
 
-  <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
 
     // 招待ユーザ一覧
     let inviteUsers = [];
+    // 💡 CSRFトークン変数をグローバルで定義（DOM構築後に安全に取得）
+    let csrfToken = "";
+
+    // =========================
+    // 画面初期ロード時の初期化
+    // =========================
+    document.addEventListener("DOMContentLoaded", () => {
+      // HTML要素の構築が完了してから安全にトークンを取得して不具合を防止
+      const tokenElement = document.getElementById("csrf_token");
+      if (tokenElement) {
+        csrfToken = tokenElement.value;
+      }
+    });
 
     // =========================
     // アイコンプレビュー
@@ -436,7 +430,7 @@ $csrfToken = new lib\CSRFToken();
     }
 
     // =========================
-    // フォーム送信
+    // フォーム送信（API連携最適化）
     // =========================
 
     document
@@ -490,7 +484,7 @@ $csrfToken = new lib\CSRFToken();
             form.is_public.value
           );
 
-          // 招待ユーザ
+          // 招待ユーザ (invite_user_ids[])
           inviteUsers.forEach(id => {
 
             formData.append(
@@ -500,36 +494,31 @@ $csrfToken = new lib\CSRFToken();
 
           });
 
-          // CSRF
+          // CSRFトークン
           formData.append(
             "csrf_token",
-            document.getElementById("csrf_token").value
+            csrfToken
           );
 
-          // fetch
+          // fetchを使って指定のエンドポイントへ送信
           const response =
             await fetch("/api/group/create_group.php", {
-
               method: "POST",
               body: formData
-
             });
 
-          // text
-          const text =
-            await response.text();
+          if (!response.ok) {
+            throw new Error("サーバーエラーが発生しました。");
+          }
 
-          console.log(text);
+          // 💡 直接JSONとしてパース
+          const data = await response.json();
 
-          // JSON
-          const data =
-            JSON.parse(text);
-
-          // エラー
+          // エラーハンドリング
           if (!data.success) {
 
             showMessage(
-              data.message,
+              data.message || "グループの作成に失敗しました",
               "danger"
             );
 
@@ -537,9 +526,9 @@ $csrfToken = new lib\CSRFToken();
 
           }
 
-          // 成功
+          // 成功処理
           showMessage(
-            data.message,
+            data.message || "グループの作成に成功しました",
             "success"
           );
 

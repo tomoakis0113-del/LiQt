@@ -1079,8 +1079,7 @@ $csrfToken = new lib\CSRFToken();
 
           setTimeout(() => {
 
-            location.href =
-              "/dashboard.php";
+            location.href = "/dashboard/dashboard.php";
 
           }, 1000);
 
@@ -1154,8 +1153,7 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
-        location.href =
-          "/dashboard.php";
+        location.href = "/dashboard/dashboard.php";
 
       }
 
