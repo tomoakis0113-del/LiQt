@@ -57,7 +57,7 @@ try{
         $targetFilePath = $uploadDir . (new DateTime())->format('Ymd_His') . '_' . $fileName;
 
         if (move_uploaded_file($group_icon['tmp_name'], $targetFilePath)) {
-            $group_icon_path = 'uploads/group_icons/' . $fileName; // データベースに保存するパス
+            $group_icon_path = '/uploads/group_icons/' . $fileName; // データベースに保存するパス
         } else {
             lib\Util::responseError(500, 'グループアイコンのアップロードに失敗しました');
         }
