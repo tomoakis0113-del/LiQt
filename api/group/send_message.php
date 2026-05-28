@@ -4,6 +4,7 @@ require_once __DIR__.'/../../vendor/autoload.php';
 /**
  * グループ作成API
  * 必要なパラメータ:
+ * - group_id: グループID
  * - message_content: メッセージ内容
  * - image_upload: 画像ファイル（任意）
  * - csrf_token: CSRFトークン
@@ -17,6 +18,9 @@ try{
     $message_content = $_POST['message_content'] ?? null;
     $image_upload    = $_FILES['image_upload'] ?? null;
     $group_id        = $_POST['group_id'] ?? null;
+    $csrf_token      = $_POST['csrf_token'] ?? null;
+    $csrfToken       = new lib\CSRFToken();
+
     if(!$message_content){
         lib\Util::responseError(400,'メッセージ内容を入力してください');
     }
@@ -27,6 +31,9 @@ try{
     
     if(!$sessionHandler->isSignedIn()){
         lib\Util::responseError(401,'サインインが必要です');
+    }
+    if(!$csrf_token || !$csrfToken->isValid($csrf_token)){
+        lib\Util::responseError(400,'不正リクエストです');
     }
 
     // 画像アップロード
