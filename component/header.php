@@ -3,7 +3,7 @@
     <div class="container">
 
       <!-- ロゴ -->
-      <a class="navbar-brand fw-bold" href="/dashboard.php">
+      <a class="navbar-brand fw-bold" href="/dashboard/dashboard.php">
         LiQt
       </a>
 
