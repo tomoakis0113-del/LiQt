@@ -101,7 +101,7 @@ try {
     if ($add_user_ids && is_array($add_user_ids)) {
         foreach ($add_user_ids as $add_id) {
             $exists = models\GroupMember::where('group_id', $group_id)->where('user_id', $add_id)->first();
-            $add_id = models\User::where('id', $add_id)->first(['id'])['id'] ?? null;
+            $add_id = models\User::where('user_id', $add_id)->first(['id'])['id'] ?? null;
             if (!$exists) {
                 models\GroupMember::create([
                     'group_id' => $group_id,
