@@ -3,7 +3,7 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
 <footer class="border-top fixed-bottom py-2"
-        style="background-color: #06C755; min-height: 90px;">
+        style="background-color: #06C755;">
 
   <div class="container">
     <div class="row text-center align-items-center">
