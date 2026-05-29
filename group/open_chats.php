@@ -39,6 +39,15 @@
 
 <body class="bg-light">
 
+  <?php
+  if (!isset($_SESSION)) {
+      session_start();
+  }
+  require_once __DIR__ . '/../vendor/autoload.php';
+  $csrfToken = new lib\CSRFToken();
+  ?>
+  <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
+
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
   <main class="container p-4" style="max-width:800px; padding-bottom: 120px;">
@@ -54,6 +63,9 @@
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
+    // 💡 HTMLに埋め込んだCSRFトークンの取得
+    const csrfToken = document.getElementById("csrf_token").value;
+
     // 初期ロード
     loadGroups();
 
@@ -120,28 +132,37 @@
       });
     }
 
-    // 参加処理
+    // 💡 参加処理（API統合版）
     async function joinGroup(groupId) {
       if (!confirm("このグループに参加しますか？")) return;
 
+      // エラー表示をクリア
+      const box = document.getElementById("alertBox");
+      box.className = "alert d-none";
+
+      // 💡 要件に沿ったFormDataの作成（csrf_token, group_id）
+      const formData = new FormData();
+      formData.append("csrf_token", csrfToken);
+      formData.append("group_id", groupId);
+
       try {
-        const res = await fetch("api/join_group.php", {
+        const res = await fetch("/api/group/join_public_group.php", {
           method: "POST",
-          body: new URLSearchParams({
-            group_id: groupId
-          })
+          body: formData
         });
 
         const data = await res.json();
 
         if (data.success) {
+          // 参加成功時はチャット画面に遷移
           location.href = `chat.php?group_id=${groupId}`;
         } else {
           showError(data.message);
         }
 
       } catch (e) {
-        showError("通信エラー");
+        console.error("Error joining group:", e);
+        showError("通信エラーが発生しました");
       }
     }
 
