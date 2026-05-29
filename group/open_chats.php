@@ -11,44 +11,43 @@
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
   <style>
-    .group-icon {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
+    body {
+      background-color: #f5f7fb;
     }
 
+    /* 💡 グループカード全体のデザイン調整 */
     .group-card {
-      cursor: pointer;
       transition: 0.2s;
+      margin-bottom: 1.5rem;
+      cursor: pointer;
     }
 
     .group-card:hover {
+      transform: translateY(-2px);
       background-color: #f8f9fa;
+    }
+
+    /* 💡 アイコンを少し大きめ・丸型に変更 */
+    .group-icon {
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      object-fit: cover;
     }
   </style>
 </head>
 
-<body>
+<body class="bg-light">
 
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <main class="container p-4" style="max-width:800px;">
+  <main class="container p-4" style="max-width:800px; padding-bottom: 120px;">
 
-    <h3 class="mb-4">オープンチャット</h3>
+    <h3 class="fw-bold mb-4">オープンチャット</h3>
 
-    <!-- アラート -->
     <div id="alertBox" class="alert d-none"></div>
 
-    <!-- 検索 -->
-    <form id="searchForm" class="mb-4">
-      <div class="input-group">
-        <input type="text" class="form-control" name="group_name_search" placeholder="グループ名で検索">
-        <button class="btn btn-primary">検索</button>
-      </div>
-    </form>
-
-    <!-- 一覧 -->
-    <div id="groupList" class="list-group"></div>
+    <div id="groupList"></div>
 
   </main>
 
@@ -58,29 +57,29 @@
     // 初期ロード
     loadGroups();
 
-// 一覧取得（仮データ）
-function loadGroups() {
+    // 一覧取得（仮データ）
+    function loadGroups() {
 
-  const dummyGroups = [
+      const dummyGroups = [
 
-    {
-      group_id: 1,
-      group_name: "Web開発コミュニティ",
-      group_icon: "https://placehold.jp/100x100.png",
-      latest_message: "Bootstrapでモック作成中！"
-    },
+        {
+          group_id: 1,
+          group_name: "Web開発コミュニティ",
+          group_icon: "https://placehold.jp/100x100.png",
+          latest_message: "Bootstrapでモック作成中！"
+        },
 
-    {
-      group_id: 2,
-      group_name: "Java勉強会",
-      group_icon: "https://placehold.jp/100x100.png",
-      latest_message: "今日は継承について勉強します"
+        {
+          group_id: 2,
+          group_name: "Java勉強会",
+          group_icon: "https://placehold.jp/100x100.png",
+          latest_message: "今日は継承について勉強します"
+        }
+
+      ];
+
+      renderGroups(dummyGroups);
     }
-
-  ];
-
-  renderGroups(dummyGroups);
-}
 
     // 描画
     function renderGroups(groups) {
@@ -88,24 +87,36 @@ function loadGroups() {
       list.innerHTML = "";
 
       if (groups.length === 0) {
-        list.innerHTML = `<div class="text-muted">グループが見つかりません</div>`;
+        list.innerHTML = `
+          <div class="card border-0 shadow-sm rounded-4 mb-5">
+            <div class="card-body text-center text-muted py-5">
+              グループが見つかりません
+            </div>
+          </div>
+        `;
         return;
       }
 
+      // 💡 ダッシュボードのカードデザインに統一
       groups.forEach(g => {
         list.innerHTML += `
-      <div class="list-group-item group-card d-flex align-items-center"
-           onclick="joinGroup('${g.group_id}')">
+          <div class="card border-0 shadow-sm rounded-4 group-card" onclick="joinGroup('${g.group_id}')">
+            <div class="card-body">
+              <div class="d-flex align-items-center">
+                
+                <img src="${g.group_icon}" class="group-icon me-3">
 
-        <img src="${g.group_icon}" class="group-icon me-3">
+                <div class="flex-grow-1">
+                  <h5 class="fw-bold mb-2">${g.group_name}</h5>
+                  <p class="text-muted mb-0 text-truncate">
+                    最新メッセージ：${g.latest_message || "メッセージなし"}
+                  </p>
+                </div>
 
-        <div>
-          <div class="fw-bold">${g.group_name}</div>
-          <div class="text-muted small">${g.latest_message || "メッセージなし"}</div>
-        </div>
-
-      </div>
-    `;
+              </div>
+            </div>
+          </div>
+        `;
       });
     }
 
@@ -134,31 +145,11 @@ function loadGroups() {
       }
     }
 
-    // 検索
-    document.getElementById("searchForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const formData = new FormData(e.target);
-
-      const res = await fetch("api/search_groups.php", {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        renderGroups(data.groups);
-      } else {
-        showError(data.message);
-      }
-    });
-
     // エラー表示
     function showError(msg) {
       const box = document.getElementById("alertBox");
       box.textContent = msg;
-      box.className = "alert alert-danger";
+      box.className = "alert alert-danger mb-4";
     }
   </script>
 

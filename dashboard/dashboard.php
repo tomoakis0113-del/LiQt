@@ -15,7 +15,6 @@ $csrfToken = new lib\CSRFToken();
 
 <head>
 
-  <!-- meta -->
   <meta charset="UTF-8">
 
   <meta name="viewport"
@@ -30,24 +29,20 @@ $csrfToken = new lib\CSRFToken();
   <meta name="author"
         content="乙成,島田,勝原">
 
-  <!-- title -->
   <title>
 
     ダッシュボード | LiQt
 
   </title>
 
-  <!-- Bootstrap -->
   <link rel="stylesheet"
         href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- CSS -->
   <link rel="stylesheet"
         href="../custom/custom-theme.css">
 
-  <!-- Google Fonts Icons -->
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
@@ -103,14 +98,11 @@ $csrfToken = new lib\CSRFToken();
 
 <body class="bg-light">
 
-  <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <!-- 本文 -->
   <main class="container py-4"
         style="padding-bottom: 120px;">
 
-    <!-- タイトル -->
     <div class="mb-5">
 
       <h1 class="fw-bold mb-2">
@@ -119,7 +111,14 @@ $csrfToken = new lib\CSRFToken();
 
       </h1>
 
-      <p class="text-muted mb-0">
+      
+    <form id="searchForm" class="mb-4">
+      <div class="input-group">
+        <input type="text" class="form-control" name="group_name_search" placeholder="グループ名で検索">
+        <button type="submit" class="btn btn-primary">検索</button>
+      </div>
+    </form>
+      <p id="listTitle" class="text-muted mb-0">
 
         所属チャット一覧
 
@@ -127,11 +126,9 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- メッセージ -->
     <div id="messageBox"
          class="mb-4"></div>
 
-    <!-- オープンチャット -->
     <div class="card border-0 shadow-sm rounded-4 dashboard-card">
 
       <div class="card-body d-flex justify-content-between align-items-center">
@@ -169,7 +166,6 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- グループ作成 -->
     <div class="card border-0 shadow-sm rounded-4 dashboard-card">
 
       <div class="card-body d-flex justify-content-between align-items-center">
@@ -207,42 +203,33 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- グループ一覧 -->
     <div id="groupList"></div>
 
   </main>
 
-  <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-  <!-- CSRF -->
   <input type="hidden"
          id="csrf_token"
          value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
 
   <script>
 
+    // CSRF取得
+    const csrfToken = document.getElementById("csrf_token").value;
+
     // 初期ロード
     loadDashboard();
 
     // =========================
-    // ダッシュボード取得
+    // ダッシュボード取得 (所属グループ一覧)
     // =========================
 
     async function loadDashboard() {
 
-      // CSRF取得
-      const csrfToken =
-        document.getElementById("csrf_token").value;
-
       // FormData
-      const formData =
-        new FormData();
-
-      formData.append(
-        "csrf_token",
-        csrfToken
-      );
+      const formData = new FormData();
+      formData.append("csrf_token", csrfToken);
 
       try {
 
@@ -256,14 +243,11 @@ $csrfToken = new lib\CSRFToken();
           });
 
         // text
-        const text =
-          await response.text();
-
+        const text = await response.text();
         console.log(text);
 
         // JSON
-        const data =
-          JSON.parse(text);
+        const data = JSON.parse(text);
 
         // エラー
         if (!data.success) {
@@ -277,9 +261,13 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
+        // ラベルを元に戻す
+        document.getElementById("listTitle").textContent = "所属チャット一覧";
+
         // グループ表示
         renderGroups(
-          data.data.joined_groups
+          data.data.joined_groups,
+          "参加中のグループはありません"
         );
 
       }
@@ -298,10 +286,57 @@ $csrfToken = new lib\CSRFToken();
     }
 
     // =========================
-    // グループ表示
+    // グループ検索のイベントリスナー統合
+    // =========================
+    document.getElementById("searchForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // メッセージボックスをクリア
+      document.getElementById("messageBox").innerHTML = "";
+
+      const keyword = e.target.elements["group_name_search"].value.trim();
+
+      // キーワードが空の場合は、通常のダッシュボード（所属一覧）を表示
+      if (keyword === "") {
+        loadDashboard();
+        return;
+      }
+
+      // APIパラメータ設定 (要件：csrf_token, keyword)
+      const formData = new FormData();
+      formData.append("csrf_token", csrfToken);
+      formData.append("keyword", keyword);
+
+      try {
+        const response = await fetch("/api/group/search_groups.php", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+          showMessage(data.message, "danger");
+          return;
+        }
+
+        // 見出しを検索結果に変更
+        document.getElementById("listTitle").textContent = `「${keyword}」の検索結果`;
+
+        // グループ一覧の描画
+        renderGroups(data.data, "該当する公開グループが見つかりません");
+
+      } catch (error) {
+        console.error(error);
+        showMessage("検索中に通信エラーが発生しました", "danger");
+      }
+    });
+
+    // =========================
+    // グループ表示 (統合版)
     // =========================
 
-    function renderGroups(groups) {
+    function renderGroups(groups, emptyMessage) {
 
       const groupList =
         document.getElementById("groupList");
@@ -318,7 +353,7 @@ $csrfToken = new lib\CSRFToken();
 
             <div class="card-body text-center text-muted py-5">
 
-              参加中のグループはありません
+              ${emptyMessage}
 
             </div>
 
@@ -357,21 +392,17 @@ $csrfToken = new lib\CSRFToken();
 
                 <div class="d-flex align-items-center">
 
-                  <!-- アイコン -->
                   <img src="${icon}"
                        class="group-icon me-3">
 
-                  <!-- グループ情報 -->
                   <div class="flex-grow-1">
 
-                    <!-- グループ名 -->
                     <h5 class="fw-bold mb-2">
 
                       ${group.group_name}
 
                     </h5>
 
-                    <!-- 最新メッセージ -->
                     <p class="text-muted mb-0 text-truncate">
 
                       最新メッセージ：

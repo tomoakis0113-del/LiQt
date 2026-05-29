@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -139,14 +140,14 @@ $csrfToken = new lib\CSRFToken();
     // HTMLに埋め込んだCSRFトークンの取得
     const csrfToken = document.getElementById("csrf_token").value;
 
-    // いいね状態
+    // いいね状態を管理する変数
     let liked = false;
 
-    // 初期ロード
+    // 初期ロード実行
     loadBlog();
 
     // =========================
-    // ブログ取得（POSTメソッド形式）
+    // ブログ取得
     // =========================
     function loadBlog() {
       if (!blogId) {
@@ -154,40 +155,31 @@ $csrfToken = new lib\CSRFToken();
         return;
       }
 
-      // 💡 POST送信用にFormDataオブジェクトを作成し、必要なパラメータを追加
       const formData = new FormData();
       formData.append("blog_id", blogId);
       formData.append("csrf_token", csrfToken);
 
-      // 指示に基づき、エンドポイントへのリクエストをPOSTメソッドに変更
       fetch("/api/blog/get_blog_detail.php", {
         method: "POST",
         body: formData
       })
         .then(res => res.json())
         .then(result => {
-
-          // エラーハンドリング
           if (!result.success) {
             alert(result.message);
             return;
           }
 
-          // 新しいAPIレスポンスの構造（result.data）に合わせてデータを抽出
           const blogData = result.data;
 
-          // タイトル
           document.getElementById("title").textContent = blogData.title;
 
-          // 編集ボタンへの遷移先設定（作成者フラグ等、必要に応じて条件分岐を行ってください）
           const editButton = document.getElementById("editButton");
           editButton.href = `/blog/edit_blog.php?blog_id=${blogData.id}`;
           editButton.classList.remove("d-none"); 
 
-          // タグのレンダリング
           document.getElementById("tags").innerHTML = renderTags(blogData.tags);
 
-          // 投稿者情報（フォールバック対応付き）
           if (blogData.author) {
             document.getElementById("authorIcon").src = blogData.author.icon_url || "https://placehold.jp/48x48.png";
             document.getElementById("authorName").textContent = blogData.author.display_name || "ユーザー";
@@ -198,20 +190,83 @@ $csrfToken = new lib\CSRFToken();
             document.getElementById("authorName").href = "#";
           }
 
-          // 本文 (Markdown変換)
           document.getElementById("content").innerHTML = md.render(blogData.content || "");
-
-          // いいね件数
           document.getElementById("likes").textContent = blogData.likes !== undefined ? blogData.likes : 0;
 
-          // コメント・関連記事一覧表示
+          // 初期ロード時のいいね状態（true/false）を変数とUIに正しく反映
+          const button = document.getElementById("likeButton");
+          if (blogData.is_liked) {
+            liked = true;
+            button.classList.remove("btn-outline-danger");
+            button.classList.add("btn-danger");
+          } else {
+            liked = false;
+            button.classList.remove("btn-danger");
+            button.classList.add("btn-outline-danger");
+          }
+
           renderComments(blogData.comments || []);
           renderRelated(blogData.related_blogs || []);
-
         })
         .catch(error => {
           console.error("Error fetching blog details:", error);
           alert("ブログ詳細の取得中に通信エラーが発生しました");
+        });
+    }
+
+    // =========================
+    // いいね（確実に+1 / -1 するトグル修正版）
+    // =========================
+    function toggleLike() {
+      if (!blogId) {
+        alert("ブログIDが不明なため、いいねの操作ができません");
+        return;
+      }
+
+      const button = document.getElementById("likeButton");
+      const likesWord = document.getElementById("likes");
+      let currentLikes = parseInt(likesWord.textContent) || 0;
+
+      const apiUrl = "/api/blog/blog_like.php";
+
+      const formData = new FormData();
+      formData.append("blog_id", blogId);
+      formData.append("csrf_token", csrfToken);
+
+      fetch(apiUrl, {
+        method: "POST",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (!result.success) {
+            alert(result.message);
+            return;
+          }
+
+          // 💡 現在のボタンの見た目（赤色＝いいね済）を基準にトグル処理を行う
+          const isCurrentlyLiked = button.classList.contains("btn-danger");
+
+          if (!isCurrentlyLiked) {
+            // 現在が「未いいね」なら、ボタンを赤くしてカウントを【プラス1】
+            button.classList.remove("btn-outline-danger");
+            button.classList.add("btn-danger");
+            currentLikes++;
+            liked = true;
+          } else {
+            // 現在が「いいね済」なら、ボタンを白抜きにしてカウントを【マイナス1】
+            button.classList.remove("btn-danger");
+            button.classList.add("btn-outline-danger");
+            currentLikes--;
+            liked = false;
+          }
+
+          // 計算結果を画面に反映（念のため0未満にならないセーフティを適用）
+          likesWord.textContent = currentLikes < 0 ? 0 : currentLikes;
+        })
+        .catch(error => {
+          console.error("Error toggling like:", error);
+          alert("いいねの処理中に通信エラーが発生しました");
         });
     }
 
@@ -302,50 +357,38 @@ $csrfToken = new lib\CSRFToken();
         return;
       }
 
-      const commentList = document.getElementById("commentList");
-
-      if (commentList.innerHTML.includes("コメントはまだありません")) {
-        commentList.innerHTML = "";
+      if (!blogId) {
+        alert("ブログIDが不明なため、コメントを投稿できません");
+        return;
       }
 
-      commentList.innerHTML =
-        `
-          <div class="d-flex mb-4">
-            <img src="https://placehold.jp/48x48.png" class="comment-icon me-3">
-            <div class="w-100">
-              <a href="#" class="fw-bold text-decoration-none">あなた</a>
-              <div class="mt-1">
-                ${comment}
-              </div>
-            </div>
-          </div>
-        ` + commentList.innerHTML;
+      const formData = new FormData();
+      formData.append("blog_id", blogId);
+      formData.append("csrf_token", csrfToken);
+      formData.append("content", comment);
 
-      document.getElementById("commentInput").value = "";
-    }
+      fetch("/api/comment/add_comment.php", {
+        method: "POST",
+        body: formData
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (!result.success) {
+            alert(result.message);
+            return;
+          }
 
-    // =========================
-    // いいね
-    // =========================
-    function toggleLike() {
-      let likes = parseInt(document.getElementById("likes").textContent);
-      const button = document.getElementById("likeButton");
-
-      if (liked) {
-        likes--;
-        button.classList.remove("btn-danger");
-        button.classList.add("btn-outline-danger");
-        liked = false;
-      } else {
-        likes++;
-        button.classList.remove("btn-outline-danger");
-        button.classList.add("btn-danger");
-        liked = true;
-      }
-
-      document.getElementById("likes").textContent = likes;
+          document.getElementById("commentInput").value = "";
+          loadBlog();
+        })
+        .catch(error => {
+          console.error("Error posting comment:", error);
+          alert("コメントの投稿中に通信エラーが発生しました");
+        });
     }
   </script>
 
 </body>
 </html>
+
+```
