@@ -2,12 +2,23 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * グループ削除API
+ * 公開グループ取得API
  * 必要なパラメータ:
  * - csrf_token: CSRFトークン
  * 
  * レスポンス:
- * - 
+ * - 成功: [
+ *      "success": true,
+ *      "message": "公開グループの取得に成功しました",
+ *      "data":[
+ *        {
+ *              "group_id": グループID,
+ *              "group_name": グループ名,
+ *              "group_icon": グループアイコンURL,
+ *              "last_message_time": 最終メッセージの日時,
+ *              "latest_message": 最終メッセージの内容
+ *          },
+ *    ]
  * - エラー: { "success": false, "message": "エラーメッセージ" }
  */
 try {
