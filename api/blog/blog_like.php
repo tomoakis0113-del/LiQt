@@ -2,21 +2,16 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * ブログいいね追加API
+ * ブログいいね切り替えAPI
  * 必要なパラメータ:
  * - csrf_token
  * - blog_id
  * 
  * レスポンス:
- * - 成功: success: true/false
- * {
- *  "success": true,
- *  "message": [],
- *  "data": "いいねを追加しました"
- *}
- * 
- * - 失敗: { "success": false, "message": "不正なリクエストです" ,"サインインが必要です"}
- * 
+ * - success: true/false
+ * - message
+ * - data:
+ *   - is_liked: true/false
  */
 
 try{
@@ -58,22 +53,46 @@ try{
     //ログイン中ユーザーID取得
     $currentUserId = $sessionHandler->getCurrentUserID();
 
-//既にいいね済みか確認
-$alreadyLiked = models\BlogLike::query()
-    ->where('blog_id', $blogId)
-    ->where('user_id', $currentUserId)
-    ->first(['blog_id', 'user_id']);
+    //ブログ存在確認
+    $blog = models\Blog::query()
+        ->where('id', $blogId)
+        ->first(['id']);
 
-if($alreadyLiked){
-    lib\Util::responseError(400,'既にいいねしています');
-}
+    if(!$blog){
+        lib\Util::responseError(404,'ブログが見つかりません');
+    }
 
-//いいね追加
-models\BlogLike::query()->create([
-    'blog_id' => $blogId,
-    'user_id' => $currentUserId
-]);
-    lib\Util::responseSuccess([], 'いいねを追加しました');
+    //既にいいねしているか確認
+    $liked = models\BlogLike::query()
+        ->where('blog_id', $blogId)
+        ->where('user_id', $currentUserId)
+        ->first(['blog_id', 'user_id']);
+
+    //すでにいいね済みなら削除
+    if($liked){
+        models\BlogLike::query()
+            ->where('blog_id', $blogId)
+            ->where('user_id', $currentUserId)
+            ->delete();
+
+        $data = [
+            'is_liked' => false
+        ];
+
+        lib\Util::responseSuccess($data, 'いいねを削除しました');
+    }
+
+    //まだいいねしていなければ追加
+    models\BlogLike::query()->create([
+        'blog_id' => $blogId,
+        'user_id' => $currentUserId
+    ]);
+
+    $data = [
+        'is_liked' => true
+    ];
+
+    lib\Util::responseSuccess($data, 'いいねを追加しました');
 
 }catch(\Throwable $e){
     error_log("エラーが発生しました: " . $e->getMessage());

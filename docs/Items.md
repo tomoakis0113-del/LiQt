@@ -360,15 +360,11 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
                 - 表示名            : `display_name` **表示名をクリックで `profile.php?user_id=xxx` に遷移**
                 - アイコン表示      : `icon_url`
 
-    -いいねを追加(`api/blog/add_like.php`)
+    -いいねを追加&いいねを削除(`api/blog/blog_like.php`)
         - レスポンス:`success`->true/false, `message`->エラーメッセージ
-        - 成功：いいねを追加
+        - 成功：いいねを追加/削除
         - 失敗：エラーメッセージ表示
 
-    -いいねを削除(`api/blog/delete_like.php`)
-        - レスポンス:`success`->true/false, `message`->エラーメッセージ
-        - 成功：いいねを削除
-        - 失敗：エラーメッセージ表示
 
     - コメント(`api/blog/add_comment.php`)
         - レスポンス:`success`->true/false, `message`->エラーメッセージ
