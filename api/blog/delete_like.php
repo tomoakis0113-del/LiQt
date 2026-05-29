@@ -8,8 +8,15 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - blog_id
  * 
  * レスポンス:
- * - success: true/false
- * - message
+ * - 成功: true/false
+ * {
+ *"success": true,
+ * "message": [],
+ * "data": "いいねを削除しました"
+ *}
+ * 
+ * - エラー: { "success": false, "message": "不正なリクエストです","ブログIDが指定されていません","サインインが必要です"}
+ * 
  */
 
 try{

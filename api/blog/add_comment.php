@@ -2,19 +2,22 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * ブログいいね追加API
+ * ブログコメント追加API
  * 必要なパラメータ:
  * - csrf_token
  * - blog_id
+ * - content
  * 
  * レスポンス:
  * - 成功: success: true/false
  * {
  *  "success": true,
- *  "message": [],
- *  "data": "いいねを追加しました"
+ *  "message": {
+ *    "comment_id": 3
+ *  },
+ *  "data": "コメントを追加しました"
  *}
- * 
+ *
  * - 失敗: { "success": false, "message": "不正なリクエストです" ,"サインインが必要です"}
  * 
  */
@@ -36,6 +39,7 @@ try{
     //パラメータを受け取り
     $sentToken = $_POST['csrf_token'] ?? '';
     $blogId    = $_POST['blog_id'] ?? '';
+    $content   = trim($_POST['content'] ?? '');
 
     //CSRFチェック
     $csrfToken = new lib\CSRFToken();
@@ -53,27 +57,40 @@ try{
         lib\Util::responseError(400,'ブログIDの形式が正しくありません');
     }
 
+    if($content === ''){
+        lib\Util::responseError(400,'コメントを入力してください');
+    }
+
+    if(mb_strlen($content) > 30000){
+        lib\Util::responseError(400,'コメントは30000文字以内で入力してください');
+    }
+
     $blogId = (int)$blogId;
 
     //ログイン中ユーザーID取得
     $currentUserId = $sessionHandler->getCurrentUserID();
 
-//既にいいね済みか確認
-$alreadyLiked = models\BlogLike::query()
-    ->where('blog_id', $blogId)
-    ->where('user_id', $currentUserId)
-    ->first(['blog_id', 'user_id']);
+    //ブログ存在確認
+    $blog = models\Blog::query()
+        ->where('id', $blogId)
+        ->first(['id']);
 
-if($alreadyLiked){
-    lib\Util::responseError(400,'既にいいねしています');
-}
+    if(!$blog){
+        lib\Util::responseError(404,'ブログが見つかりません');
+    }
 
-//いいね追加
-models\BlogLike::query()->create([
-    'blog_id' => $blogId,
-    'user_id' => $currentUserId
-]);
-    lib\Util::responseSuccess([], 'いいねを追加しました');
+    //コメント追加
+    $comment = models\BlogComment::query()->create([
+        'blog_id' => $blogId,
+        'user_id' => $currentUserId,
+        'content' => $content
+    ]);
+
+    $data = [
+        'comment_id' => $comment->id
+    ];
+
+    lib\Util::responseSuccess($data, 'コメントを追加しました');
 
 }catch(\Throwable $e){
     error_log("エラーが発生しました: " . $e->getMessage());

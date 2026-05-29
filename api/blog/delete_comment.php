@@ -2,17 +2,17 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * ブログいいね追加API
+ * ブログコメント削除API
  * 必要なパラメータ:
  * - csrf_token
- * - blog_id
+ * - comment_id
  * 
  * レスポンス:
  * - 成功: success: true/false
  * {
  *  "success": true,
  *  "message": [],
- *  "data": "いいねを追加しました"
+ *  "data": "コメントを削除しました"
  *}
  * 
  * - 失敗: { "success": false, "message": "不正なリクエストです" ,"サインインが必要です"}
@@ -35,7 +35,7 @@ try{
 
     //パラメータを受け取り
     $sentToken = $_POST['csrf_token'] ?? '';
-    $blogId    = $_POST['blog_id'] ?? '';
+    $commentId = $_POST['comment_id'] ?? '';
 
     //CSRFチェック
     $csrfToken = new lib\CSRFToken();
@@ -45,35 +45,39 @@ try{
     }
 
     //バリデーション
-    if($blogId === ''){
-        lib\Util::responseError(400,'ブログIDを指定してください');
+    if($commentId === ''){
+        lib\Util::responseError(400,'コメントIDを指定してください');
     }
 
-    if(!ctype_digit((string)$blogId)){
-        lib\Util::responseError(400,'ブログIDの形式が正しくありません');
+    if(!ctype_digit((string)$commentId)){
+        lib\Util::responseError(400,'コメントIDの形式が正しくありません');
     }
 
-    $blogId = (int)$blogId;
+    $commentId = (int)$commentId;
 
     //ログイン中ユーザーID取得
     $currentUserId = $sessionHandler->getCurrentUserID();
 
-//既にいいね済みか確認
-$alreadyLiked = models\BlogLike::query()
-    ->where('blog_id', $blogId)
-    ->where('user_id', $currentUserId)
-    ->first(['blog_id', 'user_id']);
+    //コメント存在確認
+    $comment = models\BlogComment::query()
+        ->where('id', $commentId)
+        ->first(['id', 'user_id']);
 
-if($alreadyLiked){
-    lib\Util::responseError(400,'既にいいねしています');
-}
+    if(!$comment){
+        lib\Util::responseError(404,'コメントが見つかりません');
+    }
 
-//いいね追加
-models\BlogLike::query()->create([
-    'blog_id' => $blogId,
-    'user_id' => $currentUserId
-]);
-    lib\Util::responseSuccess([], 'いいねを追加しました');
+    //自分のコメントか確認
+    if($comment->user_id != $currentUserId){
+        lib\Util::responseError(403,'このコメントは削除できません');
+    }
+
+    //コメント削除
+    models\BlogComment::query()
+        ->where('id', $commentId)
+        ->delete();
+
+    lib\Util::responseSuccess([], 'コメントを削除しました');
 
 }catch(\Throwable $e){
     error_log("エラーが発生しました: " . $e->getMessage());
