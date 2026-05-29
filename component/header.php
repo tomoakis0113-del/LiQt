@@ -3,7 +3,7 @@
     <div class="container">
 
       <!-- ロゴ -->
-      <a class="navbar-brand fw-bold" href="/dashboard/dashboard.php">
+      <a class="navbar-brand fw-bold fs-2" href="/dashboard/dashboard.php">
         LiQt
       </a>
 
@@ -14,29 +14,29 @@
 
       <div class="collapse navbar-collapse" id="navbarNav">
 
-        <!-- 🔍 検索フォーム -->
         <form class="d-flex mx-auto w-50" action="/search.php" method="GET">
+          <div class="input-group">
 
-          <!-- 検索種類 -->
-          <select name="type" class="form-select me-2">
-            <option value="user">ユーザID検索</option>
-            <option value="group">グループ検索</option>
-            <option value="blog">ブログ検索</option>
-          </select>
+            <select name="type" class="form-select border-end-0" style="max-width: 130px; z-index: 1;" required>
+              <option value="user">ユーザID</option>
+              <option value="group">グループ</option>
+              <option value="blog">ブログ</option>
+            </select>
 
-          <!-- 入力欄 -->
-          <input
-            type="text"
-            name="keyword"
-            class="form-control me-2"
-            placeholder="検索ワード"
-            required>
+            <input
+              type="text"
+              name="keyword"
+              class="form-control border-start-0"
+              placeholder="検索ワードを入力..."
+              required>
 
-          <!-- ボタン -->
-          <button class="btn btn-light" type="submit">
-            検索
-          </button>
+            <button type="submit" class="btn btn-light border-start-0 text-success" style="background-color: #fff;">
+              <svg xmlns="http://www.w3.org/2000/svg" style="width: 18px; height: 18px;" fill="currentColor" class="bi bi-search align-middle" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"></path>
+              </svg>
+            </button>
 
+          </div>
         </form>
 
       </div>

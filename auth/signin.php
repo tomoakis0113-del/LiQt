@@ -158,8 +158,6 @@ $csrfToken = new lib\CSRFToken();
     </div>
   </div>
 
-  <?php require_once __DIR__ . '/../component/header.php'; ?>
-
   <main class="container py-5" style="padding-bottom: 120px;">
     <div class="card border-0 shadow signin-card mx-auto">
       <div class="card-body p-5">
@@ -186,9 +184,7 @@ $csrfToken = new lib\CSRFToken();
       </div>
     </div>
   </main>
-
-  <?php require_once __DIR__ . '/../component/footer.php'; ?>
-
+  
   <script>
     const form = document.getElementById("signinForm");
 
