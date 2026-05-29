@@ -71,10 +71,37 @@ try{
         lib\Util::responseError(400,'指定されたブログが見つかりません');
     }
 
-    //投稿者本人か確認する
-    if($blog->author_id !== $currentUserId){
-        lib\Util::responseError(403,'権限がありません');
+    //閲覧権限チェック
+    if($blog->visibility === 'private'){
+        //privateは投稿者本人だけ
+        if($blog->author_id != $currentUserId){
+            lib\Util::responseError(403,'このブログを見る権限がありません');
+        }
     }
+
+    if($blog->visibility === 'group'){
+        //groupはそのグループに所属している人だけ
+        $member = models\GroupMember::query()
+            ->where('group_id', $blog->group_id)
+            ->where('user_id', $currentUserId)
+            ->first(['group_id']);
+
+        if(!$member){
+            lib\Util::responseError(403,'このグループのブログを見る権限がありません');
+        }
+    }
+    //いいね数を取得
+    $likeCount = models\BlogLike::query()
+        ->where('blog_id', $blogId)
+        ->count();
+
+    //ログイン中ユーザーがいいね済みか確認
+    $isLiked = models\BlogLike::query()
+        ->where('blog_id', $blogId)
+        ->where('user_id', $currentUserId)
+        ->first(['blog_id', 'user_id']) ? true : false;
+
+    $isAuthor = ($blog->author_id == $currentUserId);
 
     $blog = [
         'id' => $blog->id,
@@ -84,8 +111,10 @@ try{
         'tags' => $blog->tags,
         'created_at' => $blog->created_at,
         'updated_at' => $blog->updated_at,
+        'likes' => $likeCount,
+        'is_liked' => $isLiked,
+        'is_author' => $isAuthor
     ];
-
     lib\Util::responseSuccess('ブログを取得しました',  $blog);
 
 }catch(Exception $e){

@@ -202,9 +202,19 @@ $csrfToken = new lib\CSRFToken();
           document.getElementById("content").innerHTML = md.render(blogData.content || "");
 
           // いいね件数
-          document.getElementById("likes").textContent = blogData.likes !== undefined ? blogData.likes : 0;
+          document.getElementById("likes").textContent = blogData.likes ?? 0;
+          liked = blogData.is_liked ?? false;
 
-          // コメント・関連記事一覧表示
+          const likeButton = document.getElementById("likeButton");
+
+          if (liked) {
+            likeButton.classList.remove("btn-outline-danger");
+            likeButton.classList.add("btn-danger");
+          } else {
+            likeButton.classList.remove("btn-danger");
+            likeButton.classList.add("btn-outline-danger");
+          }
+                    // コメント・関連記事一覧表示
           renderComments(blogData.comments || []);
           renderRelated(blogData.related_blogs || []);
 
@@ -327,25 +337,36 @@ $csrfToken = new lib\CSRFToken();
     // =========================
     // いいね
     // =========================
-    function toggleLike() {
-      let likes = parseInt(document.getElementById("likes").textContent);
+function toggleLike() {
+  const formData = new FormData();
+  formData.append("blog_id", blogId);
+  formData.append("csrf_token", csrfToken);
+
+  fetch("/api/blog/toggle_like.php", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(result => {
+      if (!result.success) {
+        alert(result.message);
+        return;
+      }
+
+      liked = result.data.is_liked;
+      document.getElementById("likes").textContent = result.data.like_count;
+
       const button = document.getElementById("likeButton");
 
       if (liked) {
-        likes--;
-        button.classList.remove("btn-danger");
-        button.classList.add("btn-outline-danger");
-        liked = false;
-      } else {
-        likes++;
         button.classList.remove("btn-outline-danger");
         button.classList.add("btn-danger");
-        liked = true;
+      } else {
+        button.classList.remove("btn-danger");
+        button.classList.add("btn-outline-danger");
       }
-
-      document.getElementById("likes").textContent = likes;
-    }
-  </script>
+    });
+}  </script>
 
 </body>
 </html>
