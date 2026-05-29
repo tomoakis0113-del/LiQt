@@ -103,6 +103,36 @@ try{
 
     $isAuthor = ($blog->author_id == $currentUserId);
 
+    //コメント一覧を取得
+    $comments = models\BlogComment::query()
+        ->where('blog_id', $blogId)
+        ->orderBy('created_at', 'desc')
+        ->get(['id', 'user_id', 'content', 'created_at']);
+
+    $commentList = [];
+
+    foreach($comments as $comment){
+        $commentUser = models\User::query()
+            ->where('id', $comment->user_id)
+            ->first(['id', 'user_id']);
+
+        $commentProfile = models\Profile::query()
+            ->where('user_id', $comment->user_id)
+            ->first(['display_name', 'icon_url']);
+
+        $commentList[] = [
+            'comment_id' => $comment->id,
+            'content' => $comment->content,
+            'created_at' => $comment->created_at,
+            'is_mine' => $comment->user_id == $currentUserId,
+            'author' => [
+                'user_id' => $commentUser ? $commentUser->user_id : '',
+                'display_name' => $commentProfile ? $commentProfile->display_name : '名無しユーザー',
+                'icon_url' => $commentProfile ? $commentProfile->icon_url : ''
+            ]
+        ];
+    }
+
     $blog = [
         'id' => $blog->id,
         'title' => $blog->title,
@@ -113,7 +143,8 @@ try{
         'updated_at' => $blog->updated_at,
         'likes' => $likeCount,
         'is_liked' => $isLiked,
-        'is_author' => $isAuthor
+        'is_author' => $isAuthor,
+        'comments' => $commentList
     ];
     lib\Util::responseSuccess('ブログを取得しました',  $blog);
 

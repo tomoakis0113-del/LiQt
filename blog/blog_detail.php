@@ -253,25 +253,32 @@ $csrfToken = new lib\CSRFToken();
         return;
       }
 
-      comments.forEach(comment => {
-        const iconUrl = comment.author && comment.author.icon_url ? comment.author.icon_url : "https://placehold.jp/48x48.png";
-        const displayName = comment.author && comment.author.display_name ? comment.author.display_name : "名無しユーザー";
-        const userId = comment.author && comment.author.user_id ? comment.author.user_id : "#";
+comments.forEach(comment => {
+  const iconUrl = comment.author && comment.author.icon_url ? comment.author.icon_url : "https://placehold.jp/48x48.png";
+  const displayName = comment.author && comment.author.display_name ? comment.author.display_name : "名無しユーザー";
+  const userId = comment.author && comment.author.user_id ? comment.author.user_id : "#";
 
-        commentList.innerHTML += `
-          <div class="d-flex mb-4">
-            <img src="${iconUrl}" class="comment-icon me-3" alt="コメント投稿者">
-            <div class="w-100">
-              <a href="/profile/profile.php?user_id=${userId}" class="fw-bold text-decoration-none">
-                ${displayName}
-              </a>
-              <div class="mt-1">
-                ${comment.content}
-              </div>
-            </div>
-          </div>
-        `;
-      });
+  const deleteButton = comment.is_mine
+    ? `<button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteComment(${comment.comment_id})">
+         削除
+       </button>`
+    : "";
+
+  commentList.innerHTML += `
+    <div class="d-flex mb-4">
+      <img src="${iconUrl}" class="comment-icon me-3" alt="コメント投稿者">
+      <div class="w-100">
+        <a href="/profile/profile.php?user_id=${userId}" class="fw-bold text-decoration-none">
+          ${displayName}
+        </a>
+        <div class="mt-1">
+          ${comment.content}
+        </div>
+        ${deleteButton}
+      </div>
+    </div>
+  `;
+});
     }
 
     // =========================
@@ -304,36 +311,40 @@ $csrfToken = new lib\CSRFToken();
     // =========================
     // コメント投稿
     // =========================
-    function postComment() {
-      const comment = document.getElementById("commentInput").value.trim();
+function postComment() {
+  const comment = document.getElementById("commentInput").value.trim();
 
-      if (!comment) {
-        alert("コメントを入力してください");
+  if (!comment) {
+    alert("コメントを入力してください");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("csrf_token", csrfToken);
+  formData.append("blog_id", blogId);
+  formData.append("content", comment);
+
+  fetch("/api/blog/add_comment.php", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(result => {
+      if (!result.success) {
+        alert(result.message);
         return;
       }
 
-      const commentList = document.getElementById("commentList");
-
-      if (commentList.innerHTML.includes("コメントはまだありません")) {
-        commentList.innerHTML = "";
-      }
-
-      commentList.innerHTML =
-        `
-          <div class="d-flex mb-4">
-            <img src="https://placehold.jp/48x48.png" class="comment-icon me-3">
-            <div class="w-100">
-              <a href="#" class="fw-bold text-decoration-none">あなた</a>
-              <div class="mt-1">
-                ${comment}
-              </div>
-            </div>
-          </div>
-        ` + commentList.innerHTML;
-
       document.getElementById("commentInput").value = "";
-    }
 
+      // コメント追加後、ブログ詳細を再読み込みしてコメント一覧を更新
+      loadBlog();
+    })
+    .catch(error => {
+      console.error("Error adding comment:", error);
+      alert("コメント投稿中に通信エラーが発生しました");
+    });
+}
     // =========================
     // いいね
     // =========================
@@ -366,7 +377,39 @@ function toggleLike() {
         button.classList.add("btn-outline-danger");
       }
     });
-}  </script>
+}
+
+function deleteComment(commentId) {
+  if (!confirm("このコメントを削除しますか？")) {
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("csrf_token", csrfToken);
+  formData.append("comment_id", commentId);
+
+  fetch("/api/blog/delete_comment.php", {
+    method: "POST",
+    body: formData
+  })
+    .then(res => res.json())
+    .then(result => {
+      if (!result.success) {
+        alert(result.message);
+        return;
+      }
+
+      // コメント削除後、ブログ詳細を再読み込みしてコメント一覧を更新
+      loadBlog();
+    })
+    .catch(error => {
+      console.error("Error deleting comment:", error);
+      alert("コメント削除中に通信エラーが発生しました");
+    });
+}
+
+
+</script>
 
 </body>
 </html>
