@@ -734,7 +734,7 @@ function renderBlogSearchTags(tags) {
 
       }
 
-      blogs.forEach(blogId => {
+      blogs.forEach(([blogId, blogTitle]) => {
 
         list.innerHTML += `
 
@@ -745,8 +745,7 @@ function renderBlogSearchTags(tags) {
 
               <div class="fw-bold">
 
-                ブログID :
-                ${blogId}
+                ${blogTitle}
 
               </div>
 
