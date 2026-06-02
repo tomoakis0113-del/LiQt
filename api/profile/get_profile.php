@@ -33,7 +33,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  *       "display_name": "自分の表示名",
  *       "introduction": "自己紹介文",
  *       "tags": "",
- *       "blogs": [ブログID],
+ *       "blogs": [[ブログID, ブログタイトル], ...],
  *       "is_mine": true
  *   }
  * }
@@ -100,12 +100,12 @@ try {
         ->where('author_id', $targetInternalId)
         ->where('visibility', 'public')
         ->orderBy('created_at', 'desc')
-        ->get(['id']);
+        ->get(['id', 'title']);
 
     $blogIds = [];
     if ($blogs) {
         foreach ($blogs as $blog) {
-            $blogIds[] = $blog['id'];
+            $blogIds[] = [$blog['id'], $blog['title']];
         }
     }
 
