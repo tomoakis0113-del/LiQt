@@ -43,8 +43,10 @@ try {
     if (!$sessionHandler->isSignedIn()) {
         lib\Util::responseError(401, 'サインインしてください');
     }
-
-    $currentUserId = $sessionHandler->getCurrentUserID();
+    $currentInternalUserId = $sessionHandler->getCurrentUserID();
+    $currentUserId = models\User::query()
+        ->where('id', $currentInternalUserId)
+        ->first(['user_id'])['user_id'] ?? null;
 
     // 相手ユーザーの内部IDを取得 自分がブロックされていない場合のみ進む
     $targetUser = models\User::query()
@@ -62,12 +64,12 @@ try {
     if (!$targetInternalId) {
         lib\Util::responseError(404, '相手ユーザーが見つかりません');
     }
-    if ($currentUserId == $targetInternalId) {
+    if ($currentInternalUserId == $targetInternalId) {
         lib\Util::responseError(400, '自分とはチャットできません');
     }
 
-    $minId = min($currentUserId, $targetInternalId);
-    $maxId = max($currentUserId, $targetInternalId);
+    $minId = min($currentUserId, $targetUserId);
+    $maxId = max($currentUserId, $targetUserId);
     $groupName = 'dm_' . $minId . '_' . $maxId;
 
     $existingGroup = models\Group::query()
@@ -90,7 +92,7 @@ try {
         // グループメンバーに自分と相手を追加
         models\GroupMember::query()->insert([
             'group_id' => $groupId,
-            'user_id'  => $currentUserId,
+            'user_id'  => $currentInternalUserId,
             'role'     => 'owner',
         ]);
         models\GroupMember::query()->insert([
