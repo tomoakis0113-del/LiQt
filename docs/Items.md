@@ -110,12 +110,32 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
     - 検索
         - ユーザID検索
         - グループ検索
-        - ブログ検索
 
 - フッター（`component/footer.php`）
     - プロフィールページリンク（`profile.php`）
     - ダッシュボードページリンク（`dashboard.php`）
     - ブログページリンク（`blogs.php`）
+
+### 検索ページ(`search.php`)
+- get リクエストで `type` と `query` を受け取ることを前提とします。
+    - `type` は検索対象を指定するパラメータで、以下の値を想定します。
+        - `user` : ユーザID検索
+        - `group`: グループ検索
+
+    - `user`が指定されたとき
+        - 検索処理（`api/user/search.php`）
+            - `query` をユーザIDとして検索
+        - レスポンス（`api/user/search.php`）
+            - `success` -> true/false
+            - `message` -> エラーメッセージ
+            - `data` -> ユーザー情報
+                - アイコン表示      : `icon_url`
+                - ユーザID          : `user_id`
+                - 表示名            : `display_name`
+                - 自己紹介表示      : `introduction`
+                - タグ表示          : `tags` **カンマ区切りの文字列（半角カンマ）**
+                
+- レスポンス（`api/search/search.php`）
 
 ### プロフィールページ(`profile.php`)
 - GET リクエストで `user_id` を受け取ることを前提とします。
@@ -308,7 +328,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
 
     - 検索ボタン
         - 検索処理（`api/group/search_groups.php`）
-            - レスポンス: `success`->true/false, `message`->エラーメッセージ, `groups[]`
+            - レスポンス: `success`->true/false, `message`->エラ- メッセージ, `groups[]`
             - 成功：検索結果を表示
             - 失敗：エラーメッセージ表示
 

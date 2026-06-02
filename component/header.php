@@ -20,7 +20,6 @@
             <select name="type" class="form-select border-end-0" style="max-width: 130px; z-index: 1;" required>
               <option value="user">ユーザID</option>
               <option value="group">グループ</option>
-              <option value="blog">ブログ</option>
             </select>
 
             <input
