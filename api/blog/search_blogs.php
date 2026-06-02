@@ -70,11 +70,16 @@ try{
 
     //検索
     if($search !== ''){
-    $query->where(function($q) use ($search){
-        $q->where('title', 'LIKE', '%' . $search . '%')
-          ->orWhere('tags', 'LIKE', '%' . $search . '%');
-    });
-}
+        $query->where(function($q) use ($search){
+            $q->where('title', 'LIKE', '%' . $search . '%')
+            ->orWhere('tags', 'LIKE', '%' . $search . '%');
+
+            // 数字ならブログIDとしても検索
+            if(ctype_digit($search)){
+                $q->orWhere('id', (int)$search);
+            }
+        });
+    }
     //グループ絞り込み
     if($groupFilter !== ''){
         $groupId = (int)$groupFilter;

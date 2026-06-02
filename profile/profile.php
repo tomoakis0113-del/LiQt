@@ -127,15 +127,36 @@ $csrfToken = new lib\CSRFToken();
 
     <div class="card border-0 shadow-sm rounded-4">
 
-      <div class="card-header bg-white border-0 pt-4 pb-0">
+    <div class="card-header bg-white border-0 pt-4 pb-0">
 
-        <h4 class="fw-bold">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+        <h4 class="fw-bold mb-0">
 
           投稿一覧
 
         </h4>
 
+        <div class="d-flex gap-2">
+
+          <input type="text"
+                id="blogSearch"
+                class="form-control"
+                placeholder="ブログID・タイトル・タグ検索"
+                style="width: 240px;">
+
+          <button type="button"
+                  class="btn btn-success"
+                  onclick="searchBlogs()">
+
+            検索
+
+          </button>
+
+        </div>
       </div>
+
+    </div>
 
       <div class="card-body"
            id="blogList">
@@ -363,6 +384,184 @@ $csrfToken = new lib\CSRFToken();
 
     }
 
+
+  // =========================
+  // ブログ検索
+  // =========================
+
+  async function searchBlogs() {
+
+    const search =
+      document.getElementById("blogSearch").value.trim();
+
+    if (search === "") {
+
+      showMessage(
+        "検索キーワードを入力してください",
+        "danger"
+      );
+
+      return;
+
+    }
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "csrf_token",
+      csrfToken
+    );
+
+    formData.append(
+      "search",
+      search
+    );
+
+    formData.append(
+      "group_filter",
+      ""
+    );
+
+    try {
+
+      const response =
+        await fetch(
+          "/api/blog/search_blogs.php",
+          {
+            method: "POST",
+            body: formData
+          }
+        );
+
+      const text =
+        await response.text();
+
+      console.log(text);
+
+      const result =
+        JSON.parse(text);
+
+      if (!result.success) {
+
+        showMessage(
+          result.message,
+          "danger"
+        );
+
+        return;
+
+      }
+
+      const blogs =
+        result.data.blogs;
+
+      renderSearchBlogs(blogs);
+
+    }
+
+    catch (error) {
+
+      console.error(error);
+
+      showMessage(
+        "通信エラーが発生しました",
+        "danger"
+      );
+
+    }
+
+  }
+
+  // =========================
+  // 検索結果表示
+  // =========================
+
+  function renderSearchBlogs(blogs) {
+
+    const list =
+      document.getElementById("blogList");
+
+    list.innerHTML = "";
+
+    if (!blogs || blogs.length === 0) {
+
+      list.innerHTML = `
+
+        <div class="text-muted">
+
+          検索結果はありません
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+    blogs.forEach(blog => {
+
+      list.innerHTML += `
+
+        <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
+          class="text-decoration-none text-dark">
+
+          <div class="border rounded-4 p-3 mb-3 blog-card">
+
+            <div class="fw-bold">
+
+              ${blog.title}
+
+            </div>
+
+            <div class="text-muted small mb-2">
+
+              ブログID : ${blog.blog_id}
+
+            </div>
+
+            <div>
+
+              ${renderBlogSearchTags(blog.tags)}
+
+            </div>
+
+          </div>
+
+        </a>
+
+      `;
+
+    });
+
+  }
+
+
+  // =========================
+// 検索結果用タグ表示
+// =========================
+
+function renderBlogSearchTags(tags) {
+
+  if (!tags) {
+
+    return "";
+
+  }
+
+  return tags.split(",").map(tag => `
+
+    <span class="badge bg-success tag-badge">
+
+      ${tag.trim()}
+
+    </span>
+
+  `).join("");
+
+}
+
     // =========================
     // 表示
     // =========================
@@ -459,13 +658,24 @@ $csrfToken = new lib\CSRFToken();
 
         area.innerHTML = `
 
-          <button class="btn btn-success px-4"
-                  data-bs-toggle="modal"
-                  data-bs-target="#editModal">
+          <div class="d-grid gap-2" style="width: 220px;">
 
-            編集
+            <button class="btn btn-success px-4"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editModal">
 
-          </button>
+              編集
+
+            </button>
+
+            <a href="/auth/signout.php"
+              class="btn btn-outline-success px-4">
+
+              サインアウト
+
+            </a>
+
+          </div>
 
         `;
 
