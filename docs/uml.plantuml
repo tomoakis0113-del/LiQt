@@ -1,0 +1,102 @@
+@startuml
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+actor "未認証ユーザ" as Guest
+actor "認証ユーザ" as User
+
+package "グループロール"{
+    actor "グループ管理者" as GroupAdmin
+    actor "グループメンバー" as GroupMember
+}
+package "ブログロール"{
+    actor "ブログ作者" as BlogAuthor
+    actor "コメント作者" as CommentAuthor
+}
+User <|-- Guest
+
+GroupMember <|-- User
+GroupAdmin <|-- GroupMember
+BlogAuthor <|-- User
+
+CommentAuthor <|-- User
+BlogAuthor <|-- CommentAuthor
+
+rectangle "liqt"{
+    package "認証"{
+        usecase "サインイン" as signin
+        usecase "サインアップ" as signup
+        usecase "サインアウト" as signout
+        usecase "メール認証" as emailAuth
+        usecase "パスワードリセット" as passwordReset
+    }
+    Guest --> signin
+    Guest --> signup
+    Guest --> passwordReset
+    signup ..> emailAuth: include
+    User --> signout
+
+    package "ダッシュボード" {
+        usecase "ユーザ検索" as userSearch
+        usecase "チャット確認" as chatCheck
+    }
+    User --> userSearch
+    User --> chatCheck
+
+    package "プロフィール" {
+        usecase "プロフィールの確認" as profileCheck
+        usecase "プロフィールの編集" as profileEdit
+        usecase "ユーザブロック" as userBlock
+        usecase "ユーザブロック解除" as userUnblock
+        usecase "チャット開始" as startChat
+    }
+    User --> profileCheck
+    User --> profileEdit
+    User --> userBlock
+    User --> userUnblock
+    User --> startChat
+
+    package "チャット" {
+        usecase "メッセージ表示" as messageDisplay
+        usecase "メッセージ送信" as messageSend
+        usecase "チャットグループ作成" as createChatGroup
+        usecase "チャットグループ参加" as joinChatGroup
+        usecase "チャットグループ退出" as leaveChatGroup
+        usecase "チャットグループ削除" as deleteChatGroup
+        usecase "チャットグループメンバー管理" as manageChatGroupMembers
+        usecase "チャットグループ編集" as manageChatGroup
+    }
+    User --> createChatGroup
+    GroupMember --> messageDisplay
+    GroupMember --> messageSend
+    User --> joinChatGroup
+    GroupMember --> leaveChatGroup
+    GroupAdmin --> deleteChatGroup
+    GroupAdmin --> manageChatGroupMembers
+    GroupAdmin --> manageChatGroup
+
+    package "ブログ"{
+        usecase "ブログ投稿" as postBlog
+        usecase "ブログ編集" as editBlog
+        usecase "ブログ削除" as deleteBlog
+        usecase "ブログ閲覧" as viewBlog
+        usecase "ブログ検索" as searchBlog
+        usecase "ブログにいいね" as likeBlog
+        usecase "ブログのいいね解除" as unlikeBlog
+        usecase "ブログにコメント" as commentBlog
+        usecase "ブログのコメント削除" as deleteCommentBlog
+    }
+    User --> postBlog
+    BlogAuthor --> editBlog
+    BlogAuthor --> deleteBlog
+    User --> viewBlog
+    User --> searchBlog
+    User --> likeBlog
+    User --> unlikeBlog
+    User --> commentBlog
+    CommentAuthor --> deleteCommentBlog
+}
+
+@enduml
