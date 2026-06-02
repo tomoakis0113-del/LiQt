@@ -195,4 +195,124 @@ $csrfToken = new lib\CSRFToken();
     function renderUserResult(users) {
       const resultList = document.getElementById("searchResultList");
 
-      if (!
+      if (!users || users.length === 0) {
+        showMessage("該当するユーザーが見つかりませんでした", "info");
+        return;
+      }
+
+      users.forEach(user => {
+        // アイコンフォールバック処理
+        const iconSrc = user.icon_url ? user.icon_url : 'libs/bootstrap-5.3.8-dist/img/default-icon.png';
+        const displayName = escapeHtml(user.display_name || '名無しさん');
+        const userId = escapeHtml(user.user_id);
+        const intro = escapeHtml(user.introduction || '自己紹介文はまだありません。');
+
+        // タグのパース（先に配列化・判定を行ってから、中身の文字列をエスケープする）
+        let tagsHtml = '';
+        if (user.tags) {
+          let tagsArray = [];
+          if (Array.isArray(user.tags)) {
+            tagsArray = user.tags;
+          } else if (typeof user.tags === 'string') {
+            tagsArray = user.tags.split(',').map(t => t.trim());
+          }
+
+          tagsArray.forEach(tag => {
+            if (tag) {
+              tagsHtml += `<span class="badge bg-secondary text-white tag-badge">#${escapeHtml(tag)}</span>`;
+            }
+          });
+        }
+
+        const card = document.createElement('div');
+        card.className = 'card border-0 shadow-sm rounded-4 result-card';
+        card.innerHTML = `
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+              <img src="${iconSrc}" class="search-icon me-3" alt="${displayName}のアイコン" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'65\' height=\'65\'><rect width=\'65\' height=\'65\' fill=\'%23ccc\'/><text x=\'50%\' y=\'55%\' font-size=\'12\' text-anchor=\'middle\' fill=\'%23666\'>No Image</text></svg>';">
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <h5 class="fw-bold mb-0">${displayName}</h5>
+                    <small class="text-muted">@${userId}</small>
+                  </div>
+                  <a href="/profile/profile.php?user_id=${encodeURIComponent(user.user_id)}" class="btn btn-outline-success btn-sm rounded-pill px-3">プロフィール</a>
+                </div>
+                <p class="text-secondary small mt-2 mb-2 text-truncate" style="max-width: 600px;">${intro}</p>
+                <div>${tagsHtml}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        resultList.appendChild(card);
+      });
+    }
+
+    // ==========================================
+    // グループ検索結果の描画
+    // ==========================================
+    function renderGroupResult(groups) {
+      const resultList = document.getElementById("searchResultList");
+
+      if (!groups || groups.length === 0) {
+        showMessage("該当するグループが見つかりませんでした", "info");
+        return;
+      }
+
+      groups.forEach(group => {
+        const iconSrc = group.icon_url ? group.icon_url : '';
+        const groupName = escapeHtml(group.group_name || '無名グループ');
+        const description = escapeHtml(group.description || 'グループの説明はありません。');
+        const groupId = group.group_id;
+
+        const card = document.createElement('div');
+        card.className = 'card border-0 shadow-sm rounded-4 result-card';
+        card.innerHTML = `
+          <div class="card-body p-3">
+            <div class="d-flex align-items-center">
+              <img src="${iconSrc}" class="search-icon me-3" alt="${groupName}のアイコン" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'65\' height=\'65\'><rect width=\'65\' height=\'65\' fill=\'%23ccc\'/><text x=\'50%\' y=\'55%\' font-size=\'12\' text-anchor=\'middle\' fill=\'%23666\'>No Image</text></svg>';">
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start">
+                  <h5 class="fw-bold mb-0">${groupName}</h5>
+                  <a href="/group/group.php?id=${encodeURIComponent(groupId)}" class="btn btn-outline-primary btn-sm rounded-pill px-3">詳細を見る</a>
+                </div>
+                <p class="text-secondary small mt-2 mb-0 text-truncate" style="max-width: 600px;">${description}</p>
+              </div>
+            </div>
+          </div>
+        `;
+        resultList.appendChild(card);
+      });
+    }
+
+    // ==========================================
+    // メッセージ表示ユーティリティ
+    // ==========================================
+    function showMessage(text, type = "info") {
+      const messageBox = document.getElementById("messageBox");
+      messageBox.innerHTML = `
+        <div class="alert alert-${type} alert-dismissible fade show rounded-3 shadow-sm" role="alert">
+          ${escapeHtml(text)}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      `;
+    }
+
+    // ==========================================
+    // XSS対策：HTMLエスケープ（型エラー対策強化版）
+    // ==========================================
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      
+      // 万が一、数値や配列、オブジェクトが渡された場合は文字列に変換する
+      const stringValue = String(str);
+      
+      return stringValue.replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>
