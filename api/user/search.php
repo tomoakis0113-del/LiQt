@@ -51,7 +51,7 @@ try {
 
     $users = $query->get(
         [
-            'users.id as user_id', 
+            'users.user_id as user_id', 
             'profiles.display_name as display_name', 
             'profiles.introduction as introduction', 
             'profiles.tags as tags'
