@@ -1,6 +1,3 @@
-<?php
-  require_once __DIR__ . '/auth_check.php';
-?>
 <header>
   <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #06C755;">
     <div class="container">
