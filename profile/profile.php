@@ -524,7 +524,7 @@ $csrfToken = new lib\CSRFToken();
 
       }
 
-      blogs.forEach(blogId => {
+      blogs.forEach(([blogId, blogTitle]) => {
 
         list.innerHTML += `
 
@@ -535,8 +535,7 @@ $csrfToken = new lib\CSRFToken();
 
               <div class="fw-bold">
 
-                ブログID :
-                ${blogId}
+                ${blogTitle}
 
               </div>
 
