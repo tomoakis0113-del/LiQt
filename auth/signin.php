@@ -187,9 +187,17 @@ $csrfToken = new lib\CSRFToken();
   
   <script>
     const form = document.getElementById("signinForm");
+    const disableInput = () => {
+      form.querySelectorAll("input, button").forEach(el => el.disabled = true);
+    };
+    const enableInput = () => {
+      form.querySelectorAll("input, button").forEach(el => el.disabled = false);
+    };
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+
+      disableInput();
 
       const mailAddress = document.getElementById("mailAddress").value;
       const password = document.getElementById("password").value;
@@ -225,10 +233,12 @@ $csrfToken = new lib\CSRFToken();
           }, 1000);
         } else {
           showMessage(data.message || "ログインに失敗しました", "danger");
+          enableInput();
         }
       } catch (error) {
         console.error(error);
         showMessage("通信エラーが発生しました", "danger");
+        enableInput();
       }
     });
 
