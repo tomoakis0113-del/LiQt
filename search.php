@@ -10,7 +10,7 @@ $csrfToken = new lib\CSRFToken();
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="ユーザーやグループを条件から検索できるページです。">
+  <meta name="description" content="ユーザー、グループ、ブログを条件から検索できるページです。">
   <meta name="keywords" content="LiQt,SNS,コミュニティ,BLOG">
   <meta name="author" content="乙成,島田,勝原">
 
@@ -57,7 +57,31 @@ $csrfToken = new lib\CSRFToken();
 
   <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
 
-  <?php require_once __DIR__ . '/component/header.php'; ?>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #06C755;">
+      <div class="container">
+
+        <a class="navbar-brand fw-bold fs-2" href="/dashboard/dashboard.php">
+          LiQt
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link text-white fw-bold" href="/blog/blogs.php">
+                <span class="material-symbols-outlined align-middle me-1">article</span>ブログ
+              </a>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </nav>
+  </header>
 
   <main class="container py-4" style="max-width: 800px; padding-bottom: 120px;">
 
@@ -70,6 +94,7 @@ $csrfToken = new lib\CSRFToken();
               <select class="form-select" name="type" id="searchType">
                 <option value="user">ユーザーID</option>
                 <option value="group">グループ</option>
+                <option value="blog">ブログ</option>
               </select>
             </div>
             <div class="col-md-9">
@@ -158,8 +183,14 @@ $csrfToken = new lib\CSRFToken();
         apiUrl = "/api/user/search.php";
         formData.append("query", query);
       } else if (type === "group") {
-        apiUrl = "/api/group/search_group.php";
+        apiUrl = "/api/group/search_groups.php";
         formData.append("keyword", query);
+      } else if (type === "blog") {
+        // 💡 ブログ一覧の仕様に合わせて、エンドポイント名と複製マッピング（search/tag_search）を構築
+        apiUrl = "/api/blog/search_blogs.php";
+        formData.append("search", query);
+        formData.append("tag_search", query);
+        formData.append("group_filter", "");
       }
 
       try {
@@ -170,17 +201,25 @@ $csrfToken = new lib\CSRFToken();
 
         const result = await response.json();
 
-        if (!result.success) {
+        // ブログAPI（HTTP200でsuccess:falseを返す、または通信自体のエラー検知）の精査
+        if (type !== "blog" && !result.success) {
           showMessage(result.message || "検索処理に失敗しました", "danger");
           return;
         }
 
-        // 💡 1件だけの時も自動遷移せず、必ず一覧表示用の関数（render）を呼び出します
         if (type === "user") {
           const users = Array.isArray(result.data) ? result.data : (result.data ? [result.data] : []);
           renderUserResult(users);
         } else if (type === "group") {
           renderGroupResult(result.data);
+        } else if (type === "blog") {
+          // 💡 ブログ一覧API固有のエラーハンドリングと、入れ子データ構造（result.message.blogs）の展開
+          if (!result.success) {
+            showMessage(result.message || "ブログの検索結果を取得できませんでした。", "danger");
+            return;
+          }
+          const blogs = (result.message && result.message.blogs) ? result.message.blogs : [];
+          renderBlogResult(blogs);
         }
 
       } catch (error) {
@@ -190,7 +229,7 @@ $csrfToken = new lib\CSRFToken();
     }
 
     // ==========================================
-    // ユーザー検索結果の描画（常に一覧表示）
+    // ユーザー検索結果の描画
     // ==========================================
     function renderUserResult(users) {
       const resultList = document.getElementById("searchResultList");
@@ -201,13 +240,11 @@ $csrfToken = new lib\CSRFToken();
       }
 
       users.forEach(user => {
-        // アイコンフォールバック処理
         const iconSrc = user.icon_url ? user.icon_url : 'libs/bootstrap-5.3.8-dist/img/default-icon.png';
         const displayName = escapeHtml(user.display_name || '名無しさん');
         const userId = escapeHtml(user.user_id);
         const intro = escapeHtml(user.introduction || '自己紹介文はまだありません。');
 
-        // タグのパース（先に配列化・判定を行ってから、中身の文字列をエスケープする）
         let tagsHtml = '';
         if (user.tags) {
           let tagsArray = [];
@@ -255,14 +292,14 @@ $csrfToken = new lib\CSRFToken();
       const resultList = document.getElementById("searchResultList");
 
       if (!groups || groups.length === 0) {
-        showMessage("該当するグループが見つかりませんでした", "info");
+        showMessage("該当する公開グループが見つかりません", "info");
         return;
       }
 
       groups.forEach(group => {
-        const iconSrc = group.icon_url ? group.icon_url : '';
+        const iconSrc = group.group_icon && group.group_icon !== "" ? group.group_icon : "https://placehold.jp/80x80.png";
         const groupName = escapeHtml(group.group_name || '無名グループ');
-        const description = escapeHtml(group.description || 'グループの説明はありません。');
+        const latestMessage = escapeHtml(group.latest_message && group.latest_message !== "" ? group.latest_message : "まだメッセージはありません");
         const groupId = group.group_id;
 
         const card = document.createElement('div');
@@ -273,10 +310,49 @@ $csrfToken = new lib\CSRFToken();
               <img src="${iconSrc}" class="search-icon me-3" alt="${groupName}のアイコン" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'65\' height=\'65\'><rect width=\'65\' height=\'65\' fill=\'%23ccc\'/><text x=\'50%\' y=\'55%\' font-size=\'12\' text-anchor=\'middle\' fill=\'%23666\'>No Image</text></svg>';">
               <div class="flex-grow-1">
                 <div class="d-flex justify-content-between align-items-start">
-                  <h5 class="fw-bold mb-0">${groupName}</h5>
-                  <a href="/group/group.php?id=${encodeURIComponent(groupId)}" class="btn btn-outline-primary btn-sm rounded-pill px-3">詳細を見る</a>
+                  <h5 class="fw-bold mb-0 text-truncate" style="max-width: 450px;">${groupName}</h5>
+                  <a href="/group/chat.php?group_id=${encodeURIComponent(groupId)}" class="btn btn-outline-primary btn-sm rounded-pill px-3">チャットを開く</a>
                 </div>
-                <p class="text-secondary small mt-2 mb-0 text-truncate" style="max-width: 600px;">${description}</p>
+                <p class="text-muted small mt-2 mb-0 text-truncate" style="max-width: 600px;">最新メッセージ：${latestMessage}</p>
+              </div>
+            </div>
+          </div>
+        `;
+        resultList.appendChild(card);
+      });
+    }
+
+    // ==========================================
+    // 💡 ブログ検索結果の描画（ブログ一覧の仕様に完全準拠）
+    // ==========================================
+    function renderBlogResult(blogs) {
+      const resultList = document.getElementById("searchResultList");
+
+      if (!blogs || blogs.length === 0) {
+        showMessage("該当するブログが見つかりませんでした", "info");
+        return;
+      }
+
+      blogs.forEach(blog => {
+        const title = escapeHtml(blog.title || '無題のブログ');
+        const blogId = blog.blog_id;
+
+        // ブログ一覧の仕様に合わせたカンマ区切りタグのパース処理
+        const tagsHtml = blog.tags ? blog.tags.split(",").map(tag => 
+          `<span class="badge bg-success tag-badge">${escapeHtml(tag.trim())}</span>`
+        ).join("") : "";
+
+        const card = document.createElement('div');
+        card.className = 'card border-0 shadow-sm rounded-4 result-card';
+        card.innerHTML = `
+          <div class="card-body p-4">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                  <h4 class="fw-bold mb-0 text-truncate" style="max-width: 500px;">${title}</h4>
+                  <a href="/blog/blog_detail.php?blog_id=${encodeURIComponent(blogId)}" class="btn btn-outline-success btn-sm rounded-pill px-4">記事を読む</a>
+                </div>
+                <div class="card-tags">${tagsHtml}</div>
               </div>
             </div>
           </div>
@@ -303,10 +379,7 @@ $csrfToken = new lib\CSRFToken();
     // ==========================================
     function escapeHtml(str) {
       if (str === null || str === undefined) return '';
-      
-      // 万が一、数値や配列、オブジェクトが渡された場合は文字列に変換する
       const stringValue = String(str);
-      
       return stringValue.replace(/&/g, '&amp;')
                         .replace(/</g, '&lt;')
                         .replace(/>/g, '&gt;')
