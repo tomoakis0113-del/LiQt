@@ -53,6 +53,8 @@ try{
         ->where('user_id', $currentUserId)
         ->where('blocked_user_id', $targetUserId)
         ->first(['id'])['id'] ?? null;
+
+    // すでにブロック済み
     if($exists){
         lib\Util::responseSuccess([], 'すでにブロック済みです');
     }
