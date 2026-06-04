@@ -2,30 +2,46 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * ブログ編集API
+ * ブログ詳細取得API
  * 必要なパラメータ:
  * - csrf_token: CSRFトークン
- * - blog_id: 編集したいブログID
+ * - blog_id: 取得したいブログID
  *  
  * 
  * レスポンス:
- * - 成功: { "success": true, "message": "ブログの編集に成功しました" }
+ * - 成功: 
  * {
- *"success": true,
- * "message": [],
- * "data": {
- *   "id": ブログID,
- *   "title": "ブログのタイトル",
- *   "content": "ブログの本文",
- *   "visibility": "public","private","group",
- *   "tags": "ブログのタグ",
- *   "created_at": "作成日時",
- *   "updated_at": "更新日時"
+ *   "success": true,
+ *   "message": "ブログを取得しました",
+ *   "data": {
+ *     "id": ブログID,
+ *     "title": "ブログのタイトル",
+ *     "content": "ブログの本文",
+ *     "visibility": "public"|"private"|"group",
+ *     "tags": "ブログのタグ",
+ *     "created_at": "作成日時",
+ *     "updated_at": "更新日時",
+ *     "likes": いいね数,
+ *     "is_liked": いいね済みか(true/false),
+ *     "is_author": 自身のブログか(true/false),
+ *     "comments": [
+ *       {
+ *         "comment_id": コメントID,
+ *         "content": "コメント本文",
+ *         "created_at": "作成日時",
+ *         "is_mine": 自身のコメントか(true/false),
+ *         "author": {
+ *           "user_id": "コメント投稿者のユーザーID",
+ *           "display_name": "コメント投稿者の表示名",
+ *           "icon_url": "コメント投稿者のアイコンURL"
+ *         }
+ *       }
+ *     ]
+ *   }
  * }
- *}
  * 
- * - 失敗: { "success": false, "message": "エラーメッセージ","サインインが必要です","不正なリクエストです","ブログIDが指定されていません" }
- * 
+ * - 失敗: { "success": false, "message": "エラーメッセージ" }
+ *   (例: "サインインが必要です", "不正なリクエストです", "ブログIDが指定されていません", "指定されたブログが見つかりません", "このブログを見る権限がありません", "このグループのブログを見る権限がありません")
  */
 
 try{
