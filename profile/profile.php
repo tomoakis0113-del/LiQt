@@ -310,6 +310,9 @@ $csrfToken = new lib\CSRFToken();
     const csrfToken =
       document.getElementById("csrf_token").value;
 
+    // 最初に読み込んだ投稿一覧を保存する
+    let originalBlogs = [];
+
     // 初期ロード
     loadProfile();
 
@@ -394,7 +397,16 @@ $csrfToken = new lib\CSRFToken();
     const search =
       document.getElementById("blogSearch").value.trim();
 
+    // 空白ならAPIを呼ばずに、検索前の投稿一覧へ戻す
+    if (search === "") {
 
+      renderBlogs(originalBlogs);
+
+      document.getElementById("messageBox").innerHTML = "";
+
+      return;
+
+    }
 
     const formData =
       new FormData();
@@ -444,8 +456,9 @@ $csrfToken = new lib\CSRFToken();
 
       }
 
+      // search_blogs.php の形式を変えないため、両方に対応する
       const blogs =
-        result.data.blogs;
+        result.data?.blogs ?? result.message?.blogs ?? [];
 
       renderSearchBlogs(blogs);
 
@@ -581,9 +594,11 @@ function renderBlogSearchTags(tags) {
       // ボタン
       renderButtons(data);
 
-      // 投稿
-      renderBlogs(data.blogs);
+      // 最初の投稿一覧を保存
+      originalBlogs = data.blogs || [];
 
+      // 投稿
+      renderBlogs(originalBlogs);
       // 編集フォーム
       if (data.is_mine) {
 
