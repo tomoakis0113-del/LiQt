@@ -1,9 +1,6 @@
-
 <?php
-session_start();
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// 💡 CSRFトークンの生成
 $csrfToken = new lib\CSRFToken();
 ?>
 <!DOCTYPE html>
@@ -160,9 +157,9 @@ $csrfToken = new lib\CSRFToken();
       formData.append("csrf_token", csrfToken);
 
       fetch("/api/blog/get_blog_detail.php", {
-        method: "POST",
-        body: formData
-      })
+          method: "POST",
+          body: formData
+        })
         .then(res => res.json())
         .then(result => {
           if (!result.success) {
@@ -176,7 +173,7 @@ $csrfToken = new lib\CSRFToken();
 
           const editButton = document.getElementById("editButton");
           editButton.href = `/blog/edit_blog.php?blog_id=${blogData.id}`;
-          editButton.classList.remove("d-none"); 
+          editButton.classList.remove("d-none");
 
           document.getElementById("tags").innerHTML = renderTags(blogData.tags);
 
@@ -205,7 +202,7 @@ $csrfToken = new lib\CSRFToken();
             likeButton.classList.remove("btn-danger");
             likeButton.classList.add("btn-outline-danger");
           }
-                    // コメント・関連記事一覧表示
+          // コメント・関連記事一覧表示
           renderComments(blogData.comments || []);
           renderRelated(blogData.related_blogs || []);
         })
@@ -235,9 +232,9 @@ $csrfToken = new lib\CSRFToken();
       formData.append("csrf_token", csrfToken);
 
       fetch(apiUrl, {
-        method: "POST",
-        body: formData
-      })
+          method: "POST",
+          body: formData
+        })
         .then(res => res.json())
         .then(result => {
           if (!result.success) {
@@ -299,18 +296,18 @@ $csrfToken = new lib\CSRFToken();
         return;
       }
 
-comments.forEach(comment => {
-  const iconUrl = comment.author && comment.author.icon_url ? comment.author.icon_url : "https://placehold.jp/48x48.png";
-  const displayName = comment.author && comment.author.display_name ? comment.author.display_name : "名無しユーザー";
-  const userId = comment.author && comment.author.user_id ? comment.author.user_id : "#";
+      comments.forEach(comment => {
+        const iconUrl = comment.author && comment.author.icon_url ? comment.author.icon_url : "https://placehold.jp/48x48.png";
+        const displayName = comment.author && comment.author.display_name ? comment.author.display_name : "名無しユーザー";
+        const userId = comment.author && comment.author.user_id ? comment.author.user_id : "#";
 
-  const deleteButton = comment.is_mine
-    ? `<button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteComment(${comment.comment_id})">
+        const deleteButton = comment.is_mine ?
+          `<button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteComment(${comment.comment_id})">
          削除
-       </button>`
-    : "";
+       </button>` :
+          "";
 
-  commentList.innerHTML += `
+        commentList.innerHTML += `
     <div class="d-flex mb-4">
       <img src="${iconUrl}" class="comment-icon me-3" alt="コメント投稿者">
       <div class="w-100">
@@ -324,7 +321,7 @@ comments.forEach(comment => {
       </div>
     </div>
   `;
-});
+      });
     }
 
     // =========================
@@ -357,107 +354,104 @@ comments.forEach(comment => {
     // =========================
     // コメント投稿
     // =========================
-function postComment() {
-  const comment = document.getElementById("commentInput").value.trim();
+    function postComment() {
+      const comment = document.getElementById("commentInput").value.trim();
 
-  if (!comment) {
-    alert("コメントを入力してください");
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("csrf_token", csrfToken);
-  formData.append("blog_id", blogId);
-  formData.append("content", comment);
-
-  fetch("/api/blog/add_comment.php", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(result => {
-      if (!result.success) {
-        alert(result.message);
+      if (!comment) {
+        alert("コメントを入力してください");
         return;
       }
 
-      document.getElementById("commentInput").value = "";
+      const formData = new FormData();
+      formData.append("csrf_token", csrfToken);
+      formData.append("blog_id", blogId);
+      formData.append("content", comment);
 
-      // コメント追加後、ブログ詳細を再読み込みしてコメント一覧を更新
-      loadBlog();
-    })
-    .catch(error => {
-      console.error("Error adding comment:", error);
-      alert("コメント投稿中に通信エラーが発生しました");
-    });
-}
+      fetch("/api/blog/add_comment.php", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (!result.success) {
+            alert(result.message);
+            return;
+          }
+
+          document.getElementById("commentInput").value = "";
+
+          // コメント追加後、ブログ詳細を再読み込みしてコメント一覧を更新
+          loadBlog();
+        })
+        .catch(error => {
+          console.error("Error adding comment:", error);
+          alert("コメント投稿中に通信エラーが発生しました");
+        });
+    }
     // =========================
     // いいね
     // =========================
-function toggleLike() {
-  const formData = new FormData();
-  formData.append("blog_id", blogId);
-  formData.append("csrf_token", csrfToken);
+    function toggleLike() {
+      const formData = new FormData();
+      formData.append("blog_id", blogId);
+      formData.append("csrf_token", csrfToken);
 
-  fetch("/api/blog/toggle_like.php", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(result => {
-      if (!result.success) {
-        alert(result.message);
+      fetch("/api/blog/toggle_like.php", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (!result.success) {
+            alert(result.message);
+            return;
+          }
+
+          liked = result.data.is_liked;
+          document.getElementById("likes").textContent = result.data.like_count;
+
+          const button = document.getElementById("likeButton");
+
+          if (liked) {
+            button.classList.remove("btn-outline-danger");
+            button.classList.add("btn-danger");
+          } else {
+            button.classList.remove("btn-danger");
+            button.classList.add("btn-outline-danger");
+          }
+        });
+    }
+
+    function deleteComment(commentId) {
+      if (!confirm("このコメントを削除しますか？")) {
         return;
       }
 
-      liked = result.data.is_liked;
-      document.getElementById("likes").textContent = result.data.like_count;
+      const formData = new FormData();
+      formData.append("csrf_token", csrfToken);
+      formData.append("comment_id", commentId);
 
-      const button = document.getElementById("likeButton");
+      fetch("/api/blog/delete_comment.php", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (!result.success) {
+            alert(result.message);
+            return;
+          }
 
-      if (liked) {
-        button.classList.remove("btn-outline-danger");
-        button.classList.add("btn-danger");
-      } else {
-        button.classList.remove("btn-danger");
-        button.classList.add("btn-outline-danger");
-      }
-    });
-}
-
-function deleteComment(commentId) {
-  if (!confirm("このコメントを削除しますか？")) {
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("csrf_token", csrfToken);
-  formData.append("comment_id", commentId);
-
-  fetch("/api/blog/delete_comment.php", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(result => {
-      if (!result.success) {
-        alert(result.message);
-        return;
-      }
-
-      // コメント削除後、ブログ詳細を再読み込みしてコメント一覧を更新
-      loadBlog();
-    })
-    .catch(error => {
-      console.error("Error deleting comment:", error);
-      alert("コメント削除中に通信エラーが発生しました");
-    });
-}
-
-
-</script>
+          // コメント削除後、ブログ詳細を再読み込みしてコメント一覧を更新
+          loadBlog();
+        })
+        .catch(error => {
+          console.error("Error deleting comment:", error);
+          alert("コメント削除中に通信エラーが発生しました");
+        });
+    }
+  </script>
 
 </body>
-</html>
 
-```
+</html>

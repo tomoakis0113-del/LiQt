@@ -1,10 +1,4 @@
 <?php
-// セッションの開始（CSRFトークン管理用）
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// 💡 lib\CSRFToken クラスから安全に生成
 require_once __DIR__ . '/../vendor/autoload.php';
 $csrfToken = new lib\CSRFToken();
 ?>

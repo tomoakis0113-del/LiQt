@@ -1,13 +1,6 @@
 <?php
-// セッションの開始（CSRFトークン管理用）
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// CSRFトークンの生成（存在しない場合のみ）
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+require_once __DIR__ . '/../vendor/autoload.php';
+$csrfToken = new lib\CSRFToken();
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -44,7 +37,7 @@ if (empty($_SESSION['csrf_token'])) {
     <div id="alertBox" class="alert d-none"></div>
 
     <form id="blogForm">
-      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token'], ENT_QUOTES, 'UTF-8'); ?>">
+      <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8'); ?>">
 
       <div class="mb-3">
         <label class="form-label">タイトル</label>
