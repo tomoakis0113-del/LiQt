@@ -1,8 +1,6 @@
 <?php
-// セッションを開始してCSRFトークンを使えるようにする
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/../vendor/autoload.php';
+$csrfToken = new lib\CSRFToken();
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -39,7 +37,7 @@ if (session_status() === PHP_SESSION_NONE) {
     <div id="alertBox" class="alert d-none"></div>
 
     <form id="editForm">
-      <input type="hidden" name="csrf_token" id="csrfTokenInput" value="<?php echo htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+      <input type="hidden" name="csrf_token" id="csrfTokenInput" value="<?php echo htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8'); ?>">
 
       <div class="mb-3">
         <label class="form-label">タイトル</label>
