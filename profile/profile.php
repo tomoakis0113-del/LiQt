@@ -394,16 +394,7 @@ $csrfToken = new lib\CSRFToken();
     const search =
       document.getElementById("blogSearch").value.trim();
 
-    if (search === "") {
 
-      showMessage(
-        "検索キーワードを入力してください",
-        "danger"
-      );
-
-      return;
-
-    }
 
     const formData =
       new FormData();

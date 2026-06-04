@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * - csrf_token
  * - tag_search
  * - group_filter
+ * - search
  * 
  * レスポンス:
  * - 成功: { "success": true, "message": "検索結果を取得しました" }
@@ -45,6 +46,8 @@ try{
     $sentToken   = $_POST['csrf_token'] ?? '';  
     $search      = trim($_POST['search'] ?? '');
     $groupFilter = trim($_POST['group_filter'] ?? '');
+    $search      = trim($_POST['search'] ?? '');
+    
     //CSRFチェック
     $csrfToken = new lib\CSRFToken();
 
@@ -134,7 +137,7 @@ try{
         'blogs' => $blogList
     ];
 
-    lib\Util::responseSuccess('検索結果を取得しました',$data);
+    lib\Util::responseSuccess($data, '検索結果を取得しました');
 
 }catch(\Throwable $e){
     error_log("エラーが発生しました: " . $e->getMessage());
