@@ -134,7 +134,7 @@ try{
         'blogs' => $blogList
     ];
 
-    lib\Util::responseSuccess($data, '検索結果を取得しました');
+    lib\Util::responseSuccess('検索結果を取得しました',$data);
 
 }catch(\Throwable $e){
     error_log("エラーが発生しました: " . $e->getMessage());
