@@ -177,15 +177,14 @@ $csrfToken = new lib\CSRFToken();
 
           document.getElementById("tags").innerHTML = renderTags(blogData.tags);
 
-          if (blogData.author) {
-            document.getElementById("authorIcon").src = blogData.author.icon_url || "https://placehold.jp/48x48.png";
-            document.getElementById("authorName").textContent = blogData.author.display_name || "ユーザー";
-            document.getElementById("authorName").href = `/profile/profile.php?user_id=${blogData.author.user_id}`;
-          } else {
-            document.getElementById("authorIcon").src = "https://placehold.jp/48x48.png";
-            document.getElementById("authorName").textContent = "投稿ユーザー";
-            document.getElementById("authorName").href = "#";
+          if(!blogData.author) {
+            alert("ブログの投稿ユーザー情報の取得に失敗しました");
+            return;
           }
+
+          document.getElementById("authorIcon").src = blogData.author.icon_url || "https://placehold.jp/48x48.png";
+          document.getElementById("authorName").textContent = blogData.author.display_name || "ユーザー";
+          document.getElementById("authorName").href = `/profile/profile.php?user_id=${blogData.author.user_id}`;
 
           document.getElementById("content").innerHTML = md.render(blogData.content || "");
 
