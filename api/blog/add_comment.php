@@ -96,4 +96,4 @@ try{
     error_log("エラーが発生しました: " . $e->getMessage());
     lib\Util::responseError(500,'サーバーエラーが発生しました');
 }
-?>
+?>2

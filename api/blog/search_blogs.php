@@ -70,11 +70,16 @@ try{
 
     //検索
     if($search !== ''){
-    $query->where(function($q) use ($search){
-        $q->where('title', 'LIKE', '%' . $search . '%')
-          ->orWhere('tags', 'LIKE', '%' . $search . '%');
-    });
-}
+        $query->where(function($q) use ($search){
+            $q->where('title', 'LIKE', '%' . $search . '%')
+            ->orWhere('tags', 'LIKE', '%' . $search . '%');
+
+            // 数字ならブログIDとしても検索
+            if(ctype_digit($search)){
+                $q->orWhere('id', (int)$search);
+            }
+        });
+    }
     //グループ絞り込み
     if($groupFilter !== ''){
         $groupId = (int)$groupFilter;
@@ -129,7 +134,7 @@ try{
         'blogs' => $blogList
     ];
 
-    lib\Util::responseSuccess($data, '検索結果を取得しました');
+    lib\Util::responseSuccess('検索結果を取得しました',$data);
 
 }catch(\Throwable $e){
     error_log("エラーが発生しました: " . $e->getMessage());
