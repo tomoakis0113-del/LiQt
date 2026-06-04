@@ -1,3 +1,5 @@
+<link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 <header>
   <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #06C755;">
     <div class="container">
