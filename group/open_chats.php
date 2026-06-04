@@ -1,14 +1,10 @@
 <?php
-
-session_start();
-
+if (!isset($_SESSION)) {
+    session_start();
+}
 require_once __DIR__ . '/../vendor/autoload.php';
-
-// CSRF生成
 $csrfToken = new lib\CSRFToken();
-
 ?>
-
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -22,20 +18,25 @@ $csrfToken = new lib\CSRFToken();
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
   <style>
+    /* 💡 動的マージン完全対応：
+       タブの切り替えや件数の増減に関わらず、
+       画面最下部の固定メニューの上に必ず十分な余白を確保するため、
+       body要素の最下部に強制パディングを設定します。
+    */
     body {
       background-color: #f5f7fb;
+      padding-bottom: 240px !important; /* 👈 固定メニューに絶対に被らなくする絶対余白 */
     }
 
     /* 💡 グループカード全体のデザイン調整 */
     .group-card {
-      transition: 0.2s;
-      margin-bottom: 1.5rem;
+      transition: transform 0.2s, background-color 0.2s;
       cursor: pointer;
     }
 
     .group-card:hover {
+      background: #f8f9fa;
       transform: translateY(-2px);
-      background-color: #f8f9fa;
     }
 
     /* 💡 アイコンを少し大きめ・丸型に変更 */
@@ -48,98 +49,100 @@ $csrfToken = new lib\CSRFToken();
   </style>
 </head>
 
-<body class="bg-light">
+<body>
 
-  <?php
-  if (!isset($_SESSION)) {
-      session_start();
-  }
-  require_once __DIR__ . '/../vendor/autoload.php';
-  $csrfToken = new lib\CSRFToken();
-  ?>
   <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
 
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <main class="container p-4" style="max-width:800px; padding-bottom: 120px;">
+  <main class="container p-4" style="max-width:800px;">
 
     <h3 class="fw-bold mb-4">オープンチャット</h3>
 
     <div id="alertBox" class="alert d-none"></div>
 
-    <div id="groupList"></div>
+    <div id="groupList" class="d-flex flex-column gap-3">
+      <div class="text-center text-muted py-4">読み込み中...</div>
+    </div>
 
   </main>
 
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
-    // 💡 HTMLに埋め込んだCSRFトークンの取得
-    const csrfToken = document.getElementById("csrf_token").value;
+    // 💡 変数の定義のみを最初に行い、null参照エラーを防止
+    let csrfToken = "";
 
-    // 初期ロード
-    loadGroups();
+    // 画面初期ロード時にグループ一覧を自動取得
+    document.addEventListener("DOMContentLoaded", () => {
+      // 💡 HTML要素の構築が完了したこのタイミングでトークンを安全に取得します
+      const tokenElement = document.getElementById("csrf_token");
+      if (tokenElement) {
+        csrfToken = tokenElement.value;
+      }
+      
+      loadGroups();
+    });
 
-    // 💡 一覧取得（API統合・POST送信版）
+    // =========================
+    // 公開グループ一覧取得API
+    // =========================
     async function loadGroups() {
-      // エラー表示をクリア
-      const box = document.getElementById("alertBox");
-      box.className = "alert d-none";
+      clearError();
 
-      // POST用のFormDataを作成し、CSRFトークンをセット
       const formData = new FormData();
       formData.append("csrf_token", csrfToken);
 
       try {
         const res = await fetch("/api/group/get_public_groups.php", {
-          method: "POST", // 💡 POSTで安全に送信
+          method: "POST", // 💡 トークンを安全に送るためPOSTで送信
           body: formData
         });
 
         const data = await res.json();
 
         if (data.success) {
-          // APIから返ってきた data 配列をレンダリングに渡す
+          // APIから返ってきたグループの配列をレンダリングに渡す
           renderGroups(data.data || []);
         } else {
-          showError(data.message || "グループの取得に失敗しました");
+          showError(data.message || "グループの取得に失敗しました。");
         }
 
       } catch (e) {
         console.error("Error loading groups:", e);
-        showError("通信エラーが発生しました");
+        showError("サーバーとの通信中にエラーが発生しました。");
       }
     }
 
-    // 描画
+    // =========================
+    // 動的グループリストの描画処理
+    // =========================
     function renderGroups(groups) {
       const list = document.getElementById("groupList");
       list.innerHTML = "";
 
-      if (groups.length === 0) {
+      if (!groups || groups.length === 0) {
         list.innerHTML = `
-          <div class="card border-0 shadow-sm rounded-4 mb-5">
-            <div class="card-body text-center text-muted py-5">
-              グループが見つかりません
-            </div>
+          <div class="card border-0 shadow-sm rounded-4 p-4 text-center text-muted">
+            グループが見つかりません
           </div>
         `;
         return;
       }
 
-      // 💡 ダッシュボードのカードデザインに統一
+      // 💡 ブログカードのテクスチャ（border-0 shadow-sm rounded-4 p-4）を継承し、カード間隔を最適化
       groups.forEach(g => {
         list.innerHTML += `
-          <div class="card border-0 shadow-sm rounded-4 group-card" onclick="joinGroup('${g.group_id}')">
-            <div class="card-body">
+          <div class="card border-0 shadow-sm rounded-4 group-card" onclick="joinGroup('${encodeURIComponent(g.group_id)}')">
+            <div class="card-body p-4">
               <div class="d-flex align-items-center">
                 
-                <img src="${g.group_icon}" class="group-icon me-3" alt="${g.group_name}">
+                <img src="${g.group_icon}" class="group-icon me-3" alt="${escapeHtml(g.group_name)}">
 
-                <div class="flex-grow-1">
-                  <h5 class="fw-bold mb-2">${g.group_name}</h5>
+                <div class="flex-grow-1" style="min-width: 0;">
+                  <h5 class="fw-bold mb-2 text-truncate">${escapeHtml(g.group_name)}</h5>
                   <p class="text-muted mb-0 text-truncate">
-                    最新メッセージ：${g.latest_message || "メッセージなし"}
+                    最新メッセージ：${escapeHtml(g.latest_message || "メッセージなし")}
                   </p>
                 </div>
 
@@ -150,13 +153,13 @@ $csrfToken = new lib\CSRFToken();
       });
     }
 
-    // 💡 参加処理（API統合版）
+    // =========================
+    // 参加処理
+    // =========================
     async function joinGroup(groupId) {
       if (!confirm("このグループに参加しますか？")) return;
 
-      // エラー表示をクリア
-      const box = document.getElementById("alertBox");
-      box.className = "alert d-none";
+      clearError();
 
       // 💡 要件に沿ったFormDataの作成（csrf_token, group_id）
       const formData = new FormData();
@@ -180,15 +183,34 @@ $csrfToken = new lib\CSRFToken();
 
       } catch (e) {
         console.error("Error joining group:", e);
-        showError("通信エラーが発生しました");
+        showError("通信エラーが発生しました。");
       }
     }
 
-    // エラー表示
+    // =========================
+    // ユーティリティ
+    // =========================
     function showError(msg) {
       const box = document.getElementById("alertBox");
-      box.textContent = msg;
-      box.className = "alert alert-danger mb-4";
+      box.textContent = typeof msg === 'string' ? msg : "処理中にエラーが発生しました。";
+      box.className = "alert alert-danger mb-4 shadow-sm rounded-3";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function clearError() {
+      const box = document.getElementById("alertBox");
+      box.textContent = "";
+      box.className = "alert d-none";
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
   </script>
 
