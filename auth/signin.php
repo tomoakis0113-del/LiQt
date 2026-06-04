@@ -181,6 +181,11 @@ $csrfToken = new lib\CSRFToken();
             <button type="submit" class="btn btn-success btn-lg rounded-pill">サインイン</button>
           </div>
         </form>
+
+        <div class="text-center mt-4">
+          <span>アカウントをお持ちでないですか？</span>
+          <a href="/auth/signup.php" class="text-decoration-none fw-bold">サインアップ</a>
+        </div>
       </div>
     </div>
   </main>
