@@ -78,11 +78,6 @@ $csrfToken = new lib\CSRFToken();
         </button>
       </li>
       <li class="nav-item flex-fill text-center" role="presentation">
-        <button class="nav-link w-100 rounded-3 fw-bold" data-bs-toggle="tab" data-bs-target="#private" type="button" role="tab">
-          非公開ブログ
-        </button>
-      </li>
-      <li class="nav-item flex-fill text-center" role="presentation">
         <button class="nav-link w-100 rounded-3 fw-bold" data-bs-toggle="tab" data-bs-target="#myblogs" type="button" role="tab">
           自分のブログ
         </button>

@@ -117,7 +117,12 @@ $csrfToken = new lib\CSRFToken();
 
     // 3. 所属グループの非同期読み込み
     function loadGroups() {
-      fetch("api/get_my_groups.php")
+      const formData = new FormData();
+      formData.append("csrf_token", "<?php echo htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8'); ?>");
+      fetch("/api/group/search_groups.php", {
+        method: "POST",
+        body: formData
+      })
         .then(res => {
           if (!res.ok) throw new Error("グループ一覧の取得に失敗しました。");
           return res.json();
@@ -129,7 +134,7 @@ $csrfToken = new lib\CSRFToken();
           }
 
           groupSelect.innerHTML = '<option value="">選択してください</option>';
-          data.groups.forEach(g => {
+          data.data.forEach(g => {
             const option = document.createElement("option");
             option.value = g.group_id;
             option.textContent = g.group_name;
