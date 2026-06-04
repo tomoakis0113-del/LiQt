@@ -66,12 +66,13 @@ try{
         ]);
 
     // メッセージ取得
-    $messages = models\Chat::join('profiles', 'chats.sender_id', '=', 'profiles.user_id')
-        ->where('group_id', $group_id)
+    $messages = models\Chat::join('profiles', 'chats.sender_id', '=', 'profiles.user_id')    
+    ->join('users', 'chats.sender_id', '=', 'users.id')
+    ->where('group_id', $group_id)
         ->orderBy('created_at', 'asc')
         ->get([
             'chats.id as message_id', 
-            'chats.sender_id as sender_user_id', 
+            'users.user_id as sender_user_id', 
             'profiles.display_name as sender_display_name',
             'profiles.icon_url as sender_icon',
             'chats.content', 
