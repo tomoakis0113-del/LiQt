@@ -1,3 +1,14 @@
+<?php
+
+session_start();
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// CSRF生成
+$csrfToken = new lib\CSRFToken();
+
+?>
+
 <!DOCTYPE html>
 <html lang="ja">
 
@@ -69,28 +80,35 @@
     // 初期ロード
     loadGroups();
 
-    // 一覧取得（仮データ）
-    function loadGroups() {
+    // 💡 一覧取得（API統合・POST送信版）
+    async function loadGroups() {
+      // エラー表示をクリア
+      const box = document.getElementById("alertBox");
+      box.className = "alert d-none";
 
-      const dummyGroups = [
+      // POST用のFormDataを作成し、CSRFトークンをセット
+      const formData = new FormData();
+      formData.append("csrf_token", csrfToken);
 
-        {
-          group_id: 1,
-          group_name: "Web開発コミュニティ",
-          group_icon: "https://placehold.jp/100x100.png",
-          latest_message: "Bootstrapでモック作成中！"
-        },
+      try {
+        const res = await fetch("/api/group/get_public_groups.php", {
+          method: "POST", // 💡 POSTで安全に送信
+          body: formData
+        });
 
-        {
-          group_id: 2,
-          group_name: "Java勉強会",
-          group_icon: "https://placehold.jp/100x100.png",
-          latest_message: "今日は継承について勉強します"
+        const data = await res.json();
+
+        if (data.success) {
+          // APIから返ってきた data 配列をレンダリングに渡す
+          renderGroups(data.data || []);
+        } else {
+          showError(data.message || "グループの取得に失敗しました");
         }
 
-      ];
-
-      renderGroups(dummyGroups);
+      } catch (e) {
+        console.error("Error loading groups:", e);
+        showError("通信エラーが発生しました");
+      }
     }
 
     // 描画
@@ -116,7 +134,7 @@
             <div class="card-body">
               <div class="d-flex align-items-center">
                 
-                <img src="${g.group_icon}" class="group-icon me-3">
+                <img src="${g.group_icon}" class="group-icon me-3" alt="${g.group_name}">
 
                 <div class="flex-grow-1">
                   <h5 class="fw-bold mb-2">${g.group_name}</h5>
