@@ -55,33 +55,8 @@ $csrfToken = new lib\CSRFToken();
 </head>
 <body class="bg-light">
 
+  <?php require_once __DIR__ . '/component/header.php'; ?>
   <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
-
-  <header>
-    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm" style="background-color: #06C755;">
-      <div class="container">
-
-        <a class="navbar-brand fw-bold fs-2" href="/dashboard/dashboard.php">
-          LiQt
-        </a>
-
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-            <li class="nav-item">
-              <a class="nav-link text-white fw-bold" href="/blog/blogs.php">
-                <span class="material-symbols-outlined align-middle me-1">article</span>ブログ
-              </a>
-            </li>
-          </ul>
-        </div>
-
-      </div>
-    </nav>
-  </header>
 
   <main class="container py-4" style="max-width: 800px; padding-bottom: 120px;">
 
