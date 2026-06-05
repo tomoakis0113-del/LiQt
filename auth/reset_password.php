@@ -80,10 +80,6 @@ $csrfToken = new lib\CSRFToken();
 </head>
 
 <body>
-
-  <!-- ヘッダー -->
-  <?php require_once __DIR__ . '/../component/header.php'; ?>
-
   <!-- 本文 -->
   <main class="container py-5"
         style="padding-bottom: 120px;">
@@ -262,10 +258,7 @@ $csrfToken = new lib\CSRFToken();
     </div>
 
   </main>
-
-  <!-- フッター -->
-  <?php require_once __DIR__ . '/../component/footer.php'; ?>
-
+  
   <script>
 
     // =========================
