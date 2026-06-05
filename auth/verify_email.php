@@ -167,9 +167,6 @@ $csrfToken = new lib\CSRFToken();
       <div class="logo-text-area">LiQt</div>
     </div>
   </div>
-
-  <?php require_once __DIR__ . '/../component/header.php'; ?>
-
   <main class="container py-5" style="padding-bottom: 120px;">
     <div class="card shadow-sm verify-card">
       <div class="card-body p-5">
@@ -207,9 +204,6 @@ $csrfToken = new lib\CSRFToken();
       </div>
     </div>
   </main>
-
-  <?php require_once __DIR__ . '/../component/footer.php'; ?>
-
   <script>
     let cooldown = 30;
     document.getElementById("sendTokenButton").addEventListener("click", sendVerifyToken);
