@@ -114,6 +114,13 @@ try {
 
     // メンバー削除
     if ($remove_user_ids && is_array($remove_user_ids)) {
+        if(in_array($user_id, $remove_user_ids)) {
+            $ownerCount = models\GroupMember::where('group_id', $group_id)->where('role', 'owner')->count();
+            if ($ownerCount <= 1) {
+                lib\Util::responseError(400, '自分を削除するには、他にオーナーが必要です');
+            }
+        }
+
         foreach ($remove_user_ids as $remove_id) {
             models\GroupMember::where('group_id', $group_id)->where('user_id', $remove_id)->delete();
         }
