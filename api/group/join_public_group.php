@@ -44,7 +44,7 @@ try {
         ->where('user_id', '=', $user_id)
         ->first(['user_id'])['user_id'] ?? null;
     if ($existingMembership) {
-        lib\Util::responseError(400, 'すでにグループのメンバーです');
+        lib\Util::responseSuccess('すでにグループのメンバーです');
     }
 
     // グループにユーザーを追加

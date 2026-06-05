@@ -41,12 +41,19 @@ try {
 
     // 公開グループのリストを取得
     $publicGroups = models\Group::query()
-        ->where('is_public', '=', true)
-        ->leftJoin('chats', 'groups.id', '=', 'chats.group_id')
-        ->orderBy('chats.created_at', 'desc')
-        ->get(['groups.id as group_id', 'groups.name as group_name', 'groups.group_icon_url as group_icon', 'chats.created_at as last_message_time', 'chats.content as latest_message']);
+    ->where('is_public', true)
+    ->leftJoin('chats', 'groups.id', '=', 'chats.group_id')
+    ->orderBy('chats.created_at', 'desc') 
+    ->get([
+        'groups.id as group_id',
+        'groups.name as group_name',
+        'groups.group_icon_url as group_icon',
+        'chats.created_at as last_message_time',
+        'chats.content as latest_message'
+    ])
+    ->unique('group_id');
 
-    lib\Util::responseSuccess('公開グループの取得に成功しました', $publicGroups);
+    lib\Util::responseSuccess('公開グループの取得に成功しました', [...$publicGroups]);
 } catch (Exception $e) {
     error_log("エラーが発生しました: " . $e->getMessage());
     lib\Util::responseError(500, 'サーバーエラーが発生しました');
