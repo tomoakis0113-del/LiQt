@@ -1,6 +1,7 @@
 # Composer
 /composer.phar
 /vendor/
+/uploads/
 
 # Local environment
 api/.env
