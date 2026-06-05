@@ -15,43 +15,37 @@ $csrfToken = new lib\CSRFToken();
 
 <head>
 
-  <!-- meta -->
   <meta charset="UTF-8">
 
   <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    content="width=device-width, initial-scale=1.0">
 
   <meta name="description"
-        content="グループチャットページ">
+    content="グループチャットページ">
 
   <meta name="keywords"
-        content="LiQt,SNS,コミュニティ,BLOG">
+    content="LiQt,SNS,コミュニティ,BLOG">
 
   <meta name="author"
-        content="乙成,島田,勝原">
+    content="乙成,島田,勝原">
 
-  <!-- title -->
   <title>
 
     グループチャット | LiQt
 
   </title>
 
-  <!-- Bootstrap -->
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- CSS -->
   <link rel="stylesheet"
-        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
   <link rel="stylesheet"
-        href="../custom/custom-theme.css">
+    href="../custom/custom-theme.css">
 
-  <!-- markdown -->
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
   <style>
-
     html,
     body {
 
@@ -163,22 +157,25 @@ $csrfToken = new lib\CSRFToken();
 
     }
 
+    /* メンバー一覧用の追加スタイル */
+    .member-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
   </style>
 
 </head>
 
 <body>
 
-  <!-- ヘッダー -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <!-- 本文 -->
   <main class="container py-5 px-4">
 
-    <!-- メッセージ -->
     <div id="messageBox"></div>
 
-    <!-- グループ情報 -->
     <div class="card border-0 shadow-sm rounded-4 section-card">
 
       <div class="card-body p-4 d-flex align-items-center justify-content-between">
@@ -186,15 +183,15 @@ $csrfToken = new lib\CSRFToken();
         <div class="d-flex align-items-center">
 
           <img id="groupIcon"
-               src="https://placehold.jp/100x100.png"
-               width="80"
-               height="80"
-               class="rounded-circle me-4">
+            src="https://placehold.jp/100x100.png"
+            width="80"
+            height="80"
+            class="rounded-circle me-4">
 
           <div>
 
             <h2 id="groupName"
-                class="fw-bold mb-2">
+              class="fw-bold mb-2">
 
               読み込み中...
 
@@ -210,10 +207,9 @@ $csrfToken = new lib\CSRFToken();
 
         </div>
 
-        <!-- 編集 -->
         <a id="editLink"
-           href="#"
-           class="btn btn-outline-secondary rounded-pill px-4 py-2">
+          href="#"
+          class="btn btn-outline-secondary rounded-pill px-4 py-2">
 
           編集
 
@@ -223,7 +219,15 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- チャット -->
+    <div class="card border-0 shadow-sm rounded-4 section-card">
+      <div class="card-body p-4">
+        <h4 class="fw-bold mb-3">グループメンバー</h4>
+        <div id="memberList" class="d-flex flex-wrap gap-3">
+          <div class="text-muted">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+
     <div class="card border-0 shadow-sm rounded-4 section-card">
 
       <div class="card-body p-4">
@@ -234,9 +238,8 @@ $csrfToken = new lib\CSRFToken();
 
         </h4>
 
-        <!-- チャット -->
         <div class="chat-box mb-5"
-             id="chatBox">
+          id="chatBox">
 
           <div class="text-muted">
 
@@ -246,11 +249,9 @@ $csrfToken = new lib\CSRFToken();
 
         </div>
 
-        <!-- 投稿フォーム -->
         <form id="messageForm"
-              enctype="multipart/form-data">
+          enctype="multipart/form-data">
 
-          <!-- メッセージ -->
           <textarea
             class="form-control mb-4"
             id="messageInput"
@@ -258,7 +259,6 @@ $csrfToken = new lib\CSRFToken();
             rows="5"
             placeholder="Markdown対応メッセージ"></textarea>
 
-          <!-- 画像 -->
           <input
             type="file"
             class="form-control mb-4"
@@ -266,7 +266,6 @@ $csrfToken = new lib\CSRFToken();
             name="image_upload"
             accept="image/*">
 
-          <!-- プレビュー -->
           <div class="mb-5">
 
             <label class="fw-bold mb-3">
@@ -276,7 +275,7 @@ $csrfToken = new lib\CSRFToken();
             </label>
 
             <div id="preview"
-                 class="preview-box">
+              class="preview-box">
 
               ここにMarkdownプレビューが表示されます
 
@@ -284,9 +283,8 @@ $csrfToken = new lib\CSRFToken();
 
           </div>
 
-          <!-- ボタン -->
           <button id="submitButton"
-                  class="btn btn-success w-100 py-3 rounded-pill">
+            class="btn btn-success w-100 py-3 rounded-pill">
 
             送信
 
@@ -298,9 +296,8 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- グループブログ -->
     <div class="card border-0 shadow-sm rounded-4"
-         style="margin-bottom: 500px;">
+      style="margin-bottom: 500px;">
 
       <div class="card-body p-4">
 
@@ -311,7 +308,7 @@ $csrfToken = new lib\CSRFToken();
         </h4>
 
         <ul class="list-group"
-            id="blogList">
+          id="blogList">
 
           <li class="list-group-item">
 
@@ -327,16 +324,13 @@ $csrfToken = new lib\CSRFToken();
 
   </main>
 
-  <!-- フッター -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-  <!-- CSRF -->
   <input type="hidden"
-         id="csrf_token"
-         value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
+    id="csrf_token"
+    value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
 
   <script>
-
     // markdown
     const md = window.markdownit({
       html: false,
@@ -394,7 +388,7 @@ $csrfToken = new lib\CSRFToken();
     // =========================
 
     document.getElementById("messageInput")
-      .addEventListener("input", function () {
+      .addEventListener("input", function() {
 
         document.getElementById("preview").innerHTML =
           md.render(this.value);
@@ -406,7 +400,7 @@ $csrfToken = new lib\CSRFToken();
     // =========================
 
     document.getElementById("imageUpload")
-      .addEventListener("change", function (e) {
+      .addEventListener("change", function(e) {
 
         const file =
           e.target.files[0];
@@ -457,7 +451,7 @@ $csrfToken = new lib\CSRFToken();
         const reader =
           new FileReader();
 
-        reader.onload = function (event) {
+        reader.onload = function(event) {
 
           preview.innerHTML += `
 
@@ -498,8 +492,7 @@ $csrfToken = new lib\CSRFToken();
         // fetch
         const response =
           await fetch(
-            "../api/group/get_group_chat.php",
-            {
+            "../api/group/get_group_chat.php", {
               method: "POST",
               body: formData
             }
@@ -518,9 +511,7 @@ $csrfToken = new lib\CSRFToken();
 
           result = JSON.parse(text);
 
-        }
-
-        catch {
+        } catch {
 
           console.error(text);
 
@@ -551,6 +542,9 @@ $csrfToken = new lib\CSRFToken();
         // グループ情報
         renderGroupInfo(data);
 
+        // メンバー一覧の表示 (新規追加)
+        renderMembers(data.members);
+
         // メッセージ
         renderMessages(
           data.messages,
@@ -560,9 +554,7 @@ $csrfToken = new lib\CSRFToken();
         // ブログ
         renderBlogs(data.group_blogs);
 
-      }
-
-      catch (error) {
+      } catch (error) {
 
         console.error(error);
 
@@ -593,6 +585,32 @@ $csrfToken = new lib\CSRFToken();
       document.getElementById("editLink").href =
         `edit_group.php?group_id=${groupId}`;
 
+    }
+
+    // =========================
+    // メンバー一覧表示 (新規追加)
+    // =========================
+
+    function renderMembers(members) {
+      const memberList = document.getElementById("memberList");
+      memberList.innerHTML = "";
+
+      if (!members || members.length === 0) {
+        memberList.innerHTML = `<div class="text-muted">メンバーはいません</div>`;
+        return;
+      }
+
+      members.forEach(member => {
+        memberList.innerHTML += `
+          <a href="/profile/profile.php?user_id=${member.user_id}" 
+             class="d-flex align-items-center text-decoration-none text-dark bg-white p-2 rounded-pill shadow-sm border"
+             style="transition: background-color 0.2s;">
+            <img src="${member.icon || 'https://placehold.jp/100x100.png'}" 
+                 class="member-icon me-2">
+            <span class="fw-bold pe-2 small">${escapeHtml(member.display_name)}</span>
+          </a>
+        `;
+      });
     }
 
     // =========================
@@ -637,13 +655,11 @@ $csrfToken = new lib\CSRFToken();
 
           <div class="message d-flex">
 
-            <!-- アイコン -->
             <img src="${message.sender_icon || 'https://placehold.jp/100x100.png'}"
                  class="message-icon me-3">
 
             <div class="w-100">
 
-              <!-- 名前 -->
               <a href="/profile/profile.php?user_id=${message.sender_user_id}"
                  class="fw-bold text-decoration-none">
 
@@ -651,7 +667,6 @@ $csrfToken = new lib\CSRFToken();
 
               </a>
 
-              <!-- 本文 -->
               <div class="message-content shadow-sm">
 
                 ${md.render(message.content || "")}
@@ -664,7 +679,6 @@ $csrfToken = new lib\CSRFToken();
 
               </div>
 
-              <!-- 日時 -->
               <div class="small text-muted mt-2">
 
                 ${message.created_at || ""}
@@ -727,7 +741,6 @@ $csrfToken = new lib\CSRFToken();
 
           <li class="list-group-item blog-item">
 
-            <!-- タイトル -->
             <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
                class="fw-bold text-decoration-none fs-5">
 
@@ -735,21 +748,18 @@ $csrfToken = new lib\CSRFToken();
 
             </a>
 
-            <!-- 内容 -->
             <div class="mt-2 text-muted">
 
               ${escapeHtml(blog.content)}
 
             </div>
 
-            <!-- タグ -->
             <div class="mt-3">
 
               ${renderTags(blog.tags)}
 
             </div>
 
-            <!-- 日時 -->
             <div class="small text-muted mt-3">
 
               ${blog.created_at || ""}
@@ -828,13 +838,13 @@ $csrfToken = new lib\CSRFToken();
         // 内容
         const messageContent =
           document.getElementById("messageInput")
-            .value
-            .trim();
+          .value
+          .trim();
 
         // 画像
         const imageFile =
           document.getElementById("imageUpload")
-            .files[0];
+          .files[0];
 
         // 空送信禁止
         if (!messageContent && !imageFile) {
@@ -891,8 +901,7 @@ $csrfToken = new lib\CSRFToken();
           // fetch
           const response =
             await fetch(
-              "../api/group/send_message.php",
-              {
+              "../api/group/send_message.php", {
                 method: "POST",
                 body: formData
               }
@@ -911,9 +920,7 @@ $csrfToken = new lib\CSRFToken();
 
             result = JSON.parse(text);
 
-          }
-
-          catch {
+          } catch {
 
             console.error(text);
 
@@ -960,9 +967,7 @@ $csrfToken = new lib\CSRFToken();
           document.getElementById("messageInput")
             .focus();
 
-        }
-
-        catch (error) {
+        } catch (error) {
 
           console.error(error);
 
@@ -971,9 +976,7 @@ $csrfToken = new lib\CSRFToken();
             "danger"
           );
 
-        }
-
-        finally {
+        } finally {
 
           // ボタン戻す
           submitButton.disabled = false;
@@ -1002,10 +1005,8 @@ $csrfToken = new lib\CSRFToken();
       `;
 
     }
-
   </script>
 
 </body>
 
 </html>
-```
