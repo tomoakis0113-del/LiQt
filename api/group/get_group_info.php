@@ -18,6 +18,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  *          "members": [
  *              {
  *                  "user_id": 1,
+ *                  "user_id_str": "ユーザID文字列",
  *                  "display_name": "ユーザ名",
  *                  "icon_url": "アイコンURL",
  *                  "role": "owner/manager/member"
@@ -78,7 +79,8 @@ try {
     $members = models\GroupMember::query()
         ->where('group_id', '=', $group_id)
         ->join('profiles', 'group_members.user_id', '=', 'profiles.user_id')
-        ->get(['profiles.display_name', 'profiles.icon_url', 'group_members.user_id', 'group_members.role'])
+        ->join('users', 'group_members.user_id', '=', 'users.id')
+        ->get(['profiles.display_name', 'profiles.icon_url', 'group_members.user_id', 'users.user_id as user_id_str', 'group_members.role'])
         ->toArray();
 
     lib\Util::responseSuccess(
