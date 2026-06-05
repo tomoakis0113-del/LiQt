@@ -508,7 +508,7 @@ $csrfToken = new lib\CSRFToken();
             });
 
           if (!response.ok) {
-            throw new Error("サーバーエラーが発生しました。");
+            throw new Error("サーバーエラーが発生しました。"+response.message);
           }
 
           // 💡 直接JSONとしてパース
