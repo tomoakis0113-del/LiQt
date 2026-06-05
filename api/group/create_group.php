@@ -18,9 +18,11 @@ try{
     // データ受け取り
     $group_name     = $_POST['group_name'] ?? null;
     $group_icon     = $_FILES['group_icon'] ?? null;
-    $is_public      = $_POST['is_public'] ?? null;
+    $is_public      = filter_var($_POST['is_public'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $invite_user_ids= $_POST['invite_user_ids'] ?? null; // invite_user_ids[]
-    $csrf_token     = $_POST['csrf_token'] ?? null;    
+    $csrf_token     = $_POST['csrf_token'] ?? null;   
+    
+    error_log("Received data: group_name={$group_name}, is_public={$is_public}, invite_user_ids=" . json_encode($invite_user_ids));
 
     // csrfトークンの検証
     $csrfToken = new lib\CSRFToken();
