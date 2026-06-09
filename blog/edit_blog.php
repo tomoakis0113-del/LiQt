@@ -30,7 +30,7 @@ $csrfToken = new lib\CSRFToken();
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
   <main class="container p-4"
-        style="max-width:900px; margin-bottom:120px;">
+    style="max-width:900px; margin-bottom:120px;">
 
     <h3 class="mb-4">ブログ編集</h3>
 
@@ -83,6 +83,30 @@ $csrfToken = new lib\CSRFToken();
         </select>
       </div>
 
+      <!-- グループ公開時だけ表示 -->
+      <div class="mb-3 d-none"
+        id="groupSelectArea">
+
+        <label class="form-label">
+          公開するグループ
+        </label>
+
+        <select
+          name="group_id"
+          id="groupSelect"
+          class="form-select">
+
+          <option value="">
+            グループを選択してください
+          </option>
+
+        </select>
+
+        <div id="groupSelectMessage"
+          class="form-text"></div>
+
+      </div>
+
       <button class="btn btn-primary w-100 mb-2">
         更新する
       </button>
@@ -101,40 +125,68 @@ $csrfToken = new lib\CSRFToken();
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
-
     const md = window.markdownit();
 
     // クエリパラメータから blog_id を取得
     const params = new URLSearchParams(location.search);
     const blogId = params.get("blog_id");
-    
+
     // HTML内のhiddenフィールドからCSRFトークンを取得
     const csrfToken = document.getElementById("csrfTokenInput").value;
 
+    const visibilitySelect =
+      document.getElementById("visibility");
+
+    const groupSelectArea =
+      document.getElementById("groupSelectArea");
+
+    const groupSelect =
+      document.getElementById("groupSelect");
+
+    const groupSelectMessage =
+      document.getElementById("groupSelectMessage");
+
     // --- 1. 初期データ取得 (POSTリクエスト) ---
     fetch("/api/blog/get_blog_detail.php", {
-      method: "POST", // POSTメソッド
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: new URLSearchParams({
-        blog_id: blogId,
-        csrf_token: csrfToken
+        method: "POST", // POSTメソッド
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+          blog_id: blogId,
+          csrf_token: csrfToken
+        })
       })
-    })
       .then(res => res.json())
-      .then(data => {
+      .then(async data => {
         if (!data.success) {
           return redirect();
         }
 
         const blogData = data.data ? data.data : data;
-        
+
         // フォームへ値を反映
         document.getElementById("titleInput").value = blogData.title || "";
         document.getElementById("tagsInput").value = blogData.tags || "";
         document.getElementById("contentInput").value = blogData.content || "";
-        document.getElementById("visibility").value = blogData.visibility || "public";
+        visibilitySelect.value =
+          blogData.visibility || "public";
+
+        if (visibilitySelect.value === "group") {
+
+          groupSelectArea.classList.remove("d-none");
+          groupSelect.setAttribute("required", "required");
+
+          await loadJoinedGroups(
+            blogData.group_id || ""
+          );
+
+        } else {
+
+          groupSelectArea.classList.add("d-none");
+          groupSelect.removeAttribute("required");
+
+        }
 
         // 初期プレビューのレンダリング
         updatePreview();
@@ -142,6 +194,135 @@ $csrfToken = new lib\CSRFToken();
       .catch(err => {
         showError("データの読み込みに失敗しました。");
       });
+
+    async function loadJoinedGroups(selectedGroupId = "") {
+
+      groupSelect.disabled = true;
+
+      groupSelect.innerHTML = `
+    <option value="">
+      読み込み中...
+    </option>
+  `;
+
+      groupSelectMessage.textContent = "";
+
+      const formData = new FormData();
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
+
+      try {
+
+        const response = await fetch(
+          "/api/group/search_groups.php", {
+            method: "POST",
+            body: formData
+          }
+        );
+
+        const text = await response.text();
+
+        console.log(text);
+
+        const result = JSON.parse(text);
+
+        if (!result.success) {
+
+          groupSelect.innerHTML = `
+        <option value="">
+          グループを取得できませんでした
+        </option>
+      `;
+
+          groupSelectMessage.textContent =
+            result.message;
+
+          return;
+
+        }
+
+        const groups =
+          result.data || [];
+
+        groupSelect.innerHTML = `
+      <option value="">
+        グループを選択してください
+      </option>
+    `;
+
+        if (groups.length === 0) {
+
+          groupSelectMessage.textContent =
+            "参加しているグループがありません";
+
+          return;
+
+        }
+
+        groups.forEach(group => {
+
+          const option =
+            document.createElement("option");
+
+          option.value =
+            group.group_id;
+
+          option.textContent =
+            group.group_name;
+
+          if (
+            String(group.group_id) ===
+            String(selectedGroupId)
+          ) {
+
+            option.selected = true;
+
+          }
+
+          groupSelect.appendChild(option);
+
+        });
+
+        groupSelect.disabled = false;
+
+      } catch (error) {
+
+        console.error(error);
+
+        groupSelect.innerHTML = `
+      <option value="">
+        グループを取得できませんでした
+      </option>
+    `;
+
+        groupSelectMessage.textContent =
+          "グループ一覧の取得に失敗しました";
+
+      }
+
+    }
+
+    visibilitySelect.addEventListener("change", async function() {
+
+      if (this.value === "group") {
+
+        groupSelectArea.classList.remove("d-none");
+        groupSelect.setAttribute("required", "required");
+
+        await loadJoinedGroups();
+
+      } else {
+
+        groupSelectArea.classList.add("d-none");
+        groupSelect.removeAttribute("required");
+        groupSelect.value = "";
+
+      }
+
+    });
 
     // --- 2. プレビューのリアルタイム反映 ---
     document
@@ -160,12 +341,34 @@ $csrfToken = new lib\CSRFToken();
         e.preventDefault();
 
         // フォーム内の最新の値を格納
+        const visibility =
+          visibilitySelect.value;
+
+        const selectedGroupId =
+          groupSelect.value;
+
+        if (
+          visibility === "group" &&
+          selectedGroupId === ""
+        ) {
+
+          showError(
+            "公開するグループを選択してください。"
+          );
+
+          return;
+
+        }
+
         const updateParams = new URLSearchParams({
           csrf_token: csrfToken,
           blog_id: blogId,
           title: document.getElementById("titleInput").value,
           content: document.getElementById("contentInput").value,
-          visibility: document.getElementById("visibility").value,
+          visibility: visibility,
+          group_id: visibility === "group" ?
+            selectedGroupId :
+            "",
           tags: document.getElementById("tagsInput").value
         });
 
@@ -234,7 +437,6 @@ $csrfToken = new lib\CSRFToken();
       box.textContent = msg;
       box.className = "alert alert-danger";
     }
-
   </script>
 
 </body>
