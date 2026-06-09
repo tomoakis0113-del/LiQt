@@ -542,9 +542,6 @@ $csrfToken = new lib\CSRFToken();
         // グループ情報
         renderGroupInfo(data);
 
-        // メンバー一覧の表示 (新規追加)
-        renderMembers(data.members);
-
         // メッセージ
         renderMessages(
           data.messages,
@@ -553,7 +550,6 @@ $csrfToken = new lib\CSRFToken();
 
         // ブログ
         renderBlogs(data.group_blogs);
-
       } catch (error) {
 
         console.error(error);
@@ -565,6 +561,25 @@ $csrfToken = new lib\CSRFToken();
 
       }
 
+      // メンバー一覧の表示
+      const memberFormData = new FormData();
+      memberFormData.append("group_id", groupId);
+      memberFormData.append("csrf_token", csrfToken);
+      await fetch('/api/group/get_group_info.php', {
+        method: 'POST',
+        body: memberFormData
+      }).then(res => res.json())
+        .then(result => {
+          if (result.success) {
+            renderMembers(result.data.members);
+          } else {
+            showMessage(result.message, "danger");
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching group info:", error);
+          showMessage("通信エラーが発生しました", "danger");
+        });
     }
 
     // =========================
@@ -602,10 +617,10 @@ $csrfToken = new lib\CSRFToken();
 
       members.forEach(member => {
         memberList.innerHTML += `
-          <a href="/profile/profile.php?user_id=${member.user_id}" 
+          <a href="/profile/profile.php?user_id=${member.user_id_str}" 
              class="d-flex align-items-center text-decoration-none text-dark bg-white p-2 rounded-pill shadow-sm border"
              style="transition: background-color 0.2s;">
-            <img src="${member.icon || 'https://placehold.jp/100x100.png'}" 
+            <img src="${member.icon_url || 'https://placehold.jp/100x100.png'}" 
                  class="member-icon me-2">
             <span class="fw-bold pe-2 small">${escapeHtml(member.display_name)}</span>
           </a>
