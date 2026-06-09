@@ -41,7 +41,9 @@ require_once __DIR__.'/../../vendor/autoload.php';
  */
 try{
     // データ受け取り
-    $group_id     = $_POST['group_id'] ?? null;
+    $group_id = $_POST['group_id'] ?? null;
+    $sessionHandler = new lib\Session();
+    $user_id = $sessionHandler->getCurrentUserID();
 
     // バリデーション
     if(!$group_id){
@@ -52,6 +54,15 @@ try{
     $group = models\Group::where('id', $group_id)->first(['id', 'name', 'group_icon_url', 'is_public', 'created_at']);
     if(!$group || !$group->id){
         lib\Util::responseError(404, 'グループが見つかりません');
+    }
+
+    // グループに属しているかどうか検証
+    $isMember = models\GroupMember::query()
+        ->where('group_id', '=', $group_id)
+        ->where('user_id', '=', $user_id)
+        ->exists();
+    if(!$isMember){
+        lib\Util::responseError(403,'グループに属していません');
     }
 
     // ブログ取得

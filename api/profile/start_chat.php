@@ -84,10 +84,10 @@ try {
         $groupId = $existingGroup->id;
     } else {
         // グループが存在しない場合は新規作成
-        $groupId = models\Group::query()->insert([
+        $groupId = models\Group::query()->insertGetId([
             'name' => $groupName,
             'is_public' => 0,
-        ])->id;
+        ]);
 
         // グループメンバーに自分と相手を追加
         models\GroupMember::query()->insert([
@@ -98,7 +98,7 @@ try {
         models\GroupMember::query()->insert([
             'group_id' => $groupId,
             'user_id'  => $targetInternalId,
-            'role'     => 'member',
+            'role'     => 'owner',
         ]);
     }
 

@@ -36,6 +36,15 @@ try{
         lib\Util::responseError(400,'不正リクエストです');
     }
 
+    // グループに属しているかどうか検証
+    $isMember = models\GroupMember::query()
+        ->where('group_id', '=', $group_id)
+        ->where('user_id', '=', $user_id)
+        ->exists();
+    if(!$isMember){
+        lib\Util::responseError(403,'グループに属していません');
+    }
+
     // 画像アップロード
     $image_path = null;
     if($image_upload && $image_upload['error'] === UPLOAD_ERR_OK){
