@@ -46,12 +46,14 @@ try{
     }
 
     //パラメータを受け取り
+    // パラメータを受け取り
     $sentToken = $_POST['csrf_token'] ?? '';
     $blogId = $_POST['blog_id'] ?? '';
-    $title   = $_POST['title'] ?? '';
+    $title = $_POST['title'] ?? '';
     $content = $_POST['content'] ?? '';
     $visibility = $_POST['visibility'] ?? '';
     $tags = $_POST['tags'] ?? '';
+    $groupId = trim($_POST['group_id'] ?? '');
 
     //CSRFチェック
     $csrfToken = new lib\CSRFToken();
@@ -92,26 +94,49 @@ try{
     if(mb_strlen($title) > 255){
         lib\Util::responseError(400,'タイトルは255文字以内で入力してください');
     }
-    //編集対象のブログをDBから探す
-    $blog = models\Blog::query()
-        ->where('id', $blogId)
-        ->first();    
-    //投稿者本人か確認する
-    if($blog->author_id !== $sessionHandler->getCurrentUserID()){
-        lib\Util::responseError(403,'編集権限がありません');
+    // 編集対象のブログを取得
+    $blog = models\Blog::query()    
+    ->where('id', $blogId)
+    ->first();
+
+    if (!$blog) {
+        lib\Util::responseError(404, 'ブログが見つかりません');
     }
 
-$currentUserId = $sessionHandler->getCurrentUserID();
+    $currentUserId = $sessionHandler->getCurrentUserID();
 
-$member = models\GroupMember::query()
-    ->where('user_id', $currentUserId)
-    ->where('group_id', $blog->group_id)
-    ->first(['group_id']);
+    // 投稿者本人か確認
+    if ((int)$blog->author_id !== (int)$currentUserId) {
+        lib\Util::responseError(403, '編集権限がありません');
+    }
 
-    //blogsテーブルを更新する
+    // グループ公開時の確認
+    if ($visibility === 'group') {
+
+        if ($groupId === '' || !ctype_digit($groupId)) {
+            lib\Util::responseError(400, '公開するグループを選択してください');
+        }
+
+        $groupId = (int)$groupId;
+
+        $member = models\GroupMember::query()
+            ->where('user_id', $currentUserId)
+            ->where('group_id', $groupId)
+            ->first(['group_id']);
+
+        if (!$member) {
+            lib\Util::responseError(403, '所属していないグループには公開できません');
+        }
+
+    } else {
+        $groupId = null;
+    }
+
+    // ブログ更新
     $blog->title = $title;
     $blog->content = $content;
     $blog->visibility = $visibility;
+    $blog->group_id = $groupId;
     $blog->tags = $tags;
     $blog->save();
 
