@@ -34,7 +34,8 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  *       "introduction": "自己紹介文",
  *       "tags": "",
  *       "blogs": [[ブログID, ブログタイトル], ...],
- *       "is_mine": true
+ *       "is_mine": true,
+ *       "is_blocked": false
  *   }
  * }
  * 
@@ -109,6 +110,15 @@ try {
         }
     }
 
+    $is_blocked = false;
+    if($currentUserId !== $targetInternalId){
+        $exists = models\BlockList::query()
+            ->where('user_id', $currentUserId)
+            ->where('blocked_user_id', $targetInternalId)
+            ->first(['id'])['id'] ?? null;
+        $is_blocked = (bool)$exists;
+    }
+
     $data = [
         'icon_url'     => $profile->icon_url,
         'user_id'      => $targetUser->user_id,
@@ -116,7 +126,8 @@ try {
         'introduction' => $profile->introduction,
         'tags'         => $profile->tags,
         'blogs'        => $blogIds,
-        'is_mine'      => $currentUserId == $targetInternalId
+        'is_mine'      => $currentUserId == $targetInternalId,
+        'is_blocked'   => $is_blocked
     ];
 
     lib\Util::responseSuccess('プロフィールを取得しました',$data);

@@ -700,14 +700,12 @@ function renderBlogSearchTags(tags) {
           </button>
 
           <button class="btn btn-outline-danger"
-                  onclick="blockUser('${data.user_id}')">
+                  onclick="blockUser('${data.user_id}', ${data.is_blocked})">
 
-            ブロック
+            ${data.is_blocked ? "ブロック解除" : "ブロック"}
 
           </button>
-
         `;
-
       }
 
     }
@@ -848,9 +846,9 @@ function renderBlogSearchTags(tags) {
     // ブロック
     // =========================
 
-    async function blockUser(targetUserId) {
+    async function blockUser(targetUserId, isCurrentlyBlocked) {
 
-      if (!confirm("このユーザーをブロックしますか？")) {
+      if (!confirm(`このユーザーを${isCurrentlyBlocked ? "ブロック解除" : "ブロック"}しますか？`)) {
 
         return;
 
@@ -903,6 +901,9 @@ function renderBlogSearchTags(tags) {
           result.message,
           "success"
         );
+
+        // 再取得
+        loadProfile();
 
       }
 

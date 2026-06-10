@@ -154,6 +154,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
         - 自己紹介表示      : `introduction`
         - タグ表示          : `tags` **カンマ区切りの文字列（半角カンマ）**
         - ブログ一覧表示    : `blogs[]` **ブログ ID 配列。URL に変換して表示：/blog_detail.php?blog_id=xxx**
+        - ブロック状態      : `is_blocked` **true/false**
 
     - 自分のプロフィールの場合
         - 編集ボタン
@@ -179,13 +180,6 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
                 - レスポンス: `success`->true/false, `message`->エラーメッセージ
                 - 成功：プロフィールページを更新して表示
                 - 失敗：エラーメッセージ表示
-
-        - ブロック解除ボタン
-            - ブロック解除処理（`api/profile/unblock_user.php`）
-                - レスポンス: `success`->true/false, `message`->エラーメッセージ
-                - 成功：プロフィールページを更新して表示
-                - 失敗：エラーメッセージ表示
-
 ### ダッシュボードページ
 
 #### ダッシュボードトップ(`dashboard.php`)
