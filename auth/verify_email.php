@@ -138,7 +138,7 @@ $csrfToken = new lib\CSRFToken();
   </style>
 </head>
 
-<body>
+<body onload="document.getElementById('sendTokenButton').click();">
 
   <div id="transition-overlay">
     <div class="energy-ring"></div>
@@ -175,17 +175,13 @@ $csrfToken = new lib\CSRFToken();
             mark_email_read
           </span>
           <h1 class="fw-bold mb-2">メール認証</h1>
-          <p class="text-muted mb-0">メールアドレスと認証コードを入力してください</p>
+          <p class="text-muted mb-0">認証コードを入力してください</p>
+          <p class="text-muted">認証コードが届かない場合は、迷惑メールフォルダもご確認ください</p>
         </div>
 
         <div id="messageBox"></div>
 
         <form id="verifyForm">
-          <div class="mb-4">
-            <label class="form-label fw-semibold">メールアドレス</label>
-            <input type="email" class="form-control form-control-lg" id="mail_address" name="mail_address" placeholder="example@mail.com" required>
-          </div>
-
           <div class="mb-4">
             <label class="form-label fw-semibold">認証コード</label>
             <input type="text" class="form-control form-control-lg" id="token" name="token" placeholder="認証コードを入力" required>
@@ -210,13 +206,10 @@ $csrfToken = new lib\CSRFToken();
 
     async function sendVerifyToken() {
       const button = document.getElementById("sendTokenButton");
-      const mailAddress = document.getElementById("mail_address").value;
-      if (!mailAddress) { showMessage("メールアドレスを入力してください", "danger"); return; }
       button.disabled = true;
 
       try {
         const formData = new FormData();
-        formData.append("mail_address", mailAddress);
         formData.append("csrf_token", "<?= $csrfToken->getToken() ?>");
 
         const response = await fetch("/api/auth/send_verify_token.php", { method: "POST", body: formData });
@@ -255,7 +248,6 @@ $csrfToken = new lib\CSRFToken();
 
       try {
         const formData = new FormData();
-        formData.append("mail_address", document.getElementById("mail_address").value);
         formData.append("token", document.getElementById("token").value);
         formData.append("csrf_token", "<?= $csrfToken->getToken() ?>");
 

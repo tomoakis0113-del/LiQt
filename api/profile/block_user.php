@@ -56,7 +56,11 @@ try{
 
     // すでにブロック済み
     if($exists){
-        lib\Util::responseSuccess([], 'すでにブロック済みです');
+        models\BlockList::query()
+            ->where('user_id', $currentUserId)
+            ->where('blocked_user_id', $targetUserId)
+            ->delete();
+        lib\Util::responseSuccess([], 'ブロックを解除しました');
     }
 
     // ブロックリストに追加
