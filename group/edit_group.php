@@ -1,12 +1,6 @@
 <?php
-
-session_start();
-
-require_once __DIR__ . '/../vendor/autoload.php';
-
-// csrf
+require_once __DIR__ . '/../component/auth_check.php';
 $csrfToken = new lib\CSRFToken();
-
 ?>
 
 <!DOCTYPE html>

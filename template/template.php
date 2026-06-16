@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../component/auth_check.php'; ?>
 <!DOCTYPE html>
 
 <html lang="ja">
