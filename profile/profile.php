@@ -456,11 +456,21 @@ $csrfToken = new lib\CSRFToken();
 
       }
 
-      // search_blogs.php の形式を変えないため、両方に対応する
-      const blogs =
-        result.data?.blogs ?? result.message?.blogs ?? [];
+    // search_blogs.php の形式を変えないため、両方に対応する
+    const blogs =
+      result.data?.blogs ?? result.message?.blogs ?? [];
 
-      renderSearchBlogs(blogs);
+    // 開いているプロフィール主のブログIDだけを集める
+    const profileBlogIds =
+      originalBlogs.map(blog => String(blog[0]));
+
+    // 検索結果の中から、プロフィール主のブログだけに絞る
+    const filteredBlogs =
+      blogs.filter(blog =>
+        profileBlogIds.includes(String(blog.blog_id))
+      );
+
+    renderSearchBlogs(filteredBlogs);
 
     }
 
