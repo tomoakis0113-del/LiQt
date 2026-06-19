@@ -39,7 +39,9 @@ class SendMail{
             return false;
         }
         $statusCode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        error_log("[SanaeProject] Failed to send mail via API: " . curl_error($curl));
+        if ($statusCode !== 200) {
+            error_log("[SanaeProject] Failed to send mail via API: HTTP status code " . $statusCode);
+        }
         return $statusCode === 200;
 
         /*
