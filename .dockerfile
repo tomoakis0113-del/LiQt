@@ -13,4 +13,6 @@ RUN mkdir -p -m 0755 /usr/share/keyrings && \
     echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' | tee /etc/apt/sources.list.d/cloudflared.list && \
     apt-get update && apt-get install -y cloudflared
 
-CMD ["cloudflared", "tunnel", "run"]
+# --- ここを修正 ---
+# TUNNEL_TOKEN が空ならエラーメッセージを出して終了、あれば実行
+CMD ["/bin/sh", "-c", "if [ -z \"$TUNNEL_TOKEN\" ]; then echo 'ERROR: TUNNEL_TOKEN is not set. Exiting...'; exit 1; fi; exec cloudflared tunnel run"]
