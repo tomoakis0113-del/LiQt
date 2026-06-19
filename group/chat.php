@@ -7,10 +7,13 @@ require_once __DIR__ . '/../vendor/autoload.php';
 // CSRF
 $csrfToken = new lib\CSRFToken();
 
+// ログイン中ユーザーID取得
+$sessionHandler = new lib\Session();
+$currentUserId = $sessionHandler->getCurrentUserID();
+
 ?>
 
 <!DOCTYPE html>
-
 <html lang="ja">
 
 <head>
@@ -18,152 +21,345 @@ $csrfToken = new lib\CSRFToken();
   <meta charset="UTF-8">
 
   <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
+        content="width=device-width, initial-scale=1.0">
 
   <meta name="description"
-    content="グループチャットページ">
+        content="グループチャットページ">
 
   <meta name="keywords"
-    content="LiQt,SNS,コミュニティ,BLOG">
+        content="LiQt,SNS,コミュニティ,BLOG">
 
   <meta name="author"
-    content="乙成,島田,勝原">
+        content="乙成,島田,勝原">
 
   <title>
-
     グループチャット | LiQt
-
   </title>
 
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
   <link rel="stylesheet"
-    href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
   <link rel="stylesheet"
-    href="../custom/custom-theme.css">
+        href="../custom/custom-theme.css">
 
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
   <style>
+
     html,
     body {
-
       height: 100%;
-
     }
 
     body {
-
-      background: #f8f9fa;
-
+      background: #eef5ff;
+      overflow: hidden;
     }
 
     main {
-
-      padding-top: 50px !important;
-      padding-bottom: 260px !important;
-
+      height: calc(100vh - 120px);
+      padding-top: 20px !important;
+      padding-bottom: 20px !important;
     }
 
-    .section-card {
-
-      margin-bottom: 45px;
-
+    .chat-page-wrapper {
+      height: 100%;
+      max-width: 900px;
+      margin: 0 auto;
     }
 
-    .chat-box {
-
-      min-height: 450px;
-      max-height: 700px;
-      overflow-y: auto;
-
-      background: #f8f9fa;
-      border: 1px solid #ddd;
-      border-radius: 20px;
-      padding: 25px;
-
-      scroll-behavior: smooth;
-
-    }
-
-    .message {
-
-      margin-bottom: 30px;
-
-    }
-
-    .message-icon {
-
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      object-fit: cover;
-
-    }
-
-    .message-content {
-
-      background: #fff;
-      border-radius: 18px;
-      padding: 18px;
-      margin-top: 10px;
-
-      word-break: break-word;
-
-    }
-
-    .preview-box {
-
-      background: #fff;
-      border: 1px dashed #ccc;
-      border-radius: 15px;
-      padding: 20px;
-      min-height: 120px;
-
-    }
-
-    .list-group-item {
-
-      border-radius: 16px !important;
-      padding: 20px;
-
-    }
-
-    .blog-item {
-
-      margin-bottom: 20px;
-
-    }
-
-    .message-image {
-
-      max-width: 300px;
-      border-radius: 16px;
-      margin-top: 10px;
-
-    }
-
-    .tag-badge {
-
-      margin-right: 6px;
-      margin-top: 8px;
-
+    #messageBox {
+      position: fixed;
+      top: 75px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      width: min(90%, 700px);
     }
 
     .alert {
-
       border-radius: 16px;
-
     }
 
-    /* メンバー一覧用の追加スタイル */
-    .member-icon {
-      width: 40px;
-      height: 40px;
+    /* LINE風チャット全体 */
+    .line-chat-card {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-radius: 24px;
+      background: #ffffff;
+    }
+
+    /* 上のグループ情報 */
+    .line-chat-header {
+      background: #ffffff;
+      border-bottom: 1px solid #d8e6f7;
+      padding: 14px 18px;
+      flex-shrink: 0;
+    }
+
+    .group-icon {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* メッセージ一覧だけスクロール */
+    .chat-box {
+      flex: 1;
+      overflow-y: auto;
+      background: linear-gradient(180deg, #ddecff 0%, #f7fbff 100%);
+      padding: 20px;
+      min-height: 0;
+      scroll-behavior: smooth;
+    }
+
+    .empty-message {
+      text-align: center;
+      color: #6c757d;
+      margin-top: 40px;
+    }
+
+    /* メッセージ全体 */
+    .message {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .message.other {
+      justify-content: flex-start;
+    }
+
+    .message.mine {
+      justify-content: flex-end;
+    }
+
+    .message-icon {
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       object-fit: cover;
+      flex-shrink: 0;
     }
+
+    .message-body {
+      max-width: 70%;
+    }
+
+    .message-name {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-bottom: 4px;
+    }
+
+    .message.mine .message-name {
+      text-align: right;
+    }
+
+    .message-content {
+      border-radius: 18px;
+      padding: 12px 15px;
+      word-break: break-word;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .message-content p {
+      margin-bottom: 0.4rem;
+    }
+
+    .message-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .message.other .message-content {
+      background: #ffffff;
+      border-top-left-radius: 4px;
+    }
+
+    .message.mine .message-content {
+      background: #9ee7a8;
+      color: #102a18;
+      border-top-right-radius: 4px;
+    }
+
+    .message-time {
+      font-size: 0.72rem;
+      color: #6c757d;
+      margin-top: 4px;
+    }
+
+    .message.mine .message-time {
+      text-align: right;
+    }
+
+    .message-image {
+      max-width: 220px;
+      border-radius: 14px;
+      margin-top: 8px;
+    }
+
+    /* 下の入力欄 */
+    .chat-input-area {
+      background: #ffffff;
+      border-top: 1px solid #d8e6f7;
+      padding: 12px;
+      flex-shrink: 0;
+    }
+
+    .chat-input-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+    }
+
+    .chat-textarea {
+      resize: none;
+      border-radius: 22px;
+      min-height: 44px;
+      max-height: 110px;
+      padding: 10px 15px;
+    }
+
+    .image-label {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #eef6ff;
+      color: #0d6efd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-weight: bold;
+      font-size: 22px;
+      border: 1px solid #d8e6f7;
+    }
+
+    .image-label:hover {
+      background: #dceeff;
+    }
+
+    #imageUpload {
+      display: none;
+    }
+
+    .send-button {
+      width: 72px;
+      height: 44px;
+      border-radius: 22px;
+      flex-shrink: 0;
+    }
+
+    .selected-image-name {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-top: 6px;
+      padding-left: 56px;
+    }
+
+    /* MarkdownプレビューはLINE風では邪魔なので非表示 */
+    .preview-box {
+      display: none;
+    }
+
+    @media (max-width: 576px) {
+
+      main {
+        height: calc(100vh - 105px);
+        padding: 10px !important;
+      }
+
+      .line-chat-card {
+        border-radius: 16px;
+      }
+
+      .message-body {
+        max-width: 78%;
+      }
+
+      .send-button {
+        width: 62px;
+      }
+
+    }
+
+/* 右側にくっつくブログタブ */
+.blog-floating-button {
+  position: absolute;
+  right: 16px;
+  bottom: 95px;
+
+  width: 50px;
+  height: 58px;
+
+  border: none;
+  border-radius: 18px 0 0 18px;
+
+  background: #aea9e3;
+  color: #ffffff;
+
+  font-weight: bold;
+  font-size: 14px;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  z-index: 20;
+
+  overflow: hidden;
+  white-space: nowrap;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+
+  padding-left: 12px;
+
+  transition: width 0.25s ease, background 0.25s ease;
+}
+
+.blog-floating-button:hover {
+  width: 120px;
+  background: #8f89d6;
+}
+
+.blog-floating-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.blog-floating-text {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.blog-floating-button:hover .blog-floating-text {
+  opacity: 1;
+}
+
+.blog-floating-button:hover {
+  background: #3f7ec4;
+}
+
+/* ブログ一覧のカード */
+.blog-modal-item {
+  border: 1px solid #d8e6f7;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: #ffffff;
+}
+
+.blog-modal-item:hover {
+  background: #f4f9ff;
+}
+
   </style>
 
 </head>
@@ -172,123 +368,101 @@ $csrfToken = new lib\CSRFToken();
 
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
-  <main class="container py-5 px-4">
+  <main class="container-fluid">
 
     <div id="messageBox"></div>
 
-    <div class="card border-0 shadow-sm rounded-4 section-card">
+    <div class="chat-page-wrapper">
 
-      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+      <div class="card border-0 shadow-sm line-chat-card">
 
-        <div class="d-flex align-items-center">
+        <!-- 上：グループ情報 -->
+        <div class="line-chat-header d-flex align-items-center justify-content-between">
 
-          <img id="groupIcon"
-            src="https://placehold.jp/100x100.png"
-            width="80"
-            height="80"
-            class="rounded-circle me-4">
+          <div class="d-flex align-items-center">
 
-          <div>
+            <img id="groupIcon"
+                 src="https://placehold.jp/100x100.png"
+                 class="group-icon me-3">
 
-            <h2 id="groupName"
-              class="fw-bold mb-2">
+            <div>
 
-              読み込み中...
+              <h5 id="groupName"
+                  class="fw-bold mb-0">
+                読み込み中...
+              </h5>
 
-            </h2>
-
-            <p class="text-muted mb-0">
-
-              グループチャット
-
-            </p>
-
-          </div>
-
-        </div>
-
-        <a id="editLink"
-          href="#"
-          class="btn btn-outline-secondary rounded-pill px-4 py-2">
-
-          編集
-
-        </a>
-
-      </div>
-
-    </div>
-
-    <div class="card border-0 shadow-sm rounded-4 section-card">
-      <div class="card-body p-4">
-        <h4 class="fw-bold mb-3">グループメンバー</h4>
-        <div id="memberList" class="d-flex flex-wrap gap-3">
-          <div class="text-muted">読み込み中...</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card border-0 shadow-sm rounded-4 section-card">
-
-      <div class="card-body p-4">
-
-        <h4 class="fw-bold mb-4">
-
-          チャット
-
-        </h4>
-
-        <div class="chat-box mb-5"
-          id="chatBox">
-
-          <div class="text-muted">
-
-            読み込み中...
-
-          </div>
-
-        </div>
-
-        <form id="messageForm"
-          enctype="multipart/form-data">
-
-          <textarea
-            class="form-control mb-4"
-            id="messageInput"
-            name="message_content"
-            rows="5"
-            placeholder="Markdown対応メッセージ"></textarea>
-
-          <input
-            type="file"
-            class="form-control mb-4"
-            id="imageUpload"
-            name="image_upload"
-            accept="image/*">
-
-          <div class="mb-5">
-
-            <label class="fw-bold mb-3">
-
-              プレビュー
-
-            </label>
-
-            <div id="preview"
-              class="preview-box">
-
-              ここにMarkdownプレビューが表示されます
+              <div class="text-muted small">
+                グループチャット
+              </div>
 
             </div>
 
           </div>
 
-          <button id="submitButton"
-            class="btn btn-success w-100 py-3 rounded-pill">
+          <a id="editLink"
+             href="#"
+             class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            編集
+          </a>
 
-            送信
+        </div>
 
-          </button>
+        <button type="button"
+        class="blog-floating-button"
+        data-bs-toggle="modal"
+        data-bs-target="#blogModal">
+  ブログ
+        </button>
+
+        <!-- 中央：メッセージ一覧 -->
+        <div class="chat-box"
+             id="chatBox">
+
+          <div class="empty-message">
+            読み込み中...
+          </div>
+
+        </div>
+
+        <!-- 下：入力欄 -->
+        <form id="messageForm"
+              class="chat-input-area"
+              enctype="multipart/form-data">
+
+          <div class="chat-input-row">
+
+            <label for="imageUpload"
+                   class="image-label">
+              ＋
+            </label>
+
+            <input type="file"
+                   id="imageUpload"
+                   name="image_upload"
+                   accept="image/*">
+
+            <textarea
+              class="form-control chat-textarea"
+              id="messageInput"
+              name="message_content"
+              rows="1"
+              placeholder="メッセージを入力"></textarea>
+
+            <button id="submitButton"
+                    class="btn btn-success send-button">
+              送信
+            </button>
+
+          </div>
+
+          <div id="selectedImageName"
+               class="selected-image-name"></div>
+
+          <div id="preview"
+               class="preview-box">
+            ここにMarkdownプレビューが表示されます
+          </div>
 
         </form>
 
@@ -296,66 +470,79 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <div class="card border-0 shadow-sm rounded-4"
-      style="margin-bottom: 500px;">
+  </main>
 
-      <div class="card-body p-4">
+  <div class="modal fade"
+     id="blogModal"
+     tabindex="-1">
 
-        <h4 class="fw-bold mb-4">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
 
+    <div class="modal-content rounded-4 border-0 shadow">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title fw-bold">
           グループブログ
+        </h5>
 
-        </h4>
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"></button>
 
-        <ul class="list-group"
-          id="blogList">
+      </div>
 
-          <li class="list-group-item">
+      <div class="modal-body"
+           id="blogList">
 
-            読み込み中...
-
-          </li>
-
-        </ul>
+        <div class="text-muted">
+          読み込み中...
+        </div>
 
       </div>
 
     </div>
 
-  </main>
+  </div>
+
+</div>
 
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <input type="hidden"
-    id="csrf_token"
-    value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
+         id="csrf_token"
+         value="<?= htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
   <script>
-    // markdown
-    const md = window.markdownit({
-      html: false,
-      linkify: true,
-      typographer: true
-    });
 
-    // group_id
+    // markdown
+    const md =
+      window.markdownit({
+        html: false,
+        linkify: true,
+        typographer: true
+      });
+
+    // URLパラメータ
     const params =
       new URLSearchParams(location.search);
 
     const groupId =
       params.get("group_id");
 
-    // csrf
+    // CSRF
     const csrfToken =
       document.getElementById("csrf_token").value;
 
-    // 初回ロード
-    let firstLoad = true;
+    // ログイン中ユーザーID
+    const currentUserId =
+      "<?= htmlspecialchars((string)$currentUserId, ENT_QUOTES, 'UTF-8') ?>";
 
-    // =========================
+    // 初回ロード判定
+    let firstLoad =
+      true;
+
     // group_idチェック
-    // =========================
-
     if (!groupId) {
 
       showMessage(
@@ -367,52 +554,45 @@ $csrfToken = new lib\CSRFToken();
 
     }
 
-    // =========================
     // 初期ロード
-    // =========================
-
     loadGroupChat();
 
-    // =========================
     // 3秒ごと更新
-    // =========================
-
     setInterval(() => {
 
       loadGroupChat(false);
 
     }, 3000);
 
-    // =========================
-    // Markdownプレビュー
-    // =========================
-
-    document.getElementById("messageInput")
+    // メッセージ入力時の高さ調整
+    document
+      .getElementById("messageInput")
       .addEventListener("input", function() {
+
+        this.style.height =
+          "auto";
+
+        this.style.height =
+          Math.min(this.scrollHeight, 110) + "px";
 
         document.getElementById("preview").innerHTML =
           md.render(this.value);
 
       });
 
-    // =========================
-    // 画像プレビュー
-    // =========================
-
-    document.getElementById("imageUpload")
+    // 画像選択
+    document
+      .getElementById("imageUpload")
       .addEventListener("change", function(e) {
 
         const file =
           e.target.files[0];
 
-        // リセット
-        const preview =
-          document.getElementById("preview");
+        const selectedImageName =
+          document.getElementById("selectedImageName");
 
-        preview.innerHTML =
-          md.render(
-            document.getElementById("messageInput").value
-          );
+        selectedImageName.textContent =
+          "";
 
         if (!file) {
 
@@ -420,7 +600,6 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
-        // 画像チェック
         if (!file.type.startsWith("image/")) {
 
           showMessage(
@@ -428,13 +607,13 @@ $csrfToken = new lib\CSRFToken();
             "danger"
           );
 
-          e.target.value = "";
+          e.target.value =
+            "";
 
           return;
 
         }
 
-        // 5MB制限
         if (file.size > 5 * 1024 * 1024) {
 
           showMessage(
@@ -442,46 +621,27 @@ $csrfToken = new lib\CSRFToken();
             "danger"
           );
 
-          e.target.value = "";
+          e.target.value =
+            "";
 
           return;
 
         }
 
-        const reader =
-          new FileReader();
-
-        reader.onload = function(event) {
-
-          preview.innerHTML += `
-
-            <div class="mt-4">
-
-              <img src="${event.target.result}"
-                   class="img-fluid rounded-4 shadow-sm"
-                   style="max-height:300px;">
-
-            </div>
-
-          `;
-
-        };
-
-        reader.readAsDataURL(file);
+        selectedImageName.textContent =
+          "選択中：" + file.name;
 
       });
 
     // =========================
-    // グループ取得
+    // グループチャット取得
     // =========================
 
     async function loadGroupChat(scrollBottom = true) {
 
-      // FormData
       const formData =
         new FormData();
 
-      // group_id
       formData.append(
         "group_id",
         groupId
@@ -489,27 +649,26 @@ $csrfToken = new lib\CSRFToken();
 
       try {
 
-        // fetch
         const response =
           await fetch(
-            "../api/group/get_group_chat.php", {
+            "../api/group/get_group_chat.php",
+            {
               method: "POST",
               body: formData
             }
           );
 
-        // text
         const text =
           await response.text();
 
         console.log(text);
 
-        // json
         let result;
 
         try {
 
-          result = JSON.parse(text);
+          result =
+            JSON.parse(text);
 
         } catch {
 
@@ -524,7 +683,6 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
-        // エラー
         if (!result.success) {
 
           showMessage(
@@ -539,17 +697,15 @@ $csrfToken = new lib\CSRFToken();
         const data =
           result.data;
 
-        // グループ情報
         renderGroupInfo(data);
 
-        // メッセージ
         renderMessages(
           data.messages,
           scrollBottom
         );
+      renderBlogs(data.group_blogs);
+       
 
-        // ブログ
-        renderBlogs(data.group_blogs);
       } catch (error) {
 
         console.error(error);
@@ -561,71 +717,23 @@ $csrfToken = new lib\CSRFToken();
 
       }
 
-      // メンバー一覧の表示
-      const memberFormData = new FormData();
-      memberFormData.append("group_id", groupId);
-      memberFormData.append("csrf_token", csrfToken);
-      await fetch('/api/group/get_group_info.php', {
-        method: 'POST',
-        body: memberFormData
-      }).then(res => res.json())
-        .then(result => {
-          if (result.success) {
-            renderMembers(result.data.members);
-          } else {
-            showMessage(result.message, "danger");
-          }
-        })
-        .catch(error => {
-          console.error("Error fetching group info:", error);
-          showMessage("通信エラーが発生しました", "danger");
-        });
     }
 
     // =========================
-    // グループ情報
+    // グループ情報表示
     // =========================
 
     function renderGroupInfo(data) {
 
-      // 名前
       document.getElementById("groupName").textContent =
         data.group_name || "名称未設定";
 
-      // アイコン
       document.getElementById("groupIcon").src =
         data.group_icon || "https://placehold.jp/100x100.png";
 
-      // 編集リンク
       document.getElementById("editLink").href =
         `edit_group.php?group_id=${groupId}`;
 
-    }
-
-    // =========================
-    // メンバー一覧表示 (新規追加)
-    // =========================
-
-    function renderMembers(members) {
-      const memberList = document.getElementById("memberList");
-      memberList.innerHTML = "";
-
-      if (!members || members.length === 0) {
-        memberList.innerHTML = `<div class="text-muted">メンバーはいません</div>`;
-        return;
-      }
-
-      members.forEach(member => {
-        memberList.innerHTML += `
-          <a href="/profile/profile.php?user_id=${member.user_id_str}" 
-             class="d-flex align-items-center text-decoration-none text-dark bg-white p-2 rounded-pill shadow-sm border"
-             style="transition: background-color 0.2s;">
-            <img src="${member.icon_url || 'https://placehold.jp/100x100.png'}" 
-                 class="member-icon me-2">
-            <span class="fw-bold pe-2 small">${escapeHtml(member.display_name)}</span>
-          </a>
-        `;
-      });
     }
 
     // =========================
@@ -637,24 +745,20 @@ $csrfToken = new lib\CSRFToken();
       const chatBox =
         document.getElementById("chatBox");
 
-      // スクロール位置
       const isNearBottom =
         chatBox.scrollHeight -
         chatBox.scrollTop -
         chatBox.clientHeight < 150;
 
-      // 初期化
-      chatBox.innerHTML = "";
+      chatBox.innerHTML =
+        "";
 
-      // メッセージなし
       if (!messages || messages.length === 0) {
 
         chatBox.innerHTML = `
 
-          <div class="text-muted">
-
+          <div class="empty-message">
             メッセージはありません
-
           </div>
 
         `;
@@ -663,41 +767,61 @@ $csrfToken = new lib\CSRFToken();
 
       }
 
-      // ループ
       messages.forEach(message => {
+
+        const senderId =
+          message.sender_id ??
+          message.user_id ??
+          "";
+
+        const isMine =
+          message.is_mine === true ||
+          String(senderId) === String(currentUserId);
 
         chatBox.innerHTML += `
 
-          <div class="message d-flex">
+          <div class="message ${isMine ? "mine" : "other"}">
 
-            <img src="${message.sender_icon || 'https://placehold.jp/100x100.png'}"
-                 class="message-icon me-3">
+            ${
+              !isMine
+                ? `
+                  <a href="/profile/profile.php?user_id=${escapeHtml(message.sender_user_id || "")}">
+                    <img src="${message.sender_icon || 'https://placehold.jp/100x100.png'}"
+                         class="message-icon">
+                  </a>
+                `
+                : ""
+            }
 
-            <div class="w-100">
+            <div class="message-body">
 
-              <a href="/profile/profile.php?user_id=${message.sender_user_id}"
-                 class="fw-bold text-decoration-none">
+              <div class="message-name">
 
-                ${escapeHtml(message.sender_display_name)}
-
-              </a>
-
-              <div class="message-content shadow-sm">
-
-                ${md.render(message.content || "")}
-
-                ${message.image_url
-                  ? `<img src="/${message.image_url}"
-                          class="message-image img-fluid">`
-                  : ""
+                ${
+                  isMine
+                    ? "自分"
+                    : escapeHtml(message.sender_display_name || "")
                 }
 
               </div>
 
-              <div class="small text-muted mt-2">
+              <div class="message-content">
 
-                ${message.created_at || ""}
+                ${md.render(message.content || "")}
 
+                ${
+                  message.image_url
+                    ? `
+                      <img src="/${message.image_url}"
+                           class="message-image img-fluid">
+                    `
+                    : ""
+                }
+
+              </div>
+
+              <div class="message-time">
+                ${escapeHtml(message.created_at || "")}
               </div>
 
             </div>
@@ -708,7 +832,6 @@ $csrfToken = new lib\CSRFToken();
 
       });
 
-      // スクロール
       if (firstLoad || isNearBottom || scrollBottom) {
 
         chatBox.scrollTop =
@@ -716,152 +839,89 @@ $csrfToken = new lib\CSRFToken();
 
       }
 
-      firstLoad = false;
+      firstLoad =
+        false;
 
     }
-
-    // =========================
-    // ブログ表示
-    // =========================
 
     function renderBlogs(blogs) {
 
-      const blogList =
-        document.getElementById("blogList");
+  const blogList =
+    document.getElementById("blogList");
 
-      // 初期化
-      blogList.innerHTML = "";
+  blogList.innerHTML =
+    "";
 
-      // ブログなし
-      if (!blogs || blogs.length === 0) {
+  if (!blogs || blogs.length === 0) {
 
-        blogList.innerHTML = `
+    blogList.innerHTML = `
 
-          <li class="list-group-item">
+      <div class="text-muted">
+        ブログはありません
+      </div>
 
-            ブログはありません
+    `;
 
-          </li>
+    return;
 
-        `;
+  }
 
-        return;
+  blogs.forEach(blog => {
 
-      }
+    blogList.innerHTML += `
 
-      // ループ
-      blogs.forEach(blog => {
+      <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
+         class="text-decoration-none text-dark">
 
-        blogList.innerHTML += `
+        <div class="blog-modal-item">
 
-          <li class="list-group-item blog-item">
+          <div class="fw-bold mb-1">
+            ${escapeHtml(blog.title)}
+          </div>
 
-            <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
-               class="fw-bold text-decoration-none fs-5">
+          <div class="text-muted small mb-2">
+            ${escapeHtml(blog.content || "")}
+          </div>
 
-              ${escapeHtml(blog.title)}
+          <div class="small text-muted">
+            ${escapeHtml(blog.created_at || "")}
+          </div>
 
-            </a>
+        </div>
 
-            <div class="mt-2 text-muted">
+      </a>
 
-              ${escapeHtml(blog.content)}
+    `;
 
-            </div>
+  });
 
-            <div class="mt-3">
-
-              ${renderTags(blog.tags)}
-
-            </div>
-
-            <div class="small text-muted mt-3">
-
-              ${blog.created_at || ""}
-
-            </div>
-
-          </li>
-
-        `;
-
-      });
-
-    }
-
-    // =========================
-    // タグ
-    // =========================
-
-    function renderTags(tags) {
-
-      if (!tags) {
-
-        return "";
-
-      }
-
-      return tags
-        .split(",")
-        .map(tag => `
-
-          <span class="badge bg-success tag-badge">
-
-            ${escapeHtml(tag.trim())}
-
-          </span>
-
-        `)
-        .join("");
-
-    }
-
-    // =========================
-    // HTMLエスケープ
-    // =========================
-
-    function escapeHtml(str) {
-
-      if (!str) {
-
-        return "";
-
-      }
-
-      return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-    }
+}
 
     // =========================
     // メッセージ送信
     // =========================
 
-    document.getElementById("messageForm")
+    document
+      .getElementById("messageForm")
       .addEventListener("submit", async (e) => {
 
         e.preventDefault();
 
-        // ボタン
         const submitButton =
           document.getElementById("submitButton");
 
-        // 内容
+        const messageInput =
+          document.getElementById("messageInput");
+
+        const imageUpload =
+          document.getElementById("imageUpload");
+
         const messageContent =
-          document.getElementById("messageInput")
-          .value
-          .trim();
+          messageInput.value.trim();
 
-        // 画像
         const imageFile =
-          document.getElementById("imageUpload")
-          .files[0];
+          imageUpload.files[0];
 
-        // 空送信禁止
         if (!messageContent && !imageFile) {
 
           showMessage(
@@ -873,17 +933,14 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
-        // FormData
         const formData =
           new FormData();
 
-        // message
         formData.append(
           "message_content",
           messageContent
         );
 
-        // image
         if (imageFile) {
 
           formData.append(
@@ -893,13 +950,11 @@ $csrfToken = new lib\CSRFToken();
 
         }
 
-        // group_id
         formData.append(
           "group_id",
           groupId
         );
 
-        // csrf
         formData.append(
           "csrf_token",
           csrfToken
@@ -907,33 +962,32 @@ $csrfToken = new lib\CSRFToken();
 
         try {
 
-          // ボタン無効
-          submitButton.disabled = true;
+          submitButton.disabled =
+            true;
 
           submitButton.innerHTML =
-            "送信中...";
+            "送信中";
 
-          // fetch
           const response =
             await fetch(
-              "../api/group/send_message.php", {
+              "../api/group/send_message.php",
+              {
                 method: "POST",
                 body: formData
               }
             );
 
-          // text
           const text =
             await response.text();
 
           console.log(text);
 
-          // json
           let result;
 
           try {
 
-            result = JSON.parse(text);
+            result =
+              JSON.parse(text);
 
           } catch {
 
@@ -948,7 +1002,6 @@ $csrfToken = new lib\CSRFToken();
 
           }
 
-          // エラー
           if (!result.success) {
 
             showMessage(
@@ -961,26 +1014,20 @@ $csrfToken = new lib\CSRFToken();
 
           }
 
-          // 成功
-          showMessage(
-            result.message ||
-            "送信しました",
-            "success"
-          );
-
-          // リセット
           e.target.reset();
 
-          // preview reset
+          messageInput.style.height =
+            "auto";
+
+          document.getElementById("selectedImageName").textContent =
+            "";
+
           document.getElementById("preview").innerHTML =
             "ここにMarkdownプレビューが表示されます";
 
-          // 再読み込み
           await loadGroupChat(true);
 
-          // フォーカス
-          document.getElementById("messageInput")
-            .focus();
+          messageInput.focus();
 
         } catch (error) {
 
@@ -993,8 +1040,8 @@ $csrfToken = new lib\CSRFToken();
 
         } finally {
 
-          // ボタン戻す
-          submitButton.disabled = false;
+          submitButton.disabled =
+            false;
 
           submitButton.innerHTML =
             "送信";
@@ -1002,6 +1049,27 @@ $csrfToken = new lib\CSRFToken();
         }
 
       });
+
+    // =========================
+    // HTMLエスケープ
+    // =========================
+
+    function escapeHtml(str) {
+
+      if (!str) {
+
+        return "";
+
+      }
+
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    }
 
     // =========================
     // メッセージ表示
@@ -1012,14 +1080,20 @@ $csrfToken = new lib\CSRFToken();
       document.getElementById("messageBox").innerHTML = `
 
         <div class="alert alert-${type} shadow-sm">
-
-          ${message}
-
+          ${escapeHtml(message)}
         </div>
 
       `;
 
+      setTimeout(() => {
+
+        document.getElementById("messageBox").innerHTML =
+          "";
+
+      }, 3000);
+
     }
+
   </script>
 
 </body>
