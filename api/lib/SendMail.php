@@ -19,6 +19,30 @@ class SendMail{
      * @throws SendMailException メール送信に失敗した場合
      */
     public static function send($to, $subject, $body): bool {
+        Util::loadEnv();
+        if (empty($_ENV['MAIL_API_URL']) || empty($_ENV['MAIL_API_PASSWORD'])) {
+            return false; // メールAPIのURLまたはパスワードが設定されていない場合、falseを返す
+        }
+        $curl = curl_init($_ENV['MAIL_API_URL'] ?? '');
+    
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query([
+            'target' => $to,
+            'title' => $subject,
+            'content' => $body,
+            'password' => $_ENV['MAIL_API_PASSWORD'] ?? ''
+        ]));
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        $response = curl_exec($curl);
+        
+        if ($response === false) {
+            return false;
+        }
+        $statusCode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+        error_log("[SanaeProject] Failed to send mail via API: " . curl_error($curl));
+        return $statusCode === 200;
+
+        /*
         $mail = new PHPMailer(true);
         
         try {
@@ -52,6 +76,7 @@ class SendMail{
             error_log("[SanaeProject] Failed to send mail: " . $e->getMessage() . " | ErrorInfo: " . $mail->ErrorInfo);
             return false;
         }
+        */
     }
 }
 ?>

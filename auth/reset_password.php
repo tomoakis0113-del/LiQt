@@ -1,12 +1,8 @@
 <?php
-
-session_start();
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
 // CSRF生成
 $csrfToken = new lib\CSRFToken();
-
 ?>
 
 <!DOCTYPE html>
