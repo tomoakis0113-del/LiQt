@@ -58,14 +58,13 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     main {
       height: calc(100vh - 120px);
-      padding-top: 20px !important;
-      padding-bottom: 20px !important;
+      padding:0!important;
     }
 
     .chat-page-wrapper {
       height: 100%;
-      max-width: 900px;
-      margin: 0 auto;
+      max-width: none;
+      margin: 0;
     }
 
     #messageBox {
@@ -206,7 +205,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     .chat-input-area {
       background: #ffffff;
       border-top: 1px solid #d8e6f7;
-      padding: 12px;
+      padding: 12px 12px 28px 12px;
       flex-shrink: 0;
     }
 
@@ -398,11 +397,22 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
           </div>
 
-          <a id="editLink"
-             href="#"
-             class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            編集
-          </a>
+          <div class="d-flex gap-2">
+
+            <button type="button"
+                    class="btn btn-outline-primary btn-sm rounded-pill px-3"
+                    data-bs-toggle="modal"
+                    data-bs-target="#memberModal">
+              メンバー
+            </button>
+
+            <a id="editLink"
+              href="#"
+              class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+              編集
+            </a>
+
+          </div>
 
         </div>
 
@@ -470,9 +480,76 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   </main>
 
-  <div class="modal fade"
+<div class="modal fade"
      id="blogModal"
      tabindex="-1">
+
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+
+    <div class="modal-content rounded-4 border-0 shadow">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title fw-bold">
+          グループブログ
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"></button>
+
+      </div>
+
+      <div class="modal-body"
+           id="blogList">
+
+        <div class="text-muted">
+          読み込み中...
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="modal fade"
+     id="memberModal"
+     tabindex="-1">
+
+  <div class="modal-dialog modal-dialog-scrollable">
+
+    <div class="modal-content rounded-4 border-0 shadow">
+
+      <div class="modal-header">
+
+        <h5 class="modal-title fw-bold">
+          グループメンバー
+        </h5>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"></button>
+
+      </div>
+
+      <div class="modal-body"
+           id="memberList">
+
+        <div class="text-muted">
+          読み込み中...
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
 
@@ -702,6 +779,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           scrollBottom
         );
       renderBlogs(data.group_blogs);
+      loadGroupMembers();
        
 
       } catch (error) {
@@ -711,11 +789,63 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         showMessage(
           "通信エラーが発生しました",
           "danger"
+
         );
 
       }
 
     }
+
+  function renderMembers(members) {
+
+  const memberList =
+    document.getElementById("memberList");
+
+  memberList.innerHTML =
+    "";
+
+  if (!members || members.length === 0) {
+
+    memberList.innerHTML = `
+      <div class="text-muted">
+        メンバーはいません
+      </div>
+    `;
+
+    return;
+
+  }
+
+  members.forEach(member => {
+
+    memberList.innerHTML += `
+
+      <a href="/profile/profile.php?user_id=${escapeHtml(member.user_id_str || member.user_id || "")}"
+         class="d-flex align-items-center text-decoration-none text-dark border rounded-4 p-3 mb-2">
+
+        <img src="${member.icon_url || 'https://placehold.jp/100x100.png'}"
+             style="width:40px; height:40px; object-fit:cover; border-radius:50%;"
+             class="me-3">
+
+        <div>
+
+          <div class="fw-bold">
+            ${escapeHtml(member.display_name || "名前なし")}
+          </div>
+
+          <div class="text-muted small">
+            ${escapeHtml(member.role || "member")}
+          </div>
+
+        </div>
+
+      </a>
+
+    `;
+
+  });
+
+}
 
     // =========================
     // グループ情報表示
@@ -892,6 +1022,63 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     `;
 
   });
+
+}
+
+  async function loadGroupMembers() {
+
+  const formData =
+    new FormData();
+
+  formData.append(
+    "group_id",
+    groupId
+  );
+
+  formData.append(
+    "csrf_token",
+    csrfToken
+  );
+
+  try {
+
+    const response =
+      await fetch(
+        "/api/group/get_group_info.php",
+        {
+          method: "POST",
+          body: formData
+        }
+      );
+
+    const result =
+      await response.json();
+
+    if (!result.success) {
+
+      document.getElementById("memberList").innerHTML = `
+        <div class="text-muted">
+          メンバーを取得できませんでした
+        </div>
+      `;
+
+      return;
+
+    }
+
+    renderMembers(result.data.members || []);
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("memberList").innerHTML = `
+      <div class="text-muted">
+        通信エラーが発生しました
+      </div>
+    `;
+
+  }
 
 }
 
