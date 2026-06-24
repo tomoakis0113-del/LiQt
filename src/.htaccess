@@ -7,3 +7,6 @@ deny from all
 <Files ~ "(phinx.php)">
 deny from all
 </Files>
+<Files ~ "(.dockerfile)">
+deny from all
+</Files>
