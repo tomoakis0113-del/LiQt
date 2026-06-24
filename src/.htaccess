@@ -1,0 +1,9 @@
+ErrorDocument 404 /auth/signin.php
+ErrorDocument 403 /auth/signin.php
+
+<Files ~ "^(composer)">
+deny from all
+</Files>
+<Files ~ "(phinx.php)">
+deny from all
+</Files>

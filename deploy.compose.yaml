@@ -1,0 +1,25 @@
+services:
+  web: 
+    build: 
+      context: ./
+      dockerfile: .dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+      - .env:/var/www/.env
+  db:
+    image: mariadb:latest
+    ports:
+      - "3306:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: always
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN:?トークンがありません}
+    command: tunnel --no-autoupdate run
