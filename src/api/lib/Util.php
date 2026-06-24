@@ -15,7 +15,7 @@ class Util {
      */
     public static function loadEnv(): void {
         try {
-            $dotenv = Dotenv::createImmutable(__DIR__ . '/../');
+            $dotenv = Dotenv::createImmutable('/var/www/');
             $dotenv->load();
         } catch (\Exception $e) {
             error_log("[SanaeProject] Failed to load environment variables: " . $e->getMessage());

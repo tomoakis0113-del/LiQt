@@ -1,11 +1,10 @@
 # Composer
-/composer.phar
-/vendor/
-/uploads/
+src/composer.phar
+src/vendor/
+src/uploads/
 
 # Local environment
-api/.env
-api/.env.local
+.env
 
 # OS / editor files
 .DS_Store
