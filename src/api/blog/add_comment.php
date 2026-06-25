@@ -70,14 +70,86 @@ try{
     //ログイン中ユーザーID取得
     $currentUserId = $sessionHandler->getCurrentUserID();
 
-    //ブログ存在確認
-    $blog = models\Blog::query()
-        ->where('id', $blogId)
+//ブログ存在確認
+$blog = models\Blog::query()
+    ->where('id', $blogId)
+    ->first([
+        'id',
+        'author_id',
+        'visibility',
+        'group_id'
+    ]);
+
+if(!$blog){
+    lib\Util::responseError(404,'ブログが見つかりません');
+}
+
+// 非公開ブログは投稿者本人だけコメント可能//ブログ存在確認
+$blog = models\Blog::query()
+    ->where('id', $blogId)
+    ->first([
+        'id',
+        'author_id',
+        'visibility',
+        'group_id'
+    ]);
+
+if(!$blog){
+    lib\Util::responseError(404,'ブログが見つかりません');
+}
+
+// 非公開ブログは投稿者本人だけコメント可能
+if($blog->visibility === 'private'){
+
+    if((int)$blog->author_id !== (int)$currentUserId){
+        lib\Util::responseError(403,'非公開ブログにはコメントできません');
+    }
+
+}
+
+// グループブログは所属メンバーだけコメント可能
+if($blog->visibility === 'group'){
+
+    if(empty($blog->group_id)){
+        lib\Util::responseError(403,'このグループブログにはコメントできません');
+    }
+
+    $member = models\GroupMember::query()
+        ->where('group_id', $blog->group_id)
+        ->where('user_id', $currentUserId)
         ->first(['id']);
 
-    if(!$blog){
-        lib\Util::responseError(404,'ブログが見つかりません');
+    if(!$member){
+        lib\Util::responseError(403,'グループメンバーのみコメントできます');
     }
+
+}git config user.name 島田
+git config user.email nkc20246178@st.denpa.jp
+if($blog->visibility === 'private'){
+
+    if((int)$blog->author_id !== (int)$currentUserId){
+        lib\Util::responseError(403,'非公開ブログにはコメントできません');
+    }
+
+}
+
+// グループブログは所属メンバーだけコメント可能
+if($blog->visibility === 'group'){
+
+    if(empty($blog->group_id)){
+        lib\Util::responseError(403,'このグループブログにはコメントできません');
+    }
+
+    $member = models\GroupMember::query()
+        ->where('group_id', $blog->group_id)
+        ->where('user_id', $currentUserId)
+        ->first(['id']);
+
+    if(!$member){
+        lib\Util::responseError(403,'グループメンバーのみコメントできます');
+    }
+
+}
 
     //コメント追加
     $comment = models\BlogComment::query()->create([
