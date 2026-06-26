@@ -20,17 +20,17 @@ class SendMail{
      */
     public static function send($to, $subject, $body): bool {
         Util::loadEnv();
-        if (empty($_ENV['MAIL_API_URL']) || empty($_ENV['MAIL_API_PASSWORD'])) {
+        if (empty($_ENV['API_PASSWORD'])) {
             return false; // メールAPIのURLまたはパスワードが設定されていない場合、falseを返す
         }
-        $curl = curl_init($_ENV['MAIL_API_URL'] ?? '');
+        $curl = curl_init('https://api.liqt.sanae.tech/mail.php');
     
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query([
             'target' => $to,
             'title' => $subject,
             'content' => $body,
-            'password' => $_ENV['MAIL_API_PASSWORD'] ?? ''
+            'password' => $_ENV['API_PASSWORD'] ?? ''
         ]));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curl);
