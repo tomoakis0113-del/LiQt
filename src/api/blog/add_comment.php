@@ -64,6 +64,12 @@ try{
     if(mb_strlen($content) > 30000){
         lib\Util::responseError(400,'コメントは30000文字以内で入力してください');
     }
+    
+    // AIチェック
+    $ai = new lib\AI();
+    if($ai->word_check($content)){
+        lib\Util::responseError(400,'コメントに不適切な内容が含まれています');
+    }
 
     $blogId = (int)$blogId;
 

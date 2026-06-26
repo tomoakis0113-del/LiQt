@@ -18,6 +18,12 @@ class S0UserSeeder extends AbstractSeed
     {
         $users = [
             [
+                'user_id'       => 'ai',
+                'mail_address'  => 'shunji@otonari.dev',
+                'password'      => password_hash('Password123', PASSWORD_DEFAULT),
+                'is_active'     => true,
+            ],
+            [
                 'user_id'       => 'otonari',
                 'mail_address'  => 'example1@example.com',
                 'password'      => password_hash('Password123', PASSWORD_DEFAULT),

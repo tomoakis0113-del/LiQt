@@ -20,22 +20,25 @@ class SendMail{
      */
     public static function send($to, $subject, $body): bool {
         Util::loadEnv();
-        if (empty($_ENV['MAIL_API_URL']) || empty($_ENV['MAIL_API_PASSWORD'])) {
+
+        error_log("[SanaeProject] Sending mail to: {$to}, Subject: {$subject}");
+        if (empty($_ENV['API_PASSWORD'])) {
             return false; // メールAPIのURLまたはパスワードが設定されていない場合、falseを返す
         }
-        $curl = curl_init($_ENV['MAIL_API_URL'] ?? '');
+        $curl = curl_init('https://api.sanae.tech/mail.php');
     
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query([
             'target' => $to,
             'title' => $subject,
             'content' => $body,
-            'password' => $_ENV['MAIL_API_PASSWORD'] ?? ''
+            'password' => $_ENV['API_PASSWORD'] ?? ''
         ]));
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($curl);
         
         if ($response === false) {
+            error_log("[SanaeProject] cURL error while sending mail: " . curl_error($curl));
             return false;
         }
         $statusCode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);

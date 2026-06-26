@@ -45,6 +45,12 @@ try{
         lib\Util::responseError(403,'グループに属していません');
     }
 
+    // AIチェック
+    $ai = new lib\AI();
+    if($ai->word_check($message_content)){
+        lib\Util::responseError(400,'メッセージ内容に不適切な内容が含まれています');
+    }
+
     // 画像アップロード
     $image_path = null;
     if($image_upload && $image_upload['error'] === UPLOAD_ERR_OK){
