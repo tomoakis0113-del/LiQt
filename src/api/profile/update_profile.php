@@ -60,7 +60,7 @@ try{
 
     // AIチェック
     $ai = new lib\AI();
-    if(!$ai->word_check($displayName . $introduction . $tags)){
+    if($ai->word_check($displayName . $introduction . $tags)){
         lib\Util::responseError(400,'プロフィールに不適切な内容が含まれています');
     }
 

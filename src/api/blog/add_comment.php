@@ -67,7 +67,7 @@ try{
     
     // AIチェック
     $ai = new lib\AI();
-    if(!$ai->word_check($content)){
+    if($ai->word_check($content)){
         lib\Util::responseError(400,'コメントに不適切な内容が含まれています');
     }
 

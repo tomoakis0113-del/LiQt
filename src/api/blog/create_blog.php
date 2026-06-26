@@ -74,7 +74,7 @@ try{
 
     // AIチェック
     $ai = new lib\AI();
-    if(!$ai->word_check($title . "\n" . $content . "\n" . $tags)){
+    if($ai->word_check($title . "\n" . $content . "\n" . $tags)){
         lib\Util::responseError(400,'コメントに不適切な内容が含まれています');
     }
 
@@ -88,23 +88,24 @@ try{
         }
     }
 
-// group投稿の場合だけ所属グループ確認
-if($visibility === 'group'){
-    if($groupId === null){
-        lib\Util::responseError(406,'グループを選択してください');
+    // group投稿の場合だけ所属グループ確認
+    if($visibility === 'group'){
+        if($groupId === null){
+            lib\Util::responseError(406,'グループを選択してください');
+        }
+
+        $member = models\GroupMember::query()
+            ->where('user_id', $currentUserid)
+            ->where('group_id', $groupId)
+            ->first(['group_id']);
+
+        if(!$member){
+            lib\Util::responseError(407,'所属グループがありません');
+        }
+    }else{
+        $groupId = null;
     }
 
-    $member = models\GroupMember::query()
-        ->where('user_id', $currentUserid)
-        ->where('group_id', $groupId)
-        ->first(['group_id']);
-
-    if(!$member){
-        lib\Util::responseError(407,'所属グループがありません');
-    }
-}else{
-    $groupId = null;
-}
     // ブログ作成
     $blog = models\Blog::create([
         'author_id' => $currentUserid,
@@ -115,6 +116,8 @@ if($visibility === 'group'){
         'tags' => $tags,
     ]);
 
+
+
     $date = [
        'blog_id' => $blog->id
     ];
@@ -124,8 +127,8 @@ if($visibility === 'group'){
 }
 
 catch(\Throwable $e){
-    error_log("エラーが発生しました: " . $e->getMessage());    
-    lib\Util::responseError(500,'サーバーエラーが発生しました');    
+    error_log("エラーが発生しました: " . $e->getMessage());
+    lib\Util::responseError(500,'サーバーエラーが発生しました');
 }
 
 ?>

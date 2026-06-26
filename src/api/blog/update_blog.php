@@ -96,7 +96,7 @@ try{
     }
     // AIチェック
     $ai = new lib\AI();
-    if(!$ai->word_check($title . "\n" . $content . "\n" . $tags)){
+    if($ai->word_check($title . "\n" . $content . "\n" . $tags)){
         lib\Util::responseError(400,'コメントに不適切な内容が含まれています');
     }
 

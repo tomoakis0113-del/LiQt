@@ -15,11 +15,17 @@ class S1ProfileSeeder extends AbstractSeed
 
     public function run(): void
     {
+        $ai         = models\User::query()->where('user_id', 'ai')->firstOrFail(['id']);
         $otonari    = models\User::query()->where('user_id', 'otonari')->firstOrFail(['id']);
         $simada     = models\User::query()->where('user_id', 'simada')->firstOrFail(['id']);
         $katuhara   = models\User::query()->where('user_id', 'katuhara')->firstOrFail(['id']);
 
         $profiles = [
+            [
+                'user_id' => $ai->id,
+                'display_name' => 'AI',
+                'introduction' => 'AIのプロフィールです。',
+            ],
             [
                 'user_id' => $otonari->id,
                 'display_name' => 'おとなり',

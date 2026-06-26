@@ -47,7 +47,7 @@ try{
 
     // AIチェック
     $ai = new lib\AI();
-    if(!$ai->word_check($message_content)){
+    if($ai->word_check($message_content)){
         lib\Util::responseError(400,'メッセージに不適切な内容が含まれています');
     }
 

@@ -41,7 +41,7 @@ try{
 
     // AIチェック
     $ai = new lib\AI();
-    if(!$ai->word_check($display_name . $user_id . $mail_address)){
+    if($ai->word_check($display_name . $user_id . $mail_address)){
         lib\Util::responseError(400,'入力内容に不適切なものが含まれています');
     }
 

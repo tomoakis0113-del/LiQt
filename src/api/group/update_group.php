@@ -70,7 +70,7 @@ try {
 
     // AIチェック
     $ai = new lib\AI();
-    if(!$ai->word_check($group_name)){
+    if($ai->word_check($group_name)){
         lib\Util::responseError(400,'グループ名に不適切な内容が含まれています');
     }
 
