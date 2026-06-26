@@ -1,0 +1,36 @@
+services:
+  liqt_api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    volumes:
+      - ./api:/var/www/html
+    ports:
+      - "8080:80"
+
+  ollama:
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    environment:
+      - OLLAMA_HOST=0.0.0.0:3141
+    volumes:
+      - ollama:/root/.ollama
+    ports:
+      - "3141:3141"
+    entrypoint: [ "/bin/sh", "-c" ]
+    command: >
+      "ollama serve & 
+       PID=$!;
+       sleep 5; 
+       ollama pull gemma2:2b; 
+       wait $PID"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+    command: tunnel --no-autoupdate run
+
+volumes:
+  ollama:
