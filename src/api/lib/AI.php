@@ -1,6 +1,6 @@
 <?php
 namespace lib;
-require_once __DIR__ . '/Util.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 class AI{
     private $api_password;
@@ -11,6 +11,12 @@ class AI{
         if (empty($this->api_password)) {
             throw new \Exception("API_PASSWORD is not set in the environment variables.");
         }
+    }
+
+    public function getId(): string
+    {
+        $user = \models\User::query()->where('user_id', 'AI')->firstOrFail();
+        return $user->id;
     }
 
     /**

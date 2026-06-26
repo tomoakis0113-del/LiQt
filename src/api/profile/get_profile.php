@@ -74,10 +74,6 @@ try {
 
         $targetUserId = $userId;
     }
-    // ユーザーIDは8文字のみ
-    else if (!preg_match('/^[A-Za-z0-9]{5,20}$/', $targetUserId)) {
-        lib\Util::responseError(400, 'ユーザーIDは英数字5-20文字で入力してください');
-    }
     
     $targetUser = models\User::query()
         ->where('user_id', $targetUserId)
