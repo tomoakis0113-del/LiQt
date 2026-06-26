@@ -4,6 +4,11 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 // CSRF生成
 $csrfToken = new lib\CSRFToken();
+
+// ログイン中ユーザーID取得
+$sessionHandler = new lib\Session();
+$currentUserId = $sessionHandler->getCurrentUserID();
+
 ?>
 
 <!DOCTYPE html>
@@ -65,6 +70,72 @@ $csrfToken = new lib\CSRFToken();
       transform: translateY(-2px);
 
     }
+
+.chat-box {
+  flex: 1;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #ddecff 0%, #f7fbff 100%);
+  padding: 20px;
+  min-height: 0;
+  scroll-behavior: smooth;
+}
+
+.line-chat-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+.chat-input-area {
+  background: #ffffff;
+  border-top: 1px solid #d8e6f7;
+  padding: 12px;
+  flex-shrink: 0;
+}
+
+.chat-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.chat-textarea {
+  resize: none;
+  border-radius: 22px;
+  min-height: 44px;
+  max-height: 110px;
+  padding: 10px 15px;
+}
+
+.image-label {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #eef6ff;
+  color: #0d6efd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  font-weight: bold;
+  font-size: 22px;
+  border: 1px solid #d8e6f7;
+}
+
+#imageUpload {
+  display: none;
+}
+
+.send-button {
+  width: 72px;
+  height: 44px;
+  border-radius: 22px;
+  flex-shrink: 0;
+}
 
   </style>
 
@@ -468,6 +539,7 @@ $csrfToken = new lib\CSRFToken();
       );
 
     renderSearchBlogs(filteredBlogs);
+
 
     }
 
