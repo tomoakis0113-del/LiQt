@@ -20,10 +20,12 @@ class SendMail{
      */
     public static function send($to, $subject, $body): bool {
         Util::loadEnv();
+
+        error_log("[SanaeProject] Sending mail to: {$to}, Subject: {$subject}");
         if (empty($_ENV['API_PASSWORD'])) {
             return false; // メールAPIのURLまたはパスワードが設定されていない場合、falseを返す
         }
-        $curl = curl_init('https://api.liqt.sanae.tech/mail.php');
+        $curl = curl_init('https://api.sanae.tech/mail.php');
     
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query([
@@ -36,10 +38,10 @@ class SendMail{
         $response = curl_exec($curl);
         
         if ($response === false) {
+            error_log("[SanaeProject] cURL error while sending mail: " . curl_error($curl));
             return false;
         }
         $statusCode = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
-        error_log("[SanaeProject] Failed to send mail via API: " . curl_error($curl));
         return $statusCode === 200;
 
         /*

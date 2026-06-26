@@ -3,17 +3,6 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
 
-// localhost, liqt.sanae.techのみアクセスを許可
-$allow_origins = [
-    "http://localhost",
-    "https://liqt.sanae.tech",
-];
-$target_origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-if (!in_array($target_origin, $allow_origins)) {
-    http_response_code(403);
-    exit("Forbidden: Origin not allowed.");
-}
-
 require_once __DIR__ . '/vendor/autoload.php';
 use Dotenv\Dotenv;
 

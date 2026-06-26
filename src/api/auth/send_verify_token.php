@@ -91,7 +91,7 @@ try{
     );
 
     if(!$isSuccess){
-        lib\Util::responseError(500,'メールの送信に失敗しました');
+        lib\Util::responseError(501,'メールの送信に失敗しました');
     }
 
     lib\Util::responseSuccess('確認トークンをメールに送信しました');
