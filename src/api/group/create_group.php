@@ -35,6 +35,12 @@ try{
         lib\Util::responseError(400,'グループ名を入力してください');
     }
 
+    // AIチェック
+    $ai = new lib\AI();
+    if(!$ai->word_check($group_name)){
+        lib\Util::responseError(400,'グループ名に不適切な内容が含まれています');
+    }
+
     $sessionHandler = new lib\Session();
     $user_id = $sessionHandler->getCurrentUserID();
     

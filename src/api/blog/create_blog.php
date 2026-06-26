@@ -72,6 +72,12 @@ try{
         lib\Util::responseError(400,'タイトルは255文字以内で入力してください');
     }
 
+    // AIチェック
+    $ai = new lib\AI();
+    if(!$ai->word_check($title . "\n" . $content . "\n" . $tags)){
+        lib\Util::responseError(400,'コメントに不適切な内容が含まれています');
+    }
+
     //ログイン中ユーザーID取得
     $currentUserid = $sessionHandler->getCurrentUserID();
 

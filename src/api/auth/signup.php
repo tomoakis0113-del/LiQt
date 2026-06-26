@@ -39,6 +39,12 @@ try{
         lib\Util::responseError(400,'メールアドレスの形式が正しくありません');
     }
 
+    // AIチェック
+    $ai = new lib\AI();
+    if(!$ai->word_check($display_name . $user_id . $mail_address)){
+        lib\Util::responseError(400,'入力内容に不適切なものが含まれています');
+    }
+
     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{6,20}$/';
     if(!preg_match($pattern, $password)){
         lib\Util::responseError(400,'パスワードは6-20文字で、英大文字・小文字・数字をそれぞれ1種類以上含む必要があります');
