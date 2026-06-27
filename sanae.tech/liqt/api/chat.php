@@ -6,7 +6,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 require_once __DIR__ . '/vendor/autoload.php';
 use Dotenv\Dotenv;
 
-$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv = Dotenv::createImmutable(__DIR__."/../");
 $dotenv->load();
 
 $content = $_POST['content'] ?? '';
@@ -24,7 +24,7 @@ if ($password !== $_ENV['API_PASSWORD']) {
 
 $url = "http://ollama:3141/v1/chat/completions"; 
 $data = [
-    "model" => "gemma2:2b",
+    "model" => "gemma3n:e4b",
     "messages" => [
         [
             "role" => "system",

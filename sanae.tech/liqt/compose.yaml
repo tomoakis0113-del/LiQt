@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./api:/var/www/html
+      - ./.env:/var/www/
     ports:
       - "8080:80"
 
@@ -23,7 +24,8 @@ services:
       "ollama serve & 
        PID=$!;
        sleep 5; 
-       ollama pull gemma2:2b; 
+       ollama pull gemma3n:e2b; 
+       ollama pull gemma3n:e4b; 
        wait $PID"
 
   cloudflared:
