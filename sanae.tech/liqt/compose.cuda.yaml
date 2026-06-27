@@ -26,6 +26,13 @@ services:
        sleep 5;
        ollama pull gemma3n:e2b; 
        wait $PID"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   cloudflared:
     image: cloudflare/cloudflared:latest

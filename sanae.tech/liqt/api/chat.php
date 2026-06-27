@@ -24,7 +24,7 @@ if ($password !== $_ENV['API_PASSWORD']) {
 
 $url = "http://ollama:3141/v1/chat/completions"; 
 $data = [
-    "model" => "gemma3n:e4b",
+    "model" => "gemma3n:e2b",
     "messages" => [
         [
             "role" => "system",
