@@ -14,11 +14,13 @@ $content = $_POST['content'] ?? '';
 $password = $_POST['password'] ?? '';
 
 if (empty($content)) {
+    error_log("[SanaeProject] Content is required.");
     http_response_code(400);
     exit("true");
 }
 
 if ($password !== $_ENV['API_PASSWORD']) {
+    error_log("[SanaeProject] Unauthorized access attempt with password: " . $password);
     http_response_code(401);
     exit("true");
 }
