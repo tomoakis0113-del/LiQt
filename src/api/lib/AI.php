@@ -4,8 +4,12 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 class AI{
     private $api_password;
+    private $ngwords;
+
     public function __construct(){
         Util::loadEnv();
+        $wordsfile = trim(file_get_contents(__DIR__ . "/ngwords.csv"));
+        $this->ngwords = str_getcsv($wordsfile);
 
         $this->api_password = $_ENV['API_PASSWORD'] ?? '';
         if (empty($this->api_password)) {
@@ -13,18 +17,27 @@ class AI{
         }
     }
 
+    /**
+     * AIのユーザーIDを取得します。
+     * @return string AIのユーザーID
+     */
     public function getId(): string
     {
         $user = \models\User::query()->where('user_id', 'AI')->firstOrFail();
         return $user->id;
     }
 
-    /**
-     * 問題のある内容かチェックします。
-     * @param string $content
-     * @return bool もし問題がある場合はtrue、問題がない場合はfalse
-     */
-    public function word_check(String $content): bool
+    private function word_check_local(String $content): bool
+    {
+        foreach ($this->ngwords as $word) {
+            if (stripos($content, $word) !== false) {
+                error_log("[SanaeProject] Detected prohibited word: " . $word . " in content: " . $content);
+                return true;
+            }
+        }
+        return false;
+    }
+    private function word_check_api(String $content): bool
     {
         $url = "https://api.sanae.tech/check.php";
         $ch = curl_init($url);
@@ -37,9 +50,33 @@ class AI{
         $response = curl_exec($ch);
         curl_close($ch);
 
-        return $response === 'true';
+        return $response !== 'false';
     }
 
+    /**
+     * 問題のある内容かチェックします。
+     * @param string $content
+     * @return bool もし問題がある場合はtrue、問題がない場合はfalse
+     */
+    public function word_check(String $content): bool
+    {
+        if($this->word_check_local($content)){
+            return true;
+        }
+
+        $rand = rand(0, 5);
+        if($rand === 0){
+            return $this->word_check_api($content);
+        }
+
+        return false;
+    }
+
+    /**
+     * AIにチャットを送信し、応答を取得します。
+     * @param string $content
+     * @return string AIの応答
+     */
     public function chat(String $content): string
     {
         $url = "https://api.sanae.tech/chat.php";
