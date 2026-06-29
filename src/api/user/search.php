@@ -2,25 +2,24 @@
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 /**
- * グループ削除API
+ * ユーザ検索API
  * 必要なパラメータ:
  * - csrf_token: CSRFトークン
  * - query: 検索キーワード（ユーザIDに部分一致するものを検索）
- * 
- * レスポンス:
+ * * レスポンス:
  * - 成功: { 
- *      "success": true, 
- *      "message": "公開グループの取得に成功しました", 
- *      "data":[
- *         {
- *             "icon_url": アイコンURL,
- *             "user_id": ユーザID,
- *             "display_name": 表示名,
- *             "introduction": 自己紹介,
- *             "tags": タグ
- *         },
- *         ...
- *     ]
+ * "success": true, 
+ * "message": "ユーザの取得に成功しました", 
+ * "data":[
+ * {
+ * "icon_url": アイコンURL,
+ * "user_id": ユーザID,
+ * "display_name": 表示名,
+ * "introduction": 自己紹介,
+ * "tags": タグ
+ * },
+ * ...
+ * ]
  * }
  * - エラー: { "success": false, "message": "エラーメッセージ" }
  */
@@ -43,18 +42,20 @@ try {
         lib\Util::responseError(401, 'サインインが必要です');
     }
 
-    // 所属しているグループまたはパブリックなグループを検索
-    $query = models\User::query()
+    // 条件に一致するユーザーを検索
+    $searchQuery = models\User::query()
         ->join('profiles', 'users.id', '=', 'profiles.user_id')
         ->where('users.user_id', 'LIKE', "%{$query}%")
         ->where('profiles.tags', 'LIKE', "%{$query}%", 'OR');
 
-    $users = $query->get(
+    // 💡 icon_url を取得カラムにしっかりと追加
+    $users = $searchQuery->get(
         [
             'users.user_id as user_id', 
             'profiles.display_name as display_name', 
             'profiles.introduction as introduction', 
-            'profiles.tags as tags'
+            'profiles.tags as tags',
+            'profiles.icon_url as icon_url' 
         ]
     );
     lib\Util::responseSuccess('ユーザの取得に成功しました', $users);
