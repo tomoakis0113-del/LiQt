@@ -1,4 +1,5 @@
 <?php
+set_time_limit(300);
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST");
 header("Access-Control-Allow-Headers: Content-Type");
