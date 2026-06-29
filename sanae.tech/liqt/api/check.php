@@ -62,6 +62,7 @@ curl_close($ch);
 $result = json_decode($response, true);
 $ai_reply = $result['choices'][0]['message']['content'] ?? '';
 $cleaned_reply = strtolower(trim($ai_reply, " \t\n\r\0\x0B.\"'`"));
+error_log("Input: " . $content . " | AI Reply: " . $ai_reply . " | Cleaned Reply: " . $cleaned_reply);
 
 if ($cleaned_reply === '0') {
     echo "false";
