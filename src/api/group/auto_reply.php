@@ -38,7 +38,7 @@ foreach ($schedules as $schedule) {
             }, $context_array));
             
             $ai = new lib\AI();
-            $response = $ai->chat("以下のチャットに対して返信をしてください。\nai:についてはあなたが出したメッセージです。\n" . $context);
+            $response = $ai->chat("以下のチャットに対してMarkdown形式で返信をしてください。\nai:についてはあなたが出したメッセージです。\n" . $context);
 
             models\Chat::create([
                 "group_id" => $group_id,
@@ -59,7 +59,7 @@ foreach ($schedules as $schedule) {
             }
 
             $ai = new lib\AI();
-            $response = $ai->chat("以下のブログに対して要約して感想を述べてください。\n**Markdownでなく通常のテキストで返信してください。**" . "title:{$blog->title}\ncontent:{$blog->content}\ntags:{$blog->tags}");
+            $response = $ai->chat("以下のブログに対して要約して感想を述べてください。\n**通常のテキストで返信してください。**" . "title:{$blog->title}\ncontent:{$blog->content}\ntags:{$blog->tags}");
 
             models\BlogComment::create([
                 "blog_id" => $blog_id,
