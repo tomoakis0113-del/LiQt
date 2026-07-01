@@ -117,10 +117,10 @@ try{
     ]);
 
     //コメント追加
-    $comment = models\BlogComment::query()->create([
+    models\ReplySchedule::create([
         'blog_id' => $blog->id,
-        'user_id' => $ai->getId(),
-        'content' => $ai->chat("以下のブログについてコメントを下さい\n" . $title . "\n" . $content . "\n" . $tags)
+        'type' => 'blog',
+        'is_checking' => false,
     ]);
 
     $date = [

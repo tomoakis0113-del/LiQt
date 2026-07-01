@@ -65,7 +65,8 @@ class AI{
             return true;
         }
 
-        return $this->word_check_api($content);
+        return false;
+        // return $this->word_check_api($content);
     }
 
     /**
@@ -76,6 +77,9 @@ class AI{
     public function chat(String $content): string
     {
         $url = "https://api.sanae.tech/chat.php";
+
+        set_time_limit(300);
+
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([

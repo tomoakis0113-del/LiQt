@@ -9,7 +9,8 @@ use Illuminate\Database\Eloquent\Model;
  * 
  * @property int $id
  * @property int $group_id
- * @property int $chat_id
+ * @property int $blog_id
+ * @property string $type
  * @property bool $is_checking
  */
 class ReplySchedule extends Model
@@ -22,6 +23,6 @@ class ReplySchedule extends Model
     protected $table = 'reply_schedules';
 
     protected $fillable = [
-        "group_id","chat_id","is_checking"
+        "group_id", "blog_id", "type", "is_checking"
     ];
 }

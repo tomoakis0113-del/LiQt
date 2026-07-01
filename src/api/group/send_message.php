@@ -86,11 +86,12 @@ try{
 
     // aiとのチャットの場合、AIの応答を生成して保存
     if($isAiChat){
-        models\ReplySchedule::where("group_id","=",$group_id)->delete();
-        models\ReplySchedule::create([
-            "group_id" => $group_id,
-            "chat_id" => $chat_id
-        ]);
+        if(!models\ReplySchedule::where("group_id","=",$group_id)->exists()){
+            models\ReplySchedule::create([
+                "group_id" => $group_id,
+                "type" => "chat"
+            ]);
+        }
     }
     lib\Util::responseSuccess('メッセージの送信に成功しました');
 } catch (Exception $e){

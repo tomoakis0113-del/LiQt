@@ -20,12 +20,14 @@ final class ReplySchedules extends AbstractMigration
     public function change(): void
     {
         $table = $this->table("reply_schedules");
-        $table->addColumn("group_id", "integer", ["null" => false, "signed" => false])
-            ->addColumn("chat_id", "integer", ["null" => false, "signed" => false])
+        $table->addColumn("group_id", "integer", ["null" => true, "signed" => false])
+            ->addColumn("blog_id", "integer", ["null" => true, "signed" => false])
+            ->addColumn("type", "enum", ["null" => false, "signed" => false, "values" => ['chat', 'blog']])
             ->addColumn("is_checking", "boolean", ["null" => false, "default" => false])
             ->addForeignKey("group_id", "groups", "id", ["delete" => "cascade"])
-            ->addForeignKey("chat_id", "chats", "id", ["delete"=>"cascade"])
-            ->addIndex(["group_id"], ["unique"=>true]);
+            ->addIndex(["group_id"], ["unique"=>true])
+            ->addForeignKey("blog_id", "blogs", "id", ["delete" => "cascade"])
+            ->addIndex(["blog_id"], ["unique"=>true]);
 
         $table->create();
     }
