@@ -61,6 +61,7 @@ class AI{
     public function word_check(String $content): bool
     {
         if($this->word_check_local($content)){
+            error_log("[SanaeProject] Detected prohibited content locally: " . $content);
             return true;
         }
 

@@ -401,7 +401,8 @@ $csrfToken = new lib\CSRFToken();
 
                     </h5>
 
-                    <p class="text-muted mb-0 text-truncate">
+                    <p class="text-muted mb-0 text-truncate text-wrap"
+                       style="max-width: 100%;">
 
                       最新メッセージ：
                       ${latestMessage}
