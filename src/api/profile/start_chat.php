@@ -34,7 +34,7 @@ try {
         lib\Util::responseError(400, '不正リクエストです');
     }
 
-    if (!preg_match('/^[A-Za-z0-9]{5,20}$/', $targetUserId)) {
+    if (!preg_match('/^[A-Za-z0-9]{5,20}$/', $targetUserId) && $targetUserId !== 'ai') {
         lib\Util::responseError(400, 'ユーザーIDは英数字5-20文字で入力してください');
     }
 

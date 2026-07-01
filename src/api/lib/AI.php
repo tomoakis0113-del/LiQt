@@ -64,12 +64,7 @@ class AI{
             return true;
         }
 
-        $rand = rand(0, 5);
-        if($rand === 0){
-            return $this->word_check_api($content);
-        }
-
-        return false;
+        return $this->word_check_api($content);
     }
 
     /**
