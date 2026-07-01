@@ -32,6 +32,7 @@ foreach ($schedules as $schedule) {
             $context_array = models\Chat::where("group_id", "=", $group_id)
                 ->select("id", "content", "sender_id")
                 ->orderByDesc("id")
+                ->offset(1) // AIが考え中のメッセージを除外
                 ->limit(10)
                 ->get()
                 ->toArray();
