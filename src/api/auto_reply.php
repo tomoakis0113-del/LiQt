@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../../vendor/autoload.php";
+require_once __DIR__ . "/../vendor/autoload.php";
 
 set_time_limit(300);
 
@@ -11,6 +11,7 @@ $schedules = models\ReplySchedule::query()
 foreach ($schedules as $schedule) {
     $schedule->is_checking = true;
     $schedule->save();
+    $target = null;
 
     try {
         // チャットの返信スケジュールの場合
@@ -19,6 +20,14 @@ foreach ($schedules as $schedule) {
             if (!$group_id) {
                 throw new Exception("Group ID is missing for schedule ID: {$schedule->id}");
             }
+            $ai = new lib\AI();
+
+            $target = $chat = models\Chat::create([
+                "group_id" => $group_id,
+                "sender_id" => $ai->getId(),
+                "content" => "AIが返信を考えています...",
+            ]);
+            $chat->save();
 
             $context_array = models\Chat::where("group_id", "=", $group_id)
                 ->select("id", "content", "sender_id")
@@ -37,14 +46,10 @@ foreach ($schedules as $schedule) {
                 return $sender_name . ": " . $chat["content"];
             }, $context_array));
             
-            $ai = new lib\AI();
-            $response = $ai->chat("以下のチャットに対してMarkdown形式で返信をしてください。\nai:についてはあなたが出したメッセージです。\n" . $context);
+            $response = $ai->chat("以下のチャットに対して返信をしてください。\nai:についてはあなたが出したメッセージです。\n" . $context);
 
-            models\Chat::create([
-                "group_id" => $group_id,
-                "sender_id" => $ai->getId(),
-                "content" => $response,
-            ]);
+            $chat->content = $response;
+            $chat->save();
         }
         // ブログの返信スケジュールの場合
         else if($schedule["type"] === "blog"){
@@ -59,18 +64,24 @@ foreach ($schedules as $schedule) {
             }
 
             $ai = new lib\AI();
-            $response = $ai->chat("以下のブログに対して要約して感想を述べてください。\n**通常のテキストで返信してください。**" . "title:{$blog->title}\ncontent:{$blog->content}\ntags:{$blog->tags}");
 
-            models\BlogComment::create([
+            $target = $comment = models\BlogComment::create([
                 "blog_id" => $blog_id,
                 "user_id" => $ai->getId(),
-                "content" => $response,
+                "content" => "AIがコメントを考えています...",
             ]);
+            $response = $ai->chat("以下のブログに対して要約して感想を述べてください。\n**通常のテキストで返信してください。**" . "title:{$blog->title}\ncontent:{$blog->content}\ntags:{$blog->tags}");
+
+            $comment->content = $response;
+            $comment->save();
         }
 
     } catch (\Exception $e) {
         error_log("Error processing schedule ID {$schedule->id}: " . $e->getMessage());
 
+        if ($target) {
+            $target->delete();
+        }
     } finally {
         $schedule->delete();
     }
