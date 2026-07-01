@@ -25,7 +25,6 @@ services:
        PID=$!;
        sleep 5;
        ollama pull gemma3n:e2b;
-       ollama pull gemma3n:e4b; 
        wait $PID"
 
   cloudflared:

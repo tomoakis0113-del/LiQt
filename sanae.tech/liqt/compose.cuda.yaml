@@ -24,8 +24,7 @@ services:
       "ollama serve & 
        PID=$!;
        sleep 5;
-       ollama pull gemma3n:e2b; 
-       ollama pull gemma3n:e4b; 
+       ollama pull gemma3n:e2b;
        wait $PID"
     deploy:
       resources:
