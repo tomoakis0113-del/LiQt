@@ -24,6 +24,11 @@ if($in_password !== $_ENV['API_PASSWORD']) {
 
 $mail = new PHPMailer(true);
 
+if(empty($_ENV['MAIL_HOST']) || empty($_ENV['MAIL_USER']) || empty($_ENV['MAIL_PASSWORD']) || empty($_ENV['MAIL_PORT'])) {
+    error_log("Mail configuration is not set properly in the environment variables.");
+    exit(http_response_code(500));
+}
+
 try {
     $mail->isSMTP();
     $mail->Host = $_ENV['MAIL_HOST'];

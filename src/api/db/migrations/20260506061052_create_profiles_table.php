@@ -27,7 +27,7 @@ final class CreateProfilesTable extends AbstractMigration
         $table->addColumn('user_id',    'integer',  ['signed' => false])
             ->addColumn('display_name', 'string',   ['limit' => 100, 'null' => false])
             ->addColumn('introduction', 'text',     ['null'  => true])
-            ->addColumn('icon_url',     'string',   ['limit' => 255, 'null' => true])
+            ->addColumn('icon_url',     'text',     ['null'  => true])
             ->addColumn('tags',         'text',     ['null'  => true])
 
             // 外部キー制約

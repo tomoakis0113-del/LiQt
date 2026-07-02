@@ -23,24 +23,6 @@ class S0UserSeeder extends AbstractSeed
                 'password'      => password_hash('Password123', PASSWORD_DEFAULT),
                 'is_active'     => true,
             ],
-            [
-                'user_id'       => 'otonari',
-                'mail_address'  => 'example1@example.com',
-                'password'      => password_hash('Password123', PASSWORD_DEFAULT),
-                'is_active'     => true,
-            ],
-            [
-                'user_id'       => 'simada',
-                'mail_address'  => 'example2@example.com',
-                'password'      => password_hash('Password123', PASSWORD_DEFAULT),
-                'is_active'     => true,
-            ],
-            [
-                'user_id'       => 'katuhara',
-                'mail_address'  => 'example3@example.com',
-                'password'      => password_hash('Password123', PASSWORD_DEFAULT),
-                'is_active'     => true,
-            ],
         ];
 
         $this->table('users')->insert($users)->saveData();
