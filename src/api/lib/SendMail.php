@@ -20,12 +20,17 @@ class SendMail{
      */
     public static function send($to, $subject, $body): bool {
         Util::loadEnv();
+        $outside_server_domain = $_ENV['OUTSIDE_SERVER_DOMAIN'] ?? null;
+        if(empty($outside_server_domain)) {
+            error_log("[SanaeProject] OUTSIDE_SERVER_DOMAIN is not set in the environment variables.");
+            return false;
+        }
 
         error_log("[SanaeProject] Sending mail to: {$to}, Subject: {$subject}");
         if (empty($_ENV['API_PASSWORD'])) {
             return false; // メールAPIのURLまたはパスワードが設定されていない場合、falseを返す
         }
-        $curl = curl_init('https://api.sanae.tech/mail.php');
+        $curl = curl_init("https://{$outside_server_domain}/mail.php");
     
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_POSTFIELDS, http_build_query([

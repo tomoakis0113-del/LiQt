@@ -28,13 +28,13 @@ try {
     $mail->isSMTP();
     $mail->Host = $_ENV['MAIL_HOST'];
     $mail->SMTPAuth = true;
-    $mail->Username = "liqt@sanae.tech";
+    $mail->Username = $_ENV['MAIL_USER'];
     $mail->Password = $_ENV['MAIL_PASSWORD'];
 
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = $_ENV['MAIL_PORT'];
 
-    $mail->setFrom("liqt@sanae.tech", 'SanaeProject');
+    $mail->setFrom($_ENV['MAIL_USER'], 'SanaeProject');
     $mail->addAddress($target, 'Recipient Name');
 
     // **エンコーディング設定**
