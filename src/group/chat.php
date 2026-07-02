@@ -18,17 +18,13 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   <meta charset="UTF-8">
 
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="description"
-    content="グループチャットページ">
+  <meta name="description" content="グループチャットページ">
 
-  <meta name="keywords"
-    content="LiQt,SNS,コミュニティ,BLOG">
+  <meta name="keywords" content="LiQt,SNS,コミュニティ,BLOG">
 
-  <meta name="author"
-    content="乙成,島田,勝原">
+  <meta name="author" content="乙成,島田,勝原">
 
   <title>
     グループチャット | LiQt
@@ -36,11 +32,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <link rel="stylesheet"
-    href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
-  <link rel="stylesheet"
-    href="../custom/custom-theme.css">
+  <link rel="stylesheet" href="../custom/custom-theme.css">
 
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
@@ -126,6 +120,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
       align-items: flex-end;
       gap: 10px;
       margin-bottom: 16px;
+      width: 100%;
     }
 
     .message.other {
@@ -145,7 +140,22 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     }
 
     .message-body {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
       max-width: 70%;
+    }
+
+    .message.mine .message-body {
+      align-items: flex-end;
+      margin-left: auto;
+    }
+    .message.mine .message-content {
+  text-align: left;
+}
+
+    .message.other .message-body {
+      align-items: flex-start;
     }
 
     .message-name {
@@ -159,15 +169,34 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     }
 
     .message-content {
+      display: inline-block;
+      max-width: 100%;
+      width: auto;
+      padding: 10px 14px;
       border-radius: 18px;
-      padding: 12px 15px;
+      text-align: left;
+
       word-break: break-word;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      white-space: pre-wrap;
+
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
     }
 
-    .message-content p {
-      margin-bottom: 0.4rem;
+    .message-content p,
+    .message-content ul,
+    .message-content ol,
+    .message-content pre,
+    .message-content blockquote {
+        margin: 0;
+        padding: 0;
     }
+    .message.other .message-body {
+        align-items: flex-start;
+    }
+
+  .message.other .message-content {
+      text-align: left;
+  }
 
     .message-content p:last-child {
       margin-bottom: 0;
@@ -179,8 +208,8 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     }
 
     .message.mine .message-content {
-      background: #9ee7a8;
-      color: #102a18;
+      background: #8DE055;
+      color: #000;
       border-top-right-radius: 4px;
     }
 
@@ -376,14 +405,11 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
           <div class="d-flex align-items-center">
 
-            <img id="groupIcon"
-              src="https://placehold.jp/100x100.png"
-              class="group-icon me-3">
+            <img id="groupIcon" src="https://placehold.jp/100x100.png" class="group-icon me-3">
 
             <div>
 
-              <h5 id="groupName"
-                class="fw-bold mb-0">
+              <h5 id="groupName" class="fw-bold mb-0">
                 読み込み中...
               </h5>
 
@@ -397,16 +423,12 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
           <div class="d-flex gap-2">
 
-            <button type="button"
-              class="btn btn-outline-primary btn-sm rounded-pill px-3"
-              data-bs-toggle="modal"
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-bs-toggle="modal"
               data-bs-target="#memberModal">
               メンバー
             </button>
 
-            <a id="editLink"
-              href="#"
-              class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <a id="editLink" href="#" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
               編集
             </a>
 
@@ -414,16 +436,12 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
         </div>
 
-        <button type="button"
-          class="blog-floating-button"
-          data-bs-toggle="modal"
-          data-bs-target="#blogModal">
+        <button type="button" class="blog-floating-button" data-bs-toggle="modal" data-bs-target="#blogModal">
           ブログ
         </button>
 
         <!-- 中央：メッセージ一覧 -->
-        <div class="chat-box"
-          id="chatBox">
+        <div class="chat-box" id="chatBox">
 
           <div class="empty-message">
             読み込み中...
@@ -432,41 +450,28 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         </div>
 
         <!-- 下：入力欄 -->
-        <form id="messageForm"
-          class="chat-input-area"
-          enctype="multipart/form-data">
+        <form id="messageForm" class="chat-input-area" enctype="multipart/form-data">
 
           <div class="chat-input-row">
 
-            <label for="imageUpload"
-              class="image-label">
+            <label for="imageUpload" class="image-label">
               ＋
             </label>
 
-            <input type="file"
-              id="imageUpload"
-              name="image_upload"
-              accept="image/*">
+            <input type="file" id="imageUpload" name="image_upload" accept="image/*">
 
-            <textarea
-              class="form-control chat-textarea"
-              id="messageInput"
-              name="message_content"
-              rows="1"
+            <textarea class="form-control chat-textarea" id="messageInput" name="message_content" rows="1"
               placeholder="メッセージを入力"></textarea>
 
-            <button id="submitButton"
-              class="btn btn-success send-button">
+            <button id="submitButton" class="btn btn-success send-button">
               送信
             </button>
 
           </div>
 
-          <div id="selectedImageName"
-            class="selected-image-name"></div>
+          <div id="selectedImageName" class="selected-image-name"></div>
 
-          <div id="preview"
-            class="preview-box">
+          <div id="preview" class="preview-box">
             ここにMarkdownプレビューが表示されます
           </div>
 
@@ -478,9 +483,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   </main>
 
-  <div class="modal fade"
-    id="blogModal"
-    tabindex="-1">
+  <div class="modal fade" id="blogModal" tabindex="-1">
 
     <div class="modal-dialog modal-dialog-scrollable modal-lg">
 
@@ -492,14 +495,11 @@ $currentUserId = $sessionHandler->getCurrentUserID();
             グループブログ
           </h5>
 
-          <button type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 
         </div>
 
-        <div class="modal-body"
-          id="blogList">
+        <div class="modal-body" id="blogList">
 
           <div class="text-muted">
             読み込み中...
@@ -514,9 +514,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
   </div>
 
 
-  <div class="modal fade"
-    id="memberModal"
-    tabindex="-1">
+  <div class="modal fade" id="memberModal" tabindex="-1">
 
     <div class="modal-dialog modal-dialog-scrollable">
 
@@ -528,14 +526,11 @@ $currentUserId = $sessionHandler->getCurrentUserID();
             グループメンバー
           </h5>
 
-          <button type="button"
-            class="btn-close"
-            data-bs-dismiss="modal"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 
         </div>
 
-        <div class="modal-body"
-          id="memberList">
+        <div class="modal-body" id="memberList">
 
           <div class="text-muted">
             読み込み中...
@@ -559,14 +554,11 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           グループブログ
         </h5>
 
-        <button type="button"
-          class="btn-close"
-          data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 
       </div>
 
-      <div class="modal-body"
-        id="blogList">
+      <div class="modal-body" id="blogList">
 
         <div class="text-muted">
           読み込み中...
@@ -582,9 +574,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-  <input type="hidden"
-    id="csrf_token"
-    value="<?= htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8') ?>">
+  <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
   <script>
     // markdown
@@ -608,7 +598,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     // ログイン中ユーザーID
     const currentUserId =
-      "<?= htmlspecialchars((string)$currentUserId, ENT_QUOTES, 'UTF-8') ?>";
+      "<?= htmlspecialchars((string) $currentUserId, ENT_QUOTES, 'UTF-8') ?>";
 
     // 初回ロード判定
     let firstLoad =
@@ -639,7 +629,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     // メッセージ入力時の高さ調整
     document
       .getElementById("messageInput")
-      .addEventListener("input", function() {
+      .addEventListener("input", function () {
 
         this.style.height =
           "auto";
@@ -655,7 +645,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     // 画像選択
     document
       .getElementById("imageUpload")
-      .addEventListener("change", function(e) {
+      .addEventListener("change", function (e) {
 
         const file =
           e.target.files[0];
@@ -724,9 +714,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         const response =
           await fetch(
             "../api/group/get_group_chat.php", {
-              method: "POST",
-              body: formData
-            }
+            method: "POST",
+            body: formData
+          }
           );
 
         const text =
@@ -901,48 +891,39 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         const isMine =
           message.is_mine === true ||
           String(senderId) === String(currentUserId);
+          console.log({
+          senderId,
+          currentUserId,
+          isMine,
+          message
+        });
 
         chatBox.innerHTML += `
 
           <div class="message ${isMine ? "mine" : "other"}">
 
-            ${
-              !isMine
-                ? `
+            ${!isMine
+            ? `
                   <a href="/profile/profile.php?user_id=${escapeHtml(message.sender_user_id || "")}">
                     <img src="${message.sender_icon || 'https://placehold.jp/100x100.png'}"
                          class="message-icon">
                   </a>
                 `
-                : ""
-            }
+            : ""
+          }
 
             <div class="message-body">
 
-              <div class="message-name">
+             ${!isMine
+            ? `
+      <div class="message-name">
+        ${escapeHtml(message.sender_display_name || "")}
+      </div>
+    `
+            : ""
+          }
 
-                ${
-                  isMine
-                    ? "自分"
-                    : escapeHtml(message.sender_display_name || "")
-                }
-
-              </div>
-
-              <div class="message-content">
-
-                ${md.render(message.content || "")}
-
-                ${
-                  message.image_url
-                    ? `
-                      <img src="/${message.image_url}"
-                           class="message-image img-fluid">
-                    `
-                    : ""
-                }
-
-              </div>
+              <div class="message-content">${md.renderInline(message.content || "")}</div>
 
               <div class="message-time">
                 ${escapeHtml(message.created_at || "")}
@@ -1041,9 +1022,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         const response =
           await fetch(
             "/api/group/get_group_info.php", {
-              method: "POST",
-              body: formData
-            }
+            method: "POST",
+            body: formData
+          }
           );
 
         const result =
@@ -1151,9 +1132,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           const response =
             await fetch(
               "../api/group/send_message.php", {
-                method: "POST",
-                body: formData
-              }
+              method: "POST",
+              body: formData
+            }
             );
 
           const text =
@@ -1188,7 +1169,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
               "送信に失敗しました",
               "danger"
             );
-            
+
           }
 
           e.target.reset();

@@ -82,13 +82,14 @@ try{
     ->where('group_id', $group_id)
         ->orderBy('created_at', 'asc')
         ->get([
-            'chats.id as message_id', 
-            'users.user_id as sender_user_id', 
-            'profiles.display_name as sender_display_name',
-            'profiles.icon_url as sender_icon',
-            'chats.content', 
-            'chats.image_url', 
-            'chats.created_at'
+          'chats.id as message_id',
+          'chats.sender_id',
+          'users.user_id as sender_user_id',
+          'profiles.display_name as sender_display_name',
+          'profiles.icon_url as sender_icon',
+          'chats.content',
+          'chats.image_url',
+          'chats.created_at'
         ]);
 
     lib\Util::responseSuccess('成功しました。',[
