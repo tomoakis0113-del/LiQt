@@ -93,6 +93,28 @@ try{
             ]);
         }
     }
+
+    // メンバーを追加
+    $members = models\GroupMember::query()
+        ->leftJoin('notice_blocks', function($join) use ($group_id) {
+            $join->on('group_members.user_id', '=', 'notice_blocks.user_id')
+                 ->where('notice_blocks.group_id', '=', $group_id);
+        })
+        ->where('group_members.group_id', '=', $group_id)
+        ->where('group_members.user_id', '!=', $user_id)
+        ->get(["group_members.user_id", "notice_blocks.id as block_id"])
+        ->filter(function($member) {
+            return is_null($member->block_id);
+        });
+
+    foreach($members as $member){
+       models\NoticeSchedule::create([
+            "user_id" => $member->user_id,
+            "content" => "<h1>グループに新しいメッセージがあります。</h1><p>メッセージ内容: {$message_content}</p>",
+            "is_checking" => false
+        ]);
+    }
+
     lib\Util::responseSuccess('メッセージの送信に成功しました');
 } catch (Exception $e){
     error_log("エラーが発生しました: " . $e->getMessage());

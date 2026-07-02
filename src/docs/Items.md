@@ -287,6 +287,22 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：`dashboard.php` へ遷移
             - 失敗：エラーメッセージ表示
+    ご提示いただいた「グループ編集ページ（`edit_group.php`）」のフォーマット（インデント、レスポンス・フォームの記述ルール、遷移条件など）を完全に踏襲し、今回追加された通知関連のAPI情報を追記した修正用テキストを作成しました。
+
+    - 通知設定切り替えボタン（トグル）
+        - 通知ブロック更新処理（`api/group/toggle_notice.php`）
+            - フォーム項目: `group_id`, `csrf_token`
+            - レスポンス: `success`->true/false, `message`->成否メッセージ
+            - 成功：通知ブロック状態を反転して表示更新
+            - 失敗：エラーメッセージ表示
+            
+    - 通知設定確認ボタン
+        - 通知ブロック状態取得処理（`api/group/get_notice_status.php`）
+            - フォーム項目: `group_id`, `csrf_token`
+            - レスポンス: `success`->true/false, `message`->成否メッセージ, `data`->`is_blocked`
+            - 成功：通知ブロック状態を表示
+            - 失敗：エラーメッセージ表示
+
 - メンバー
     - レスポンス（`api/group/get_group_info.php`）
         - グループ名表示   : `group_name`
@@ -303,6 +319,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：`dashboard.php` へ遷移
             - 失敗：エラーメッセージ表示
+
 
 #### オープンチャット一覧ページ（`open_chats.php`）
 - 公開グループ一覧(`api/group/get_public_groups.php`)
