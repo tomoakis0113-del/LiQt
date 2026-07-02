@@ -68,6 +68,16 @@ try {
         lib\Util::responseError(400, '自分とはチャットできません');
     }
 
+    // 相手が自分をブロックしている場合はチャット開始不可
+    $blocked = models\BlockList::query()
+        ->where('user_id', $targetInternalId)
+        ->where('blocked_user_id', $currentInternalUserId)
+        ->first(['id']);
+
+    if($blocked){
+        lib\Util::responseError(403, 'ブロックされているため、このユーザーとはチャットできません');
+    }
+
     $minId = min($currentUserId, $targetUserId);
     $maxId = max($currentUserId, $targetUserId);
     $groupName = 'dm_' . $minId . '_' . $maxId;
