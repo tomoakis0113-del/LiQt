@@ -314,9 +314,7 @@ $csrfToken = new lib\CSRFToken();
         <a href="/profile/profile.php?user_id=${userId}" class="fw-bold text-decoration-none">
           ${displayName}
         </a>
-        <div class="mt-1">
-          ${comment.content}
-        </div>
+        <div class="mt-1" style="white-space: pre-wrap;">${comment.content}</div>
         ${deleteButton}
       </div>
     </div>

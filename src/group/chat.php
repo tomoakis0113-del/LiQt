@@ -19,16 +19,16 @@ $currentUserId = $sessionHandler->getCurrentUserID();
   <meta charset="UTF-8">
 
   <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    content="width=device-width, initial-scale=1.0">
 
   <meta name="description"
-        content="グループチャットページ">
+    content="グループチャットページ">
 
   <meta name="keywords"
-        content="LiQt,SNS,コミュニティ,BLOG">
+    content="LiQt,SNS,コミュニティ,BLOG">
 
   <meta name="author"
-        content="乙成,島田,勝原">
+    content="乙成,島田,勝原">
 
   <title>
     グループチャット | LiQt
@@ -37,15 +37,14 @@ $currentUserId = $sessionHandler->getCurrentUserID();
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
   <link rel="stylesheet"
-        href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
   <link rel="stylesheet"
-        href="../custom/custom-theme.css">
+    href="../custom/custom-theme.css">
 
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
 
   <style>
-
     html,
     body {
       height: 100%;
@@ -58,7 +57,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     main {
       height: calc(100vh - 120px);
-      padding:0!important;
+      padding: 0 !important;
     }
 
     .chat-page-wrapper {
@@ -287,76 +286,75 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     }
 
-/* 右側にくっつくブログタブ */
-.blog-floating-button {
-  position: absolute;
-  right: 16px;
-  bottom: 95px;
+    /* 右側にくっつくブログタブ */
+    .blog-floating-button {
+      position: absolute;
+      right: 16px;
+      bottom: 95px;
 
-  width: 50px;
-  height: 58px;
+      width: 50px;
+      height: 58px;
 
-  border: none;
-  border-radius: 18px 0 0 18px;
+      border: none;
+      border-radius: 18px 0 0 18px;
 
-  background: #aea9e3;
-  color: #ffffff;
+      background: #aea9e3;
+      color: #ffffff;
 
-  font-weight: bold;
-  font-size: 14px;
+      font-weight: bold;
+      font-size: 14px;
 
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
-  z-index: 20;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+      z-index: 20;
 
-  overflow: hidden;
-  white-space: nowrap;
+      overflow: hidden;
+      white-space: nowrap;
 
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
 
-  padding-left: 12px;
+      padding-left: 12px;
 
-  transition: width 0.25s ease, background 0.25s ease;
-}
+      transition: width 0.25s ease, background 0.25s ease;
+    }
 
-.blog-floating-button:hover {
-  width: 120px;
-  background: #8f89d6;
-}
+    .blog-floating-button:hover {
+      width: 120px;
+      background: #8f89d6;
+    }
 
-.blog-floating-icon {
-  font-size: 18px;
-  flex-shrink: 0;
-}
+    .blog-floating-icon {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
 
-.blog-floating-text {
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
+    .blog-floating-text {
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
 
-.blog-floating-button:hover .blog-floating-text {
-  opacity: 1;
-}
+    .blog-floating-button:hover .blog-floating-text {
+      opacity: 1;
+    }
 
-.blog-floating-button:hover {
-  background: #3f7ec4;
-}
+    .blog-floating-button:hover {
+      background: #3f7ec4;
+    }
 
-/* ブログ一覧のカード */
-.blog-modal-item {
-  border: 1px solid #d8e6f7;
-  border-radius: 16px;
-  padding: 14px;
-  margin-bottom: 12px;
-  background: #ffffff;
-}
+    /* ブログ一覧のカード */
+    .blog-modal-item {
+      border: 1px solid #d8e6f7;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      background: #ffffff;
+    }
 
-.blog-modal-item:hover {
-  background: #f4f9ff;
-}
-
+    .blog-modal-item:hover {
+      background: #f4f9ff;
+    }
   </style>
 
 </head>
@@ -379,13 +377,13 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           <div class="d-flex align-items-center">
 
             <img id="groupIcon"
-                 src="https://placehold.jp/100x100.png"
-                 class="group-icon me-3">
+              src="https://placehold.jp/100x100.png"
+              class="group-icon me-3">
 
             <div>
 
               <h5 id="groupName"
-                  class="fw-bold mb-0">
+                class="fw-bold mb-0">
                 読み込み中...
               </h5>
 
@@ -400,9 +398,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           <div class="d-flex gap-2">
 
             <button type="button"
-                    class="btn btn-outline-primary btn-sm rounded-pill px-3"
-                    data-bs-toggle="modal"
-                    data-bs-target="#memberModal">
+              class="btn btn-outline-primary btn-sm rounded-pill px-3"
+              data-bs-toggle="modal"
+              data-bs-target="#memberModal">
               メンバー
             </button>
 
@@ -417,15 +415,15 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         </div>
 
         <button type="button"
-        class="blog-floating-button"
-        data-bs-toggle="modal"
-        data-bs-target="#blogModal">
-  ブログ
+          class="blog-floating-button"
+          data-bs-toggle="modal"
+          data-bs-target="#blogModal">
+          ブログ
         </button>
 
         <!-- 中央：メッセージ一覧 -->
         <div class="chat-box"
-             id="chatBox">
+          id="chatBox">
 
           <div class="empty-message">
             読み込み中...
@@ -435,20 +433,20 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
         <!-- 下：入力欄 -->
         <form id="messageForm"
-              class="chat-input-area"
-              enctype="multipart/form-data">
+          class="chat-input-area"
+          enctype="multipart/form-data">
 
           <div class="chat-input-row">
 
             <label for="imageUpload"
-                   class="image-label">
+              class="image-label">
               ＋
             </label>
 
             <input type="file"
-                   id="imageUpload"
-                   name="image_upload"
-                   accept="image/*">
+              id="imageUpload"
+              name="image_upload"
+              accept="image/*">
 
             <textarea
               class="form-control chat-textarea"
@@ -458,17 +456,17 @@ $currentUserId = $sessionHandler->getCurrentUserID();
               placeholder="メッセージを入力"></textarea>
 
             <button id="submitButton"
-                    class="btn btn-success send-button">
+              class="btn btn-success send-button">
               送信
             </button>
 
           </div>
 
           <div id="selectedImageName"
-               class="selected-image-name"></div>
+            class="selected-image-name"></div>
 
           <div id="preview"
-               class="preview-box">
+            class="preview-box">
             ここにMarkdownプレビューが表示されます
           </div>
 
@@ -480,9 +478,76 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   </main>
 
-<div class="modal fade"
-     id="blogModal"
-     tabindex="-1">
+  <div class="modal fade"
+    id="blogModal"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
+
+      <div class="modal-content rounded-4 border-0 shadow">
+
+        <div class="modal-header">
+
+          <h5 class="modal-title fw-bold">
+            グループブログ
+          </h5>
+
+          <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"></button>
+
+        </div>
+
+        <div class="modal-body"
+          id="blogList">
+
+          <div class="text-muted">
+            読み込み中...
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="modal fade"
+    id="memberModal"
+    tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-scrollable">
+
+      <div class="modal-content rounded-4 border-0 shadow">
+
+        <div class="modal-header">
+
+          <h5 class="modal-title fw-bold">
+            グループメンバー
+          </h5>
+
+          <button type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"></button>
+
+        </div>
+
+        <div class="modal-body"
+          id="memberList">
+
+          <div class="text-muted">
+            読み込み中...
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
 
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
 
@@ -495,13 +560,13 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         </h5>
 
         <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"></button>
+          class="btn-close"
+          data-bs-dismiss="modal"></button>
 
       </div>
 
       <div class="modal-body"
-           id="blogList">
+        id="blogList">
 
         <div class="text-muted">
           読み込み中...
@@ -513,83 +578,15 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   </div>
 
-</div>
-
-
-<div class="modal fade"
-     id="memberModal"
-     tabindex="-1">
-
-  <div class="modal-dialog modal-dialog-scrollable">
-
-    <div class="modal-content rounded-4 border-0 shadow">
-
-      <div class="modal-header">
-
-        <h5 class="modal-title fw-bold">
-          グループメンバー
-        </h5>
-
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"></button>
-
-      </div>
-
-      <div class="modal-body"
-           id="memberList">
-
-        <div class="text-muted">
-          読み込み中...
-        </div>
-
-      </div>
-
-    </div>
-
   </div>
-
-</div>
-
-  <div class="modal-dialog modal-dialog-scrollable modal-lg">
-
-    <div class="modal-content rounded-4 border-0 shadow">
-
-      <div class="modal-header">
-
-        <h5 class="modal-title fw-bold">
-          グループブログ
-        </h5>
-
-        <button type="button"
-                class="btn-close"
-                data-bs-dismiss="modal"></button>
-
-      </div>
-
-      <div class="modal-body"
-           id="blogList">
-
-        <div class="text-muted">
-          読み込み中...
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
 
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <input type="hidden"
-         id="csrf_token"
-         value="<?= htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8') ?>">
+    id="csrf_token"
+    value="<?= htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8') ?>">
 
   <script>
-
     // markdown
     const md =
       window.markdownit({
@@ -726,8 +723,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
         const response =
           await fetch(
-            "../api/group/get_group_chat.php",
-            {
+            "../api/group/get_group_chat.php", {
               method: "POST",
               body: formData
             }
@@ -778,9 +774,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           data.messages,
           scrollBottom
         );
-      renderBlogs(data.group_blogs);
-      loadGroupMembers();
-       
+        renderBlogs(data.group_blogs);
+        loadGroupMembers();
+
 
       } catch (error) {
 
@@ -796,29 +792,29 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     }
 
-  function renderMembers(members) {
+    function renderMembers(members) {
 
-  const memberList =
-    document.getElementById("memberList");
+      const memberList =
+        document.getElementById("memberList");
 
-  memberList.innerHTML =
-    "";
+      memberList.innerHTML =
+        "";
 
-  if (!members || members.length === 0) {
+      if (!members || members.length === 0) {
 
-    memberList.innerHTML = `
+        memberList.innerHTML = `
       <div class="text-muted">
         メンバーはいません
       </div>
     `;
 
-    return;
+        return;
 
-  }
+      }
 
-  members.forEach(member => {
+      members.forEach(member => {
 
-    memberList.innerHTML += `
+        memberList.innerHTML += `
 
       <a href="/profile/profile.php?user_id=${escapeHtml(member.user_id_str || member.user_id || "")}"
          class="d-flex align-items-center text-decoration-none text-dark border rounded-4 p-3 mb-2">
@@ -843,9 +839,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     `;
 
-  });
+      });
 
-}
+    }
 
     // =========================
     // グループ情報表示
@@ -974,113 +970,112 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     function renderBlogs(blogs) {
 
-  const blogList =
-    document.getElementById("blogList");
+      const blogList =
+        document.getElementById("blogList");
 
-  blogList.innerHTML =
-    "";
+      blogList.innerHTML =
+        "";
 
-  if (!blogs || blogs.length === 0) {
+      if (!blogs || blogs.length === 0) {
 
-    blogList.innerHTML = `
+        blogList.innerHTML = `
 
-      <div class="text-muted">
-        ブログはありません
-      </div>
-
-    `;
-
-    return;
-
-  }
-
-  blogs.forEach(blog => {
-
-    blogList.innerHTML += `
-
-      <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
-         class="text-decoration-none text-dark">
-
-        <div class="blog-modal-item">
-
-          <div class="fw-bold mb-1">
-            ${escapeHtml(blog.title)}
-          </div>
-
-          <div class="text-muted small mb-2">
-            ${escapeHtml(blog.content || "")}
-          </div>
-
-          <div class="small text-muted">
-            ${escapeHtml(blog.created_at || "")}
-          </div>
-
+        <div class="text-muted">
+          ブログはありません
         </div>
 
-      </a>
+      `;
 
-    `;
+        return;
 
-  });
+      }
 
-}
+      blogs.forEach(blog => {
 
-  async function loadGroupMembers() {
+        blogList.innerHTML += `
 
-  const formData =
-    new FormData();
+        <a href="/blog/blog_detail.php?blog_id=${blog.blog_id}"
+          class="text-decoration-none text-dark">
 
-  formData.append(
-    "group_id",
-    groupId
-  );
+          <div class="blog-modal-item">
 
-  formData.append(
-    "csrf_token",
-    csrfToken
-  );
+            <div class="fw-bold mb-1">
+              ${escapeHtml(blog.title)}
+            </div>
 
-  try {
+            <div class="text-muted small mb-2">
+              ${escapeHtml(blog.content || "")}
+            </div>
 
-    const response =
-      await fetch(
-        "/api/group/get_group_info.php",
-        {
-          method: "POST",
-          body: formData
-        }
+            <div class="small text-muted">
+              ${escapeHtml(blog.created_at || "")}
+            </div>
+
+          </div>
+
+        </a>
+
+      `;
+
+      });
+
+    }
+
+    async function loadGroupMembers() {
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "group_id",
+        groupId
       );
 
-    const result =
-      await response.json();
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
 
-    if (!result.success) {
+      try {
 
-      document.getElementById("memberList").innerHTML = `
+        const response =
+          await fetch(
+            "/api/group/get_group_info.php", {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const result =
+          await response.json();
+
+        if (!result.success) {
+
+          document.getElementById("memberList").innerHTML = `
         <div class="text-muted">
           メンバーを取得できませんでした
         </div>
       `;
 
-      return;
+          return;
 
-    }
+        }
 
-    renderMembers(result.data.members || []);
+        renderMembers(result.data.members || []);
 
-  } catch (error) {
+      } catch (error) {
 
-    console.error(error);
+        console.error(error);
 
-    document.getElementById("memberList").innerHTML = `
+        document.getElementById("memberList").innerHTML = `
       <div class="text-muted">
         通信エラーが発生しました
       </div>
     `;
 
-  }
+      }
 
-}
+    }
 
     // =========================
     // メッセージ送信
@@ -1155,8 +1150,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
           const response =
             await fetch(
-              "../api/group/send_message.php",
-              {
+              "../api/group/send_message.php", {
                 method: "POST",
                 body: formData
               }
@@ -1194,9 +1188,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
               "送信に失敗しました",
               "danger"
             );
-
-            return;
-
+            
           }
 
           e.target.reset();
@@ -1278,7 +1270,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
       }, 3000);
 
     }
-
   </script>
 
 </body>

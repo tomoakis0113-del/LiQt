@@ -45,6 +45,17 @@ try{
         lib\Util::responseError(403,'グループに属していません');
     }
 
+    // AIチェック
+    $ai = new lib\AI();
+    if($ai->word_check($message_content)){
+        lib\Util::responseError(400,'メッセージ内容に不適切な内容が含まれています');
+    }
+    // aiとのチャットかどうか
+    $isAiChat = models\GroupMember::query()
+        ->where('group_id', '=', $group_id)
+        ->where('user_id', '=', $ai->getId())
+        ->exists();
+
     // 画像アップロード
     $image_path = null;
     if($image_upload && $image_upload['error'] === UPLOAD_ERR_OK){
@@ -66,12 +77,22 @@ try{
     }
 
     // メッセージ保存
-    models\Chat::create([
+    $chat_id = models\Chat::create([
         'group_id' => $group_id,
         'sender_id' => $user_id,
         'content' => $message_content,
         'image_url' => $image_path
-    ]);
+    ])->id;
+
+    // aiとのチャットの場合、AIの応答を生成して保存
+    if($isAiChat){
+        if(!models\ReplySchedule::where("group_id","=",$group_id)->exists()){
+            models\ReplySchedule::create([
+                "group_id" => $group_id,
+                "type" => "chat"
+            ]);
+        }
+    }
     lib\Util::responseSuccess('メッセージの送信に成功しました');
 } catch (Exception $e){
     error_log("エラーが発生しました: " . $e->getMessage());

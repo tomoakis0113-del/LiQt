@@ -58,6 +58,12 @@ try{
     }
     $currentUserId = $sessionHandler->getCurrentUserID();
 
+    // AIチェック
+    $ai = new lib\AI();
+    if($ai->word_check($displayName . $introduction . $tags)){
+        lib\Util::responseError(400,'プロフィールに不適切な内容が含まれています');
+    }
+
     $iconUrl = null;
     if(isset($_FILES['icon']) && $_FILES['icon']['error'] !== UPLOAD_ERR_NO_FILE){
         if($_FILES['icon']['error'] !== UPLOAD_ERR_OK){

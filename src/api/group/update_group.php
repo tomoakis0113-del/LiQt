@@ -68,6 +68,12 @@ try {
         lib\Util::responseError(403, 'グループのメンバーではありません');
     }
 
+    // AIチェック
+    $ai = new lib\AI();
+    if($group_name && $ai->word_check($group_name)){
+        lib\Util::responseError(400,'グループ名に不適切な内容が含まれています');
+    }
+
     // グループ情報の更新
     $group = models\Group::find($group_id);
     $updated = false;
