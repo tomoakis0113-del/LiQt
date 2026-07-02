@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * 必要なパラメータ:
  * - csrf_token
  * - blog_id
- * 
+ *  
  * レスポンス:
  * - success: true/false
  * - message
@@ -58,7 +58,7 @@ $blog = models\Blog::query()
     ->where('id', $blogId)
     ->first([
         'id',
-        'author_id',
+        'user_id',
         'visibility',
         'group_id'
     ]);
@@ -66,6 +66,55 @@ $blog = models\Blog::query()
 if(!$blog){
     lib\Util::responseError(404,'ブログが見つかりません');
 }
+
+$blogAuthorId = (int)$blog->user_id;
+
+// 相手が自分をブロックしているか
+$blockedByAuthor = models\BlockList::query()
+    ->where('user_id', $blogAuthorId)
+    ->where('blocked_user_id', $currentUserId)
+    ->first(['id']);
+
+// 自分が相手をブロックしているか
+$blockedByMe = models\BlockList::query()
+    ->where('user_id', $currentUserId)
+    ->where('blocked_user_id', $blogAuthorId)
+    ->first(['id']);
+
+if($blockedByAuthor || $blockedByMe){
+    lib\Util::responseError(403, 'ブロック関係にあるため、このブログにはいいねできません');
+}//ブログ存在確認
+$blog = models\Blog::query()
+    ->where('id', $blogId)
+    ->first([
+        'id',
+        'user_id',
+        'visibility',
+        'group_id'
+    ]);
+
+if(!$blog){
+    lib\Util::responseError(404,'ブログが見つかりません');
+}
+
+$blogAuthorId = (int)$blog->user_id;
+
+// 相手が自分をブロックしているか
+$blockedByAuthor = models\BlockList::query()
+    ->where('user_id', $blogAuthorId)
+    ->where('blocked_user_id', $currentUserId)
+    ->first(['id']);
+
+// 自分が相手をブロックしているか
+$blockedByMe = models\BlockList::query()
+    ->where('user_id', $currentUserId)
+    ->where('blocked_user_id', $blogAuthorId)
+    ->first(['id']);
+
+if($blockedByAuthor || $blockedByMe){
+    lib\Util::responseError(403, 'ブロック関係にあるため、このブログにはいいねできません');
+}
+
 
 // 非公開ブログは投稿者本人だけいいね可能
 if($blog->visibility === 'private'){
