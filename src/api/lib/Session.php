@@ -190,6 +190,14 @@ class Session {
         return isset($_SESSION[SESSION_KEY]);
     }
 
+    /** activate状況確認 */
+    public function isActivated(): bool {
+        if(!$this->isSignedIn()) return false;
+        $userId = $this->getCurrentUserID();
+        $user = UserModel::query()->where('id', $userId)->first(['is_activated']);
+        return $user ? (bool)$user['is_activated'] : false;
+    }
+
     /** サインアウト処理
      * @throws SessionException サインアウト処理に失敗した場合
      */
