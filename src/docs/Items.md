@@ -287,8 +287,6 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - レスポンス: `success`->true/false, `message`->エラーメッセージ
             - 成功：`dashboard.php` へ遷移
             - 失敗：エラーメッセージ表示
-    ご提示いただいた「グループ編集ページ（`edit_group.php`）」のフォーマット（インデント、レスポンス・フォームの記述ルール、遷移条件など）を完全に踏襲し、今回追加された通知関連のAPI情報を追記した修正用テキストを作成しました。
-
     - 通知設定切り替えボタン（トグル）
         - 通知ブロック更新処理（`api/group/toggle_notice.php`）
             - フォーム項目: `group_id`, `csrf_token`
@@ -296,7 +294,7 @@ README.md の内容をもとに、各ページに必要な項目をリストア�
             - 成功：通知ブロック状態を反転して表示更新
             - 失敗：エラーメッセージ表示
             
-    - 通知設定確認ボタン
+    - 通知設定確認
         - 通知ブロック状態取得処理（`api/group/get_notice_status.php`）
             - フォーム項目: `group_id`, `csrf_token`
             - レスポンス: `success`->true/false, `message`->成否メッセージ, `data`->`is_blocked`
