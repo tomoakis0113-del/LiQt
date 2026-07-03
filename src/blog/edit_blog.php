@@ -15,13 +15,25 @@ $csrfToken = new lib\CSRFToken();
   <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- markdown-it の読み込み -->
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  
+  <!-- Highlight.js (シンタックスハイライト) の追加 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
   <style>
     .preview-box {
       border: 1px dashed #ccc;
       padding: 10px;
       background: #fff;
+    }
+    /* プレビュー内のコードブロックの見た目を調整 */
+    .preview-box pre {
+      background: #f6f8fa;
+      padding: 12px;
+      border-radius: 6px;
+      overflow-x: auto;
     }
   </style>
 </head>
@@ -126,7 +138,19 @@ $csrfToken = new lib\CSRFToken();
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
-    const md = window.markdownit();
+    // --- markdown-it に Highlight.js を組み込んで初期化 ---
+    const md = window.markdownit({
+      highlight: function (str, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          try {
+            return '<pre><code class="hljs">' +
+                   hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+                   '</code></pre>';
+          } catch (__) {}
+        }
+        return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+      }
+    });
 
     // クエリパラメータから blog_id を取得
     const params = new URLSearchParams(location.search);

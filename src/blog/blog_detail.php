@@ -17,7 +17,12 @@ $csrfToken = new lib\CSRFToken();
   <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
   <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
+  <!-- markdown-it -->
   <script src="https://cdn.jsdelivr.net/npm/markdown-it/dist/markdown-it.min.js"></script>
+  
+  <!-- 【追加】Highlight.js のスタイル(githubテーマ)と本体ライブラリ -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
@@ -39,6 +44,14 @@ $csrfToken = new lib\CSRFToken();
     /* 本文 */
     #content {
       line-height: 1.9;
+    }
+
+    /* 【追加】コードブロックの見た目を少し調整（パディングと角丸） */
+    #content pre code {
+      padding: 1rem;
+      border-radius: 8px;
+      display: block;
+      overflow-x: auto;
     }
 
     /* 関連記事 */
@@ -126,8 +139,19 @@ $csrfToken = new lib\CSRFToken();
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <script>
-    // markdown
-    const md = window.markdownit();
+    // 【変更】markdown-it の初期化時に highlight オプションを連携させる
+    const md = window.markdownit({
+      highlight: function (str, lang) {
+        if (lang && hljs.getLanguage(lang)) {
+          try {
+            return '<pre><code class="hljs">' +
+                   hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+                   '</code></pre>';
+          } catch (__) {}
+        }
+        return '<pre><code class="hljs">' + md.utils.escapeHtml(str) + '</code></pre>';
+      }
+    });
 
     // URLパラメータ
     const params = new URLSearchParams(location.search);
