@@ -39,7 +39,13 @@ class AI{
     }
     private function word_check_api(String $content): bool
     {
-        $url = "https://api.sanae.tech/check.php";
+        $outside_server_domain = $_ENV['OUTSIDE_SERVER_DOMAIN'] ?? null;
+        if(empty($outside_server_domain)) {
+            error_log("[SanaeProject] OUTSIDE_SERVER_DOMAIN is not set in the environment variables.");
+            return false;
+        }
+
+        $url = "https://{$outside_server_domain}/check.php";
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
@@ -76,7 +82,13 @@ class AI{
      */
     public function chat(String $content): string
     {
-        $url = "https://api.sanae.tech/chat.php";
+        $outside_server_domain = $_ENV['OUTSIDE_SERVER_DOMAIN'] ?? null;
+        if(empty($outside_server_domain)) {
+            error_log("[SanaeProject] OUTSIDE_SERVER_DOMAIN is not set in the environment variables.");
+            return '';
+        }
+        
+        $url = "https://{$outside_server_domain}/chat.php";
 
         set_time_limit(300);
 

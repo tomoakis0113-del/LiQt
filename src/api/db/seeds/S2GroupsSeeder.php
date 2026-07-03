@@ -15,12 +15,6 @@ class S2GroupsSeeder extends AbstractSeed
                 'created_at' => date('Y-m-d H:i:s'),
                 'group_icon_url' => '',
             ],
-            [
-                'name' => 'Private Club',
-                'is_public' => false,
-                'created_at' => date('Y-m-d H:i:s'),
-                'group_icon_url' => '',
-            ]
         ];
         $this->table('groups')->insert($groups)->saveData();
     }

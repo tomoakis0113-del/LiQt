@@ -8,16 +8,25 @@ services:
     volumes:
       - ./src:/var/www/html
       - .env:/var/www/.env
+    depends_on:
+      db:
+        condition: service_healthy
   db:
     image: mariadb:latest
     ports:
       - "3306:3306"
     environment:
-      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
-      MARIADB_DATABASE: ${DB_NAME}
-      MARIADB_USER: ${DB_USER}
-      MARIADB_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:?パスワードが設定されていません}
+      MARIADB_DATABASE: ${DB_NAME:?データベース名が設定されていません}
+      MARIADB_USER: ${DB_USER:?ユーザー名が設定されていません}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?パスワードが設定されていません}
     volumes:
       - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 volumes:
   db_data:

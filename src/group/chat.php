@@ -626,6 +626,21 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     }, 3000);
 
+    // messageInputのEnterで送信、Shift+Enterで改行
+    document
+      .getElementById("messageInput")
+      .addEventListener("keydown", function (e) {
+
+        if (e.key === "Enter" && !e.shiftKey) {
+
+          e.preventDefault();
+
+          document.getElementById("messageForm").requestSubmit();
+
+        }
+
+      });
+
     // メッセージ入力時の高さ調整
     document
       .getElementById("messageInput")

@@ -120,6 +120,10 @@ class Session {
             // 時間をずらしてサインイン試行の頻度を下げる
             usleep(rand(500000, 3000000));
 
+            if (!filter_var($mailAddress, FILTER_VALIDATE_EMAIL)) {
+                return false;
+            }
+
             $user = UserModel::query()
                     ->where('mail_address', '=', $mailAddress)
                     ->first(['id', 'password']);

@@ -30,7 +30,7 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+      - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN:?トークンがありません}
     command: tunnel --no-autoupdate run
 
 volumes:

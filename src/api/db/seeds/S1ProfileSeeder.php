@@ -16,30 +16,13 @@ class S1ProfileSeeder extends AbstractSeed
     public function run(): void
     {
         $ai         = models\User::query()->where('user_id', 'ai')->firstOrFail(['id']);
-        $otonari    = models\User::query()->where('user_id', 'otonari')->firstOrFail(['id']);
-        $simada     = models\User::query()->where('user_id', 'simada')->firstOrFail(['id']);
-        $katuhara   = models\User::query()->where('user_id', 'katuhara')->firstOrFail(['id']);
 
         $profiles = [
             [
                 'user_id' => $ai->id,
                 'display_name' => 'AI',
+                'icon_url' => 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgEkdARmw-HyAXpmnhrr9J9YEkUdJA5DLdt0UrgsXey80KFFAFhh1LsabZpEWtSiDNa1Itao7snbVnwSJB3cJOXM98aCUigACkOeOnquX8apCXJyx7bE6sPyoKOw6zDpQvVeXswG8LLgdaoAdztRkZX4bjM-oI6b1lt9lZJlMZqY-2wX1tMGFnIK_b8QMGu/s658/ai_character04_laugh.png',
                 'introduction' => 'AIのプロフィールです。',
-            ],
-            [
-                'user_id' => $otonari->id,
-                'display_name' => 'おとなり',
-                'introduction' => 'おとなりのプロフィールです。',
-            ],
-            [
-                'user_id' => $simada->id,
-                'display_name' => 'しまだ',
-                'introduction' => 'しまだのプロフィールです。',
-            ],
-            [
-                'user_id' => $katuhara->id,
-                'display_name' => 'かつはら',
-                'introduction' => 'かつはらのプロフィールです。',
             ],
         ];
         $this->table('profiles')->insert($profiles)->saveData();

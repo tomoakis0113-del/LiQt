@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
  * 必要なパラメータ:
  * - csrf_token
  * - blog_id
- * 
+ *  
  * レスポンス:
  * - success: true/false
  * - message
@@ -53,15 +53,95 @@ try{
     //ログイン中ユーザーID取得
     $currentUserId = $sessionHandler->getCurrentUserID();
 
-    //ブログ存在確認
-    $blog = models\Blog::query()
-        ->where('id', $blogId)
-        ->first(['id']);
+//ブログ存在確認
+$blog = models\Blog::query()
+    ->where('id', $blogId)
+    ->first([
+        'id',
+        'user_id',
+        'visibility',
+        'group_id'
+    ]);
 
-    if(!$blog){
-        lib\Util::responseError(404,'ブログが見つかりません');
+if(!$blog){
+    lib\Util::responseError(404,'ブログが見つかりません');
+}
+
+$blogAuthorId = (int)$blog->user_id;
+
+// 相手が自分をブロックしているか
+$blockedByAuthor = models\BlockList::query()
+    ->where('user_id', $blogAuthorId)
+    ->where('blocked_user_id', $currentUserId)
+    ->first(['id']);
+
+// 自分が相手をブロックしているか
+$blockedByMe = models\BlockList::query()
+    ->where('user_id', $currentUserId)
+    ->where('blocked_user_id', $blogAuthorId)
+    ->first(['id']);
+
+if($blockedByAuthor || $blockedByMe){
+    lib\Util::responseError(403, 'ブロック関係にあるため、このブログにはいいねできません');
+}//ブログ存在確認
+$blog = models\Blog::query()
+    ->where('id', $blogId)
+    ->first([
+        'id',
+        'user_id',
+        'visibility',
+        'group_id'
+    ]);
+
+if(!$blog){
+    lib\Util::responseError(404,'ブログが見つかりません');
+}
+
+$blogAuthorId = (int)$blog->user_id;
+
+// 相手が自分をブロックしているか
+$blockedByAuthor = models\BlockList::query()
+    ->where('user_id', $blogAuthorId)
+    ->where('blocked_user_id', $currentUserId)
+    ->first(['id']);
+
+// 自分が相手をブロックしているか
+$blockedByMe = models\BlockList::query()
+    ->where('user_id', $currentUserId)
+    ->where('blocked_user_id', $blogAuthorId)
+    ->first(['id']);
+
+if($blockedByAuthor || $blockedByMe){
+    lib\Util::responseError(403, 'ブロック関係にあるため、このブログにはいいねできません');
+}
+
+
+// 非公開ブログは投稿者本人だけいいね可能
+if($blog->visibility === 'private'){
+
+    if((int)$blog->author_id !== (int)$currentUserId){
+        lib\Util::responseError(403,'非公開ブログにはいいねできません');
     }
 
+}
+
+// グループブログは所属メンバーだけいいね可能
+if($blog->visibility === 'group'){
+
+    if(empty($blog->group_id)){
+        lib\Util::responseError(403,'このグループブログにはいいねできません');
+    }
+
+    $member = models\GroupMember::query()
+        ->where('group_id', $blog->group_id)
+        ->where('user_id', $currentUserId)
+        ->first(['id']);
+
+    if(!$member){
+        lib\Util::responseError(403,'グループメンバーのみいいねできます');
+    }
+
+}
     //既にいいねしているか確認
     $liked = models\BlogLike::query()
         ->where('blog_id', $blogId)

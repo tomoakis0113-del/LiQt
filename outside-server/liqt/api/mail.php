@@ -24,17 +24,22 @@ if($in_password !== $_ENV['API_PASSWORD']) {
 
 $mail = new PHPMailer(true);
 
+if(empty($_ENV['MAIL_HOST']) || empty($_ENV['MAIL_USER']) || empty($_ENV['MAIL_PASSWORD']) || empty($_ENV['MAIL_PORT'])) {
+    error_log("Mail configuration is not set properly in the environment variables.");
+    exit(http_response_code(500));
+}
+
 try {
     $mail->isSMTP();
     $mail->Host = $_ENV['MAIL_HOST'];
     $mail->SMTPAuth = true;
-    $mail->Username = "liqt@sanae.tech";
+    $mail->Username = $_ENV['MAIL_USER'];
     $mail->Password = $_ENV['MAIL_PASSWORD'];
 
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
     $mail->Port = $_ENV['MAIL_PORT'];
 
-    $mail->setFrom("liqt@sanae.tech", 'SanaeProject');
+    $mail->setFrom($_ENV['MAIL_USER'], 'SanaeProject');
     $mail->addAddress($target, 'Recipient Name');
 
     // **エンコーディング設定**
