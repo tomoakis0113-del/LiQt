@@ -151,8 +151,8 @@ $currentUserId = $sessionHandler->getCurrentUserID();
       margin-left: auto;
     }
     .message.mine .message-content {
-  text-align: left;
-}
+      text-align: left;
+    }
 
     .message.other .message-body {
       align-items: flex-start;
@@ -194,9 +194,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         align-items: flex-start;
     }
 
-  .message.other .message-content {
-      text-align: left;
-  }
+    .message.other .message-content {
+        text-align: left;
+    }
 
     .message-content p:last-child {
       margin-bottom: 0;
@@ -384,6 +384,44 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     .blog-modal-item:hover {
       background: #f4f9ff;
     }
+
+    /* メンション候補ポップアップのスタイル */
+    .mention-suggestions {
+      position: absolute;
+      bottom: 100%;
+      left: 12px;
+      background: #ffffff;
+      border: 1px solid #d8e6f7;
+      border-radius: 16px;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+      max-height: 220px;
+      overflow-y: auto;
+      width: calc(100% - 24px);
+      z-index: 1000;
+      display: none;
+      padding: 6px 0;
+    }
+
+    .mention-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .mention-item:hover, 
+    .mention-item.active {
+      background: #eef5ff;
+    }
+
+    .mention-item img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 12px;
+    }
   </style>
 
 </head>
@@ -400,7 +438,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
       <div class="card border-0 shadow-sm line-chat-card">
 
-        <!-- 上：グループ情報 -->
         <div class="line-chat-header d-flex align-items-center justify-content-between">
 
           <div class="d-flex align-items-center">
@@ -440,7 +477,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           ブログ
         </button>
 
-        <!-- 中央：メッセージ一覧 -->
         <div class="chat-box" id="chatBox">
 
           <div class="empty-message">
@@ -449,8 +485,9 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
         </div>
 
-        <!-- 下：入力欄 -->
-        <form id="messageForm" class="chat-input-area" enctype="multipart/form-data">
+        <form id="messageForm" class="chat-input-area position-relative" enctype="multipart/form-data">
+
+          <div id="mentionSuggestions" class="mention-suggestions"></div>
 
           <div class="chat-input-row">
 
@@ -544,34 +581,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
   </div>
 
-  <div class="modal-dialog modal-dialog-scrollable modal-lg">
-
-    <div class="modal-content rounded-4 border-0 shadow">
-
-      <div class="modal-header">
-
-        <h5 class="modal-title fw-bold">
-          グループブログ
-        </h5>
-
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-
-      </div>
-
-      <div class="modal-body" id="blogList">
-
-        <div class="text-muted">
-          読み込み中...
-        </div>
-
-      </div>
-
-    </div>
-
-  </div>
-
-  </div>
-
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
   <input type="hidden" id="csrf_token" value="<?= htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8') ?>">
@@ -604,6 +613,11 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     let firstLoad =
       true;
 
+    // メンション管理用のグローバル変数
+    let groupMembers = [];          // メンバーデータのキャッシュ
+    let filteredMembers = [];       // 現在絞り込まれている候補
+    let activeMentionIndex = 0;     // キーボード操作用の選択位置
+
     // group_idチェック
     if (!groupId) {
 
@@ -616,32 +630,68 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
     }
 
-    // 初期ロード
-    loadGroupChat();
+    // 初期起動
+    initPage();
 
-    // 3秒ごと更新
-    setInterval(() => {
+    // 初期化と定期更新の制御
+    async function initPage() {
+      // 1. まず絶対にメンバーデータを先に取得してキャッシュする
+      await loadGroupMembers();
+      // 2. メンバーデータがある状態でチャットを読み込む
+      await loadGroupChat(true);
 
-      loadGroupChat(false);
+      // 以降、3秒おきにチャットを更新
+      setInterval(async () => {
+        await loadGroupChat(false);
+      }, 3000);
+    }
 
-    }, 3000);
-
-    // messageInputのEnterで送信、Shift+Enterで改行
+    // messageInputのキーボード操作 (Enterでの送信やメンション候補選択)
     document
       .getElementById("messageInput")
       .addEventListener("keydown", function (e) {
-
-        if (e.key === "Enter" && !e.shiftKey) {
-
-          e.preventDefault();
-
-          document.getElementById("messageForm").requestSubmit();
-
+        const suggestions = document.getElementById("mentionSuggestions");
+        
+        // メンションポップアップが表示されている場合のキー判定
+        if (suggestions.style.display === "block") {
+          if (e.key === "ArrowDown") {
+            e.preventDefault();
+            activeMentionIndex = (activeMentionIndex + 1) % filteredMembers.length;
+            updateMentionFocus();
+            return;
+          }
+          if (e.key === "ArrowUp") {
+            e.preventDefault();
+            activeMentionIndex = (activeMentionIndex - 1 + filteredMembers.length) % filteredMembers.length;
+            updateMentionFocus();
+            return;
+          }
+          if (e.key === "Enter" || e.key === "Tab") {
+            e.preventDefault();
+            if (filteredMembers[activeMentionIndex]) {
+              const textBeforeCaret = this.value.substring(0, this.selectionStart);
+              const mentionMatch = textBeforeCaret.match(/@([^\s@]*)$/);
+              if (mentionMatch) {
+                insertMention(filteredMembers[activeMentionIndex].display_name, mentionMatch.index, this.selectionStart);
+              }
+            }
+            return;
+          }
+          if (e.key === "Escape") {
+            e.preventDefault();
+            suggestions.style.display = "none";
+            return;
+          }
         }
 
+        // 既存のEnterで送信処理
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById("messageForm").requestSubmit();
+        }
       });
 
-    // メッセージ入力時の高さ調整
+    // メッセージ入力時の高さ調整 ＆ メンション入力監視
     document
       .getElementById("messageInput")
       .addEventListener("input", function () {
@@ -655,6 +705,28 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         document.getElementById("preview").innerHTML =
           md.render(this.value);
 
+        // メンションのトリガー判定
+        const text = this.value;
+        const caretPos = this.selectionStart;
+        const textBeforeCaret = text.substring(0, caretPos);
+        const mentionMatch = textBeforeCaret.match(/@([^\s@]*)$/);
+
+        const suggestions = document.getElementById("mentionSuggestions");
+
+        if (mentionMatch) {
+          const query = mentionMatch[1].toLowerCase();
+          filteredMembers = groupMembers.filter(m => 
+            (m.display_name && m.display_name.toLowerCase().includes(query))
+          );
+
+          if (filteredMembers.length > 0) {
+            renderMentionSuggestions(filteredMembers, mentionMatch.index, caretPos);
+          } else {
+            suggestions.style.display = "none";
+          }
+        } else {
+          suggestions.style.display = "none";
+        }
       });
 
     // 画像選択
@@ -737,8 +809,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         const text =
           await response.text();
 
-        console.log(text);
-
         let result;
 
         try {
@@ -780,8 +850,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           scrollBottom
         );
         renderBlogs(data.group_blogs);
-        loadGroupMembers();
-
 
       } catch (error) {
 
@@ -798,6 +866,8 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     }
 
     function renderMembers(members) {
+      // メンション候補として利用するためにグローバル変数へキャッシュ
+      groupMembers = members;
 
       const memberList =
         document.getElementById("memberList");
@@ -866,7 +936,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     }
 
     // =========================
-    // メッセージ表示
+    // メッセージ表示 (プロフィールリンク置換処理を強化)
     // =========================
 
     function renderMessages(messages, scrollBottom = true) {
@@ -906,11 +976,23 @@ $currentUserId = $sessionHandler->getCurrentUserID();
         const isMine =
           message.is_mine === true ||
           String(senderId) === String(currentUserId);
-          console.log({
-          senderId,
-          currentUserId,
-          isMine,
-          message
+
+        // Markdown変換
+        let contentHtml = md.renderInline(message.content || "");
+        
+        // メンション表現（@ユーザー名）を解析してプロフィールリンク化
+        contentHtml = contentHtml.replace(/@([^\s@]+)/g, (match, displayName) => {
+          // キャッシュされているメンバーから表示名が一致するユーザーを検索
+          const foundMember = groupMembers.find(m => String(m.display_name).trim() === String(displayName).trim());
+          
+          if (foundMember) {
+            const userId = foundMember.user_id_str || foundMember.user_id || "";
+            // 一致するメンバーがいれば、プロフィールリンク付きのAタグに置換
+            return `<a href="/profile/profile.php?user_id=${escapeHtml(userId)}" class="text-primary fw-bold text-decoration-none" style="position: relative; z-index: 5;">@${escapeHtml(displayName)}</a>`;
+          } else {
+            // 該当メンバーが見つからない場合は通常のハイライトテキスト
+            return `<span class="text-primary fw-bold">@${escapeHtml(displayName)}</span>`;
+          }
         });
 
         chatBox.innerHTML += `
@@ -938,7 +1020,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
             : ""
           }
 
-              <div class="message-content">${md.renderInline(message.content || "")}</div>
+              <div class="message-content">${contentHtml}</div>
 
               <div class="message-time">
                 ${escapeHtml(message.created_at || "")}
@@ -1074,6 +1156,73 @@ $currentUserId = $sessionHandler->getCurrentUserID();
     }
 
     // =========================
+    // メンションポップアップ制御ロジック
+    // =========================
+
+    function renderMentionSuggestions(members, matchIndex, caretPos) {
+      const suggestions = document.getElementById("mentionSuggestions");
+      suggestions.innerHTML = "";
+      suggestions.style.display = "block";
+      activeMentionIndex = 0;
+
+      members.forEach((member, index) => {
+        const item = document.createElement("div");
+        item.className = `mention-item ${index === 0 ? 'active' : ''}`;
+        item.innerHTML = `
+          <img src="${member.icon_url || 'https://placehold.jp/100x100.png'}">
+          <span class="fw-bold">${escapeHtml(member.display_name || "名前なし")}</span>
+        `;
+
+        // マウスクリック決定処理
+        item.addEventListener("click", () => {
+          insertMention(member.display_name, matchIndex, caretPos);
+        });
+
+        suggestions.appendChild(item);
+      });
+    }
+
+    // キーボード移動時のフォーカス追従
+    function updateMentionFocus() {
+      const suggestions = document.getElementById("mentionSuggestions");
+      const items = suggestions.querySelectorAll(".mention-item");
+      items.forEach((item, index) => {
+        if (index === activeMentionIndex) {
+          item.classList.add("active");
+          item.scrollIntoView({ block: "nearest" });
+        } else {
+          item.classList.remove("active");
+        }
+      });
+    }
+
+    // メンション文字列を入力欄に決定・挿入する
+    function insertMention(displayName, matchIndex, caretPos) {
+      const messageInput = document.getElementById("messageInput");
+      const text = messageInput.value;
+      const before = text.substring(0, matchIndex);
+      const after = text.substring(caretPos);
+
+      // 送信後の見やすさのため末尾にスペースを設ける
+      messageInput.value = before + "@" + displayName + " " + after;
+      document.getElementById("mentionSuggestions").style.display = "none";
+      messageInput.focus();
+
+      // カーソル位置を挿入した名前の直後に設定
+      const newCaretPos = matchIndex + displayName.length + 2;
+      messageInput.setSelectionRange(newCaretPos, newCaretPos);
+    }
+
+    // ポップアップ以外をクリックした時に候補を閉じる
+    document.addEventListener("click", function (e) {
+      const suggestions = document.getElementById("mentionSuggestions");
+      const messageInput = document.getElementById("messageInput");
+      if (!suggestions.contains(e.target) && e.target !== messageInput) {
+        suggestions.style.display = "none";
+      }
+    });
+
+    // =========================
     // メッセージ送信
     // =========================
 
@@ -1155,8 +1304,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
           const text =
             await response.text();
 
-          console.log(text);
-
           let result;
 
           try {
@@ -1215,7 +1362,6 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
           submitButton.disabled =
             false;
-
           submitButton.innerHTML =
             "送信";
 
