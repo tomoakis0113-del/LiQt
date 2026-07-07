@@ -85,6 +85,23 @@ try{
         lib\Util::responseError(404,'ブログが見つかりません');
     }
 
+    $blogUserId = models\Blog::query()
+        ->where("id", "=", $blogId)
+        ->first(["author_id"])["author_id"] ?? null;
+
+    if(!$blogUserId){
+        lib\Util::responseError(404, "ブログ投稿者が見つかりません");
+    }
+
+    $isBlocked = models\BlockList::query()
+        ->where("user_id", "=", $blogUserId)
+        ->where("blocked_user_id", "=", $currentUserId)
+        ->exists();
+
+    if($isBlocked){
+        lib\Util::responseError(403, "コメントが禁止されています。");
+    }
+
     //コメント追加
     $comment = models\BlogComment::query()->create([
         'blog_id' => $blogId,
@@ -102,4 +119,4 @@ try{
     error_log("エラーが発生しました: " . $e->getMessage());
     lib\Util::responseError(500,'サーバーエラーが発生しました');
 }
-?>2
+?>
