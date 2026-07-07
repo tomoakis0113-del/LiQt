@@ -101,7 +101,7 @@ $csrfToken = new lib\CSRFToken();
     </h2>
 
     <!-- group -->
-    <div class="card shadow-sm border-0 mb-5">
+    <div class="card shadow-sm border-0 mb-4">
 
       <div class="card-body p-4 d-flex align-items-center">
 
@@ -125,6 +125,42 @@ $csrfToken = new lib\CSRFToken();
                class="text-muted">
 
           </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- notice setting -->
+    <div class="card shadow-sm border-0 mb-5">
+
+      <div class="card-body p-4 d-flex align-items-center justify-content-between">
+
+        <div>
+
+          <h4 class="fw-bold mb-1">
+
+            通知設定
+
+          </h4>
+
+          <p id="noticeStatusText"
+             class="text-muted mb-0">
+
+            読み込み中...
+
+          </p>
+
+        </div>
+
+        <div class="form-check form-switch fs-4">
+
+          <input class="form-check-input"
+                 type="checkbox"
+                 role="switch"
+                 id="noticeToggleBtn"
+                 disabled>
 
         </div>
 
@@ -459,6 +495,7 @@ $csrfToken = new lib\CSRFToken();
         }
 
         loadGroup();
+        loadNoticeStatus();
 
       }
 
@@ -718,6 +755,219 @@ $csrfToken = new lib\CSRFToken();
       });
 
     }
+
+    // =========================
+    // load notice status
+    // =========================
+
+    async function loadNoticeStatus() {
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        "csrf_token",
+        csrfToken
+      );
+
+      formData.append(
+        "group_id",
+        groupId
+      );
+
+      try {
+
+        const response =
+          await fetch(
+            "../api/group/get_notice_status.php",
+            {
+              method: "POST",
+              body: formData
+            }
+          );
+
+        const text =
+          await response.text();
+
+        let result;
+
+        try {
+
+          result =
+            JSON.parse(text);
+
+        }
+
+        catch {
+
+          console.error(text);
+
+          showAlert(
+            "通知ステータスAPIのレスポンス形式が不正です",
+            "danger"
+          );
+
+          return;
+
+        }
+
+        if (!result.success) {
+
+          showAlert(
+            result.message,
+            "danger"
+          );
+
+          return;
+
+        }
+
+        renderNoticeStatus(result.data.is_blocked);
+
+      }
+
+      catch (error) {
+
+        console.error(error);
+
+        showAlert(
+          "通知ステータスの取得中に通信エラーが発生しました",
+          "danger"
+        );
+
+      }
+
+    }
+
+    // =========================
+    // render notice status
+    // =========================
+
+    function renderNoticeStatus(isBlocked) {
+
+      const toggleBtn =
+        document.getElementById("noticeToggleBtn");
+
+      const statusText =
+        document.getElementById("noticeStatusText");
+
+      toggleBtn.disabled = false;
+
+      toggleBtn.checked = isBlocked;
+
+      statusText.textContent = isBlocked
+        ? "通知をブロック中"
+        : "通知を受信中";
+
+    }
+
+    // =========================
+    // toggle notice event
+    // =========================
+
+    document.getElementById("noticeToggleBtn")
+      .addEventListener("change", async (e) => {
+
+        const toggleBtn =
+          e.target;
+
+        toggleBtn.disabled = true;
+
+        const formData =
+          new FormData();
+
+        formData.append(
+          "csrf_token",
+          csrfToken
+        );
+
+        formData.append(
+          "group_id",
+          groupId
+        );
+
+        try {
+
+          const response =
+            await fetch(
+              "../api/group/toggle_notice.php",
+              {
+                method: "POST",
+                body: formData
+              }
+            );
+
+          const text =
+            await response.text();
+
+          let result;
+
+          try {
+
+            result =
+              JSON.parse(text);
+
+          }
+
+          catch {
+
+            console.error(text);
+
+            showAlert(
+              "通知切り替えAPIのレスポンス形式が不正です",
+              "danger"
+            );
+
+            toggleBtn.checked = !toggleBtn.checked;
+
+            return;
+
+          }
+
+          if (!result.success) {
+
+            showAlert(
+              result.message,
+              "danger"
+            );
+
+            toggleBtn.checked = !toggleBtn.checked;
+
+            return;
+
+          }
+
+          showAlert(
+            result.message,
+            "success"
+          );
+
+          document.getElementById("noticeStatusText").textContent = toggleBtn.checked
+            ? "通知をブロック中"
+            : "通知を受信中";
+
+        }
+
+        catch (error) {
+
+          console.error(error);
+
+          showAlert(
+            "通信エラーが発生しました",
+            "danger"
+          );
+
+          toggleBtn.checked = !toggleBtn.checked;
+
+        }
+
+        finally {
+
+          toggleBtn.disabled = false;
+
+        }
+
+      });
 
     // =========================
     // remove member
@@ -1208,4 +1458,3 @@ $csrfToken = new lib\CSRFToken();
 </body>
 
 </html>
-```
