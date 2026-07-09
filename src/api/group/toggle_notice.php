@@ -49,7 +49,7 @@ try{
         ->where('group_id', '=', $group_id)
         ->where('user_id', '=', $user_id);
 
-    if($Blocked){
+    if($Blocked->exists()){
         $Blocked->delete();
     } else {
         models\NoticeBlock::create([
