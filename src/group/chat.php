@@ -1196,30 +1196,34 @@ $currentUserId = $sessionHandler->getCurrentUserID();
       });
     }
 
-  // メンション文字列を入力欄に決定・挿入する
-  function insertMention(member, matchIndex, caretPos) {
+function insertMention(member, matchIndex, caretPos) {
   console.log("選択したメンバー:", member);
   console.log("送信に使うID:", member.user_id_str || member.user_id);
 
   const messageInput = document.getElementById("messageInput");
 
-    // APIに送る用の user_id
-    const mentionUserId = member.user_id_str || member.user_id || "";
+  const text = messageInput.value;
+  const before = text.substring(0, matchIndex);
+  const after = text.substring(caretPos);
 
-    if (!mentionUserId) {
-      return;
-    }
+  // APIに送る用の user_id
+  const mentionUserId = member.user_id_str || member.user_id || "";
 
-    // 入力欄には @user_id を入れる
-    messageInput.value = before + "@" + mentionUserId + " " + after;
-
-    document.getElementById("mentionSuggestions").style.display = "none";
-    messageInput.focus();
-
-    // カーソル位置を @user_id の直後にする
-    const newCaretPos = matchIndex + mentionUserId.length + 2;
-    messageInput.setSelectionRange(newCaretPos, newCaretPos);
+  if (!mentionUserId) {
+    console.error("mentionUserId が空です", member);
+    return;
   }
+
+  // 入力欄には @user_id を入れる
+  messageInput.value = before + "@" + mentionUserId + " " + after;
+
+  document.getElementById("mentionSuggestions").style.display = "none";
+  messageInput.focus();
+
+  // カーソル位置を @user_id の直後にする
+  const newCaretPos = matchIndex + mentionUserId.length + 2;
+  messageInput.setSelectionRange(newCaretPos, newCaretPos);
+}
 
     // ポップアップ以外をクリックした時に候補を閉じる
     document.addEventListener("click", function (e) {
