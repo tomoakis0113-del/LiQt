@@ -672,7 +672,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
               const textBeforeCaret = this.value.substring(0, this.selectionStart);
               const mentionMatch = textBeforeCaret.match(/@([^\s@]*)$/);
               if (mentionMatch) {
-                insertMention(filteredMembers[activeMentionIndex].display_name, mentionMatch.index, this.selectionStart);
+               insertMention(filteredMembers[activeMentionIndex], mentionMatch.index, this.selectionStart);
               }
             }
             return;
@@ -1175,7 +1175,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
 
         // マウスクリック決定処理
         item.addEventListener("click", () => {
-          insertMention(member.display_name, matchIndex, caretPos);
+        insertMention(member, matchIndex, caretPos);
         });
 
         suggestions.appendChild(item);
@@ -1196,22 +1196,30 @@ $currentUserId = $sessionHandler->getCurrentUserID();
       });
     }
 
-    // メンション文字列を入力欄に決定・挿入する
-    function insertMention(displayName, matchIndex, caretPos) {
-      const messageInput = document.getElementById("messageInput");
-      const text = messageInput.value;
-      const before = text.substring(0, matchIndex);
-      const after = text.substring(caretPos);
+  // メンション文字列を入力欄に決定・挿入する
+  function insertMention(member, matchIndex, caretPos) {
+  console.log("選択したメンバー:", member);
+  console.log("送信に使うID:", member.user_id_str || member.user_id);
 
-      // 送信後の見やすさのため末尾にスペースを設ける
-      messageInput.value = before + "@" + displayName + " " + after;
-      document.getElementById("mentionSuggestions").style.display = "none";
-      messageInput.focus();
+  const messageInput = document.getElementById("messageInput");
 
-      // カーソル位置を挿入した名前の直後に設定
-      const newCaretPos = matchIndex + displayName.length + 2;
-      messageInput.setSelectionRange(newCaretPos, newCaretPos);
+    // APIに送る用の user_id
+    const mentionUserId = member.user_id_str || member.user_id || "";
+
+    if (!mentionUserId) {
+      return;
     }
+
+    // 入力欄には @user_id を入れる
+    messageInput.value = before + "@" + mentionUserId + " " + after;
+
+    document.getElementById("mentionSuggestions").style.display = "none";
+    messageInput.focus();
+
+    // カーソル位置を @user_id の直後にする
+    const newCaretPos = matchIndex + mentionUserId.length + 2;
+    messageInput.setSelectionRange(newCaretPos, newCaretPos);
+  }
 
     // ポップアップ以外をクリックした時に候補を閉じる
     document.addEventListener("click", function (e) {
