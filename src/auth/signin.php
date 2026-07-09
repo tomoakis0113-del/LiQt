@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/../vendor/autoload.php';
 
+$sessionHandler = new lib\Session();
+if($sessionHandler->isSignedIn()){
+    header('Location: ../dashboard/dashboard.php');
+    exit;
+}
+
 // CSRF生成
 $csrfToken = new lib\CSRFToken();
 ?>
