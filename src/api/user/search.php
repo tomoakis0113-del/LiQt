@@ -46,8 +46,9 @@ try {
     $searchQuery = models\User::query()
         ->join('profiles', 'users.id', '=', 'profiles.user_id')
         ->where('users.user_id', 'LIKE', "%{$query}%")
-        ->where('profiles.tags', 'LIKE', "%{$query}%", 'OR');
-
+        ->where('profiles.tags', 'LIKE', "%{$query}%", 'OR')
+        ->where('profiles.display_name', 'LIKE', "%{$query}%", 'OR');
+        
     // 💡 icon_url を取得カラムにしっかりと追加
     $users = $searchQuery->get(
         [

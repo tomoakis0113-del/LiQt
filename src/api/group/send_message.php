@@ -64,7 +64,7 @@ try{
             mkdir($uploadDir, 0755, true);
         }
 
-        $fileName = basename($image_upload['name']);
+        $fileName = date('Y-m-d_H-i-s') . '_' .basename($image_upload['name']);
         $targetFilePath = $uploadDir . $fileName;
 
         if (move_uploaded_file($image_upload['tmp_name'], $targetFilePath)) {
