@@ -84,6 +84,81 @@ try{
         'image_url' => $image_path
     ])->id;
 
+// メンション通知を作ったかどうか
+$mentionNoticeCreated = false;
+
+// メッセージ本文から @user_id を検出
+preg_match_all('/[＠@]([A-Za-z0-9]{5,20}|ai)(?=\s|　|$|。|、|,|\.|!|！|\?|\？)/u', $message_content, $matches);
+
+$mentionUserIds = array_unique($matches[1] ?? []);
+
+foreach($mentionUserIds as $mentionUserId){
+
+    // users.user_id でユーザー検索
+    $mentionedUser = models\User::query()
+        ->where('user_id', '=', $mentionUserId)
+        ->first(['id', 'user_id']);
+
+    // 存在しないユーザーなら無視
+    if(!$mentionedUser){
+        continue;
+    }
+
+    // メンションされた人の内部IDを取得
+    $mentionedUserId = $mentionedUser['id'] ?? $mentionedUser->id ?? null;
+
+    if(!$mentionedUserId){
+        continue;
+    }
+
+    // 自分自身へのメンションは通知しない
+    if((int)$mentionedUserId === (int)$user_id){
+        continue;
+    }
+
+    // メンションされた人が同じグループにいるか確認
+    $isMentionedMember = models\GroupMember::query()
+        ->where('group_id', '=', $group_id)
+        ->where('user_id', '=', $mentionedUserId)
+        ->exists();
+
+    if(!$isMentionedMember){
+        continue;
+    }
+
+    // メンションされた人がこのグループの通知をオフにしているか確認
+    $isNoticeBlocked = models\NoticeBlock::query()
+        ->where('group_id', '=', $group_id)
+        ->where('user_id', '=', $mentionedUserId)
+        ->exists();
+
+    if($isNoticeBlocked){
+        continue;
+    }
+
+    // メンションされた人が送信者をブロックしているなら通知しない
+    $isBlocked = models\BlockList::query()
+        ->where('user_id', '=', $mentionedUserId)
+        ->where('blocked_user_id', '=', $user_id)
+        ->exists();
+
+    if($isBlocked){
+        continue;
+    }
+
+    // 通知内容の安全対策
+    $safeMessage = htmlspecialchars($message_content, ENT_QUOTES, 'UTF-8');
+
+    // メンション通知を作成
+    models\NoticeSchedule::create([
+        "user_id" => $mentionedUserId,
+        "content" => "<h1>メンションされました。</h1><p>メッセージ内容: {$safeMessage}</p>",
+        "is_checking" => false
+    ]);
+
+    $mentionNoticeCreated = true;
+}
+
     // aiとのチャットの場合、AIの応答を生成して保存
     if($isAiChat){
         if(!models\ReplySchedule::where("group_id","=",$group_id)->exists()){
@@ -93,6 +168,9 @@ try{
             ]);
         }
     }
+
+
+    if(!$mentionNoticeCreated){
 
     // メンバーを追加
     $members = models\GroupMember::query()
@@ -107,14 +185,16 @@ try{
             return is_null($member->block_id);
         });
 
+    $safeMessage = htmlspecialchars($message_content, ENT_QUOTES, 'UTF-8');
+
     foreach($members as $member){
        models\NoticeSchedule::create([
             "user_id" => $member->user_id,
-            "content" => "<h1>グループに新しいメッセージがあります。</h1><p>メッセージ内容: {$message_content}</p>",
+            "content" => "<h1>グループに新しいメッセージがあります。</h1><p>メッセージ内容: {$safeMessage}</p>",
             "is_checking" => false
         ]);
     }
-
+}
     lib\Util::responseSuccess('メッセージの送信に成功しました');
 } catch (Exception $e){
     error_log("エラーが発生しました: " . $e->getMessage());
