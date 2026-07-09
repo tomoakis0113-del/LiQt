@@ -8,7 +8,6 @@ $csrfToken = new lib\CSRFToken();
 
 <head>
 
-  <!-- meta -->
   <meta charset="UTF-8">
 
   <meta name="viewport"
@@ -20,7 +19,6 @@ $csrfToken = new lib\CSRFToken();
 
   </title>
 
-  <!-- bootstrap -->
   <link rel="stylesheet"
         href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
 
@@ -84,35 +82,29 @@ $csrfToken = new lib\CSRFToken();
 
 <body>
 
-  <!-- header -->
   <?php require_once __DIR__ . '/../component/header.php'; ?>
 
   <main class="container py-5"
         style="max-width: 950px;">
 
-    <!-- alert -->
     <div id="alertBox"></div>
 
-    <!-- title -->
     <h2 class="fw-bold mb-4">
 
       グループ編集
 
     </h2>
 
-    <!-- group -->
     <div class="card shadow-sm border-0 mb-4">
 
       <div class="card-body p-4 d-flex align-items-center">
 
-        <!-- icon -->
         <img id="groupIcon"
              src="https://placehold.jp/150x150.png"
              class="group-icon me-4">
 
         <div>
 
-          <!-- name -->
           <h3 id="groupName"
               class="fw-bold mb-2">
 
@@ -120,7 +112,6 @@ $csrfToken = new lib\CSRFToken();
 
           </h3>
 
-          <!-- public -->
           <div id="groupPublic"
                class="text-muted">
 
@@ -132,7 +123,6 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- notice setting -->
     <div class="card shadow-sm border-0 mb-5">
 
       <div class="card-body p-4 d-flex align-items-center justify-content-between">
@@ -168,7 +158,6 @@ $csrfToken = new lib\CSRFToken();
 
     </div>
 
-    <!-- group edit -->
     <form id="editForm"
           class="card shadow-sm border-0 mb-5 d-none"
           enctype="multipart/form-data">
@@ -181,7 +170,6 @@ $csrfToken = new lib\CSRFToken();
 
         </h4>
 
-        <!-- group name -->
         <div class="mb-4">
 
           <label class="form-label fw-bold">
@@ -197,7 +185,6 @@ $csrfToken = new lib\CSRFToken();
 
         </div>
 
-        <!-- group icon -->
         <div class="mb-4">
 
           <label class="form-label fw-bold">
@@ -214,7 +201,6 @@ $csrfToken = new lib\CSRFToken();
 
         </div>
 
-        <!-- public -->
         <div class="mb-4">
 
           <label class="form-label fw-bold">
@@ -243,7 +229,6 @@ $csrfToken = new lib\CSRFToken();
 
         </div>
 
-        <!-- update -->
         <button id="updateButton"
                 class="btn btn-primary w-100 py-3 rounded-pill">
 
@@ -251,7 +236,6 @@ $csrfToken = new lib\CSRFToken();
 
         </button>
 
-        <!-- delete -->
         <button type="button"
                 id="deleteBtn"
                 class="btn btn-danger w-100 py-3 rounded-pill mt-3 d-none">
@@ -264,7 +248,6 @@ $csrfToken = new lib\CSRFToken();
 
     </form>
 
-    <!-- member manage -->
     <form id="memberManageForm"
           class="card shadow-sm border-0 mb-5 d-none">
 
@@ -276,7 +259,6 @@ $csrfToken = new lib\CSRFToken();
 
         </h4>
 
-        <!-- add user -->
         <div class="mb-4">
 
           <label class="form-label fw-bold">
@@ -292,7 +274,6 @@ $csrfToken = new lib\CSRFToken();
 
         </div>
 
-        <!-- member list -->
         <ul id="memberList"
             class="list-group mb-4">
 
@@ -304,7 +285,6 @@ $csrfToken = new lib\CSRFToken();
 
         </ul>
 
-        <!-- update -->
         <button id="memberUpdateButton"
                 type="submit"
                 class="btn btn-primary w-100 py-3 rounded-pill">
@@ -317,7 +297,6 @@ $csrfToken = new lib\CSRFToken();
 
     </form>
 
-    <!-- leave -->
     <div id="memberOnly"
          class="d-none mb-5">
 
@@ -332,10 +311,8 @@ $csrfToken = new lib\CSRFToken();
 
   </main>
 
-  <!-- footer -->
   <?php require_once __DIR__ . '/../component/footer.php'; ?>
 
-  <!-- csrf -->
   <input type="hidden"
          id="csrf_token"
          value="<?= htmlspecialchars($csrfToken->getToken()) ?>">
@@ -840,7 +817,7 @@ $csrfToken = new lib\CSRFToken();
     }
 
     // =========================
-    // render notice status
+    // render notice status (修正済)
     // =========================
 
     function renderNoticeStatus(isBlocked) {
@@ -853,16 +830,20 @@ $csrfToken = new lib\CSRFToken();
 
       toggleBtn.disabled = false;
 
-      toggleBtn.checked = isBlocked;
+      // APIから返る値（true/1/"1"）を厳密に評価
+      const blocked = (isBlocked == true || isBlocked === 1 || isBlocked === "1");
 
-      statusText.textContent = isBlocked
+      // ブロック中(true)ならスイッチはOFF(false)、受信中ならスイッチはON(true)
+      toggleBtn.checked = !blocked;
+
+      statusText.textContent = blocked
         ? "通知をブロック中"
         : "通知を受信中";
 
     }
 
     // =========================
-    // toggle notice event
+    // toggle notice event (修正済)
     // =========================
 
     document.getElementById("noticeToggleBtn")
@@ -942,9 +923,10 @@ $csrfToken = new lib\CSRFToken();
             "success"
           );
 
+          // スイッチの状態（checked）に応じて、直感的なテキストに書き換え
           document.getElementById("noticeStatusText").textContent = toggleBtn.checked
-            ? "通知をブロック中"
-            : "通知を受信中";
+            ? "通知を受信中"
+            : "通知をブロック中";
 
         }
 
