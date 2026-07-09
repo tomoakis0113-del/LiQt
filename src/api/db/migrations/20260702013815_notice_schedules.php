@@ -23,8 +23,7 @@ final class NoticeSchedules extends AbstractMigration
         $table->addColumn("user_id", "integer", ["null" => true, "signed" => false])
             ->addColumn("content", "text", ["null" => true])
             ->addColumn("is_checking", "boolean", ["null" => false, "default" => false])
-            ->addForeignKey("user_id", "users", "id", ["delete" => "cascade"])
-            ->addIndex(["user_id"], ["unique"=>true]);
+            ->addForeignKey("user_id", "users", "id", ["delete" => "cascade"]);
 
         $table->create();
     }
