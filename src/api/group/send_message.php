@@ -84,6 +84,58 @@ try{
         'image_url' => $image_path
     ])->id;
 
+    // メッセージ本文から @user_id を検出
+    preg_match_all('/(?:^|\s)@([A-Za-z0-9]{5,20}|ai)\b/u', $message_content, $matches);
+
+    $mentionUserIds = array_unique($matches[1] ?? []);
+
+    foreach($mentionUserIds as $mentionUserId){
+
+            // users.user_id でユーザー検索
+            $mentionedUser = models\User::query()
+                ->where('user_id', '=', $mentionUserId)
+                ->first(['id', 'user_id']);
+
+            // 存在しないユーザーなら無視
+            if(!$mentionedUser){
+                continue;
+            }
+            // メンションされた人の内部IDを取得
+            $mentionedUserId = $mentionedUser['id'] ?? $mentionedUser->id ?? null;
+
+            if(!$mentionedUserId){
+                continue;
+            }
+
+            // ここで同じグループにいるか確認
+            $isMentionedMember = models\GroupMember::query()
+                ->where('group_id', '=', $group_id)
+                ->where('user_id', '=', $mentionedUserId)
+                ->exists();
+
+            if(!$isMentionedMember){
+                continue;
+            }
+
+        // メンションされた人がこのグループの通知をオフにしているか確認
+        $noticeBlocked = models\GroupMember::query()
+            ->leftJoin('notice_blocks', function($join) use ($group_id) {
+                $join->on('group_members.user_id', '=', 'notice_blocks.user_id')
+                    ->where('notice_blocks.group_id', '=', $group_id);
+            })
+            ->where('group_members.group_id', '=', $group_id)
+            ->where('group_members.user_id', '=', $mentionedUserId)
+            ->first(['notice_blocks.id as block_id']);
+
+        $blockId = $noticeBlocked['block_id'] ?? $noticeBlocked->block_id ?? null;
+
+        if($blockId){
+            continue;
+        }
+
+
+    }
+
     // aiとのチャットの場合、AIの応答を生成して保存
     if($isAiChat){
         if(!models\ReplySchedule::where("group_id","=",$group_id)->exists()){
