@@ -1023,7 +1023,7 @@ $currentUserId = $sessionHandler->getCurrentUserID();
             : ""
           }
 
-              <div class="message-content">${contentHtml}${message.image_url ? `<br/><img src="/${message.image_url}" class="message-image">` : "画像はないよ"}</div>
+              <div class="message-content">${contentHtml}${message.image_url ? `<br/><img src="/${message.image_url}" class="message-image">` : ""}</div>
 
               <div class="message-time">
                 ${escapeHtml(message.created_at || "")}
