@@ -93,6 +93,37 @@ try{
         lib\Util::responseError(404, "ブログ投稿者が見つかりません");
     }
 
+    // 非公開ブログは投稿者本人だけコメント可能
+if($visibility === 'private' && (int)$currentUserId !== (int)$blogUserId){
+    lib\Util::responseError(403, 'このブログにはコメントできません');
+}
+
+// グループ公開ブログは、そのグループのメンバーだけコメント可能
+if($visibility === 'group'){
+
+    if(!$groupId){
+        lib\Util::responseError(403, 'このブログにはコメントできません');
+    }
+
+    $isGroupMember = models\GroupMember::query()
+        ->where('group_id', '=', $groupId)
+        ->where('user_id', '=', $currentUserId)
+        ->exists();
+
+    if(!$isGroupMember){
+        lib\Util::responseError(403, 'このブログにはコメントできません');
+    }
+}
+
+$isBlocked = models\BlockList::query()
+    ->where("user_id", "=", $blogUserId)
+    ->where("blocked_user_id", "=", $currentUserId)
+    ->exists();
+
+if($isBlocked){
+    lib\Util::responseError(403, "コメントが禁止されています。");
+}
+
     $isBlocked = models\BlockList::query()
         ->where("user_id", "=", $blogUserId)
         ->where("blocked_user_id", "=", $currentUserId)
