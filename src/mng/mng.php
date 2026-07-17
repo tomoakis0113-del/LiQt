@@ -1,21 +1,76 @@
-<?php require_once __DIR__ . '/../component/auth_check.php'; ?>
-<!DOCTYPE html>
+<?php
+require_once __DIR__ . '/../component/auth_check.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
+$csrfToken = new lib\CSRFToken();
+?>
+
+<!DOCTYPE html>
 <html lang="ja">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="LiQt ユーザー管理">
-  <meta name="keywords" content="LiQt,SNS,管理者">
-  <meta name="author" content="乙成,島田,勝原">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運営管理</title>
 
-  <title>ユーザー管理</title>
+    <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
 
-  <script src="../libs/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../custom/custom-theme.css">
 
-  <link rel="stylesheet" href="../libs/bootstrap-5.3.8-dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../custom/custom-theme.css">
+    <style>
+        .mng-card {
+            transition: 0.2s;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .mng-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+
+        .mng-count {
+            font-size: 2.2rem;
+            font-weight: bold;
+        }
+
+        .mng-icon {
+            font-size: 2rem;
+        }
+
+        .loading-area {
+            display: none;
+        }
+
+        .loading-area.active {
+            display: block;
+        }
+
+        body {
+    height: auto;
+    min-height: 100%;
+    overflow-y: auto !important;
+}
+
+main {
+    min-height: 100vh;
+    padding-bottom: 80px;
+}
+
+.user-table-area {
+    max-height: 65vh;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+.user-table-area thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background-color: #f8f9fa;
+}
+    </style>
 </head>
 
 <body>
@@ -24,49 +79,118 @@
 
 <main class="container py-4">
 
-    <h2 class="fw-bold mb-4">
-        ユーザー管理
-    </h2>
+    <input
+        type="hidden"
+        id="csrf_token"
+        value="<?php echo htmlspecialchars($csrfToken->getToken(), ENT_QUOTES, 'UTF-8'); ?>">
 
-    <!-- 検索 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h2 class="fw-bold mb-1">
+                運営管理
+            </h2>
+
+            <p class="text-muted mb-0">
+                LiQt全体の状態を確認できます。
+            </p>
+        </div>
+
+        <button
+            type="button"
+            class="btn btn-primary"
+            onclick="loadMngDashboard()">
+
+            最新情報を取得
+
+        </button>
+
+    </div>
+
+    <div id="errorMessage" class="alert alert-danger d-none"></div>
+
+    <div id="successMessage" class="alert alert-success d-none"></div>
+
+    <div id="loadingArea" class="loading-area text-center my-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 mb-0">
+            読み込み中...
+        </p>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center mng-card" onclick="location.href='users_mng.php'">
+                <div class="card-body">
+                    <div class="mng-icon mb-2">👤</div>
+                    <h6 class="text-muted">ユーザー総数</h6>
+                    <div id="userCount" class="mng-count">-</div>
+                    <small class="text-muted">ユーザー管理へ</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center mng-card" onclick="location.href='blogs_mng.php'">
+                <div class="card-body">
+                    <div class="mng-icon mb-2">📝</div>
+                    <h6 class="text-muted">ブログ総数</h6>
+                    <div id="blogCount" class="mng-count">-</div>
+                    <small class="text-muted">ブログ管理へ</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center mng-card" onclick="location.href='groups_mng.php'">
+                <div class="card-body">
+                    <div class="mng-icon mb-2">💬</div>
+                    <h6 class="text-muted">グループ総数</h6>
+                    <div id="groupCount" class="mng-count">-</div>
+                    <small class="text-muted">グループ管理へ</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm text-center mng-card">
+                <div class="card-body">
+                    <div class="mng-icon mb-2">🚫</div>
+                    <h6 class="text-muted">ブロック総数</h6>
+                    <div id="blockCount" class="mng-count">-</div>
+                    <small class="text-muted">ブロック状況</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
     <div class="card shadow-sm mb-4">
         <div class="card-header fw-bold">
-            ユーザー検索
+            管理メニュー
         </div>
 
         <div class="card-body">
 
             <div class="row g-3">
 
-                <div class="col-md-6">
-                    <label class="form-label">
-                        ユーザー検索
-                    </label>
-
-                    <input
-                        type="text"
-                        class="form-control"
-                        placeholder="ユーザーID・表示名・メールアドレス"
-                        id="user_search">
+                <div class="col-md-4">
+                    <a href="users_mng.php" class="btn btn-primary w-100">
+                        ユーザー管理ページ
+                    </a>
                 </div>
 
-                <div class="col-md-3">
-                    <label class="form-label">
-                        状態
-                    </label>
-
-                    <select class="form-select" id="status_filter">
-                        <option>すべて</option>
-                        <option>有効ユーザー</option>
-                        <option>停止中ユーザー</option>
-                        <option>運営管理者</option>
-                    </select>
+                <div class="col-md-4">
+                    <a href="blogs_mng.php" class="btn btn-outline-primary w-100">
+                        ブログ管理ページ
+                    </a>
                 </div>
 
-                <div class="col-md-3 d-grid align-items-end">
-                    <button class="btn btn-primary mt-4">
-                        検索
-                    </button>
+                <div class="col-md-4">
+                    <a href="groups_mng.php" class="btn btn-outline-primary w-100">
+                        グループ管理ページ
+                    </a>
                 </div>
 
             </div>
@@ -74,459 +198,145 @@
         </div>
     </div>
 
-    <!-- 一覧 -->
-    <div class="card shadow-sm">
-
-        <div class="card-header fw-bold">
-            ユーザー一覧
-        </div>
-
-        <div class="table-responsive">
-
-            <table class="table table-hover align-middle mb-0">
-
-                <thead class="table-light">
-
-                <tr>
-                    <th>アイコン</th>
-                    <th>ユーザーID</th>
-                    <th>表示名</th>
-                    <th>メール</th>
-                    <th>状態</th>
-                    <th>管理者</th>
-                    <th>ブログ</th>
-                    <th>グループ</th>
-                    <th>ブロック</th>
-                    <th>操作</th>
-                </tr>
-
-                </thead>
-
-                <tbody>
-
-                <tr>
-
-                    <td>
-                        <img
-                                src="../images/default_icon.png"
-                                width="45"
-                                class="rounded-circle">
-                    </td>
-
-                    <td>tanaka</td>
-
-                    <td>田中 太郎</td>
-
-                    <td>tanaka@example.com</td>
-
-                    <td>
-                        <span class="badge bg-success">
-                            有効
-                        </span>
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-warning text-dark">
-                            管理者
-                        </span>
-
-                    </td>
-
-                    <td>12</td>
-
-                    <td>4</td>
-
-                    <td>2</td>
-
-                    <td>
-
-                        <button
-                                class="btn btn-sm btn-primary"
-                                data-bs-toggle="modal"
-                                data-bs-target="#detailModal">
-
-                            詳細
-
-                        </button>
-
-                        <button
-                                class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#deleteModal">
-
-                            停止
-
-                        </button>
-
-                    </td>
-
-                </tr>
-
-                <tr>
-
-                    <td>
-                        <img
-                                src="../images/default_icon.png"
-                                width="45"
-                                class="rounded-circle">
-                    </td>
-
-                    <td>suzuki</td>
-
-                    <td>鈴木 花子</td>
-
-                    <td>suzuki@example.com</td>
-
-                    <td>
-
-                        <span class="badge bg-danger">
-
-                            停止
-
-                        </span>
-
-                    </td>
-
-                    <td>-</td>
-
-                    <td>5</td>
-
-                    <td>2</td>
-
-                    <td>0</td>
-
-                    <td>
-
-                        <button
-                                class="btn btn-sm btn-primary"
-                                data-bs-toggle="modal"
-                                data-bs-target="#detailModal">
-
-                            詳細
-
-                        </button>
-
-                        <button
-                                class="btn btn-sm btn-danger">
-
-                            停止
-
-                        </button>
-
-                    </td>
-
-                </tr>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
+    <div class="text-end text-muted">
+        最終更新：
+        <span id="lastUpdated">未取得</span>
     </div>
 
 </main>
 
-<!-- 詳細モーダル -->
-<div class="modal fade" id="detailModal">
-
-    <div class="modal-dialog modal-xl">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-
-                    ユーザー詳細
-
-                </h5>
-
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-
-            </div>
-
-            <div class="modal-body">
-
-                <div class="row">
-
-                    <div class="col-md-3 text-center">
-
-                        <img src="../images/default_icon.png"
-                             class="rounded-circle mb-3"
-                             width="120">
-
-                    </div>
-
-                    <div class="col-md-9">
-
-                        <table class="table">
-
-                            <tr>
-                                <th width="180">ユーザーID</th>
-                                <td>tanaka</td>
-                            </tr>
-
-                            <tr>
-                                <th>表示名</th>
-                                <td>田中 太郎</td>
-                            </tr>
-
-                            <tr>
-                                <th>メール</th>
-                                <td>tanaka@example.com</td>
-                            </tr>
-
-                            <tr>
-                                <th>自己紹介</th>
-                                <td>よろしくお願いします。</td>
-                            </tr>
-
-                            <tr>
-                                <th>タグ</th>
-                                <td>
-
-                                    <span class="badge bg-secondary">PHP</span>
-
-                                    <span class="badge bg-secondary">Bootstrap</span>
-
-                                    <span class="badge bg-secondary">Java</span>
-
-                                </td>
-                            </tr>
-
-                        </table>
-
-                    </div>
-
-                </div>
-
-                <hr>
-
-                <ul class="nav nav-tabs">
-
-                    <li class="nav-item">
-                        <button
-                                class="nav-link active"
-                                data-bs-toggle="tab"
-                                data-bs-target="#blogTab">
-
-                            ブログ
-
-                        </button>
-                    </li>
-
-                    <li class="nav-item">
-                        <button
-                                class="nav-link"
-                                data-bs-toggle="tab"
-                                data-bs-target="#groupTab">
-
-                            グループ
-
-                        </button>
-                    </li>
-
-                    <li class="nav-item">
-                        <button
-                                class="nav-link"
-                                data-bs-toggle="tab"
-                                data-bs-target="#blockTab">
-
-                            ブロック
-
-                        </button>
-                    </li>
-
-                </ul>
-
-                <div class="tab-content border border-top-0 p-3">
-
-                    <div class="tab-pane fade show active" id="blogTab">
-
-                        <table class="table">
-
-                            <tr>
-
-                                <th>タイトル</th>
-
-                                <th>公開</th>
-
-                                <th>作成日</th>
-
-                                <th></th>
-
-                            </tr>
-
-                            <tr>
-
-                                <td>PHP入門</td>
-
-                                <td>公開</td>
-
-                                <td>2026/7/14</td>
-
-                                <td>
-
-                                    <button class="btn btn-danger btn-sm">
-
-                                        削除
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-                        </table>
-
-                    </div>
-
-                    <div class="tab-pane fade" id="groupTab">
-
-                        <table class="table">
-
-                            <tr>
-
-                                <th>グループ名</th>
-
-                                <th>権限</th>
-
-                                <th></th>
-
-                            </tr>
-
-                            <tr>
-
-                                <td>LiQt開発班</td>
-
-                                <td>オーナー</td>
-
-                                <td>
-
-                                    <button class="btn btn-danger btn-sm">
-
-                                        削除
-
-                                    </button>
-
-                                </td>
-
-                            </tr>
-
-                        </table>
-
-                    </div>
-
-                    <div class="tab-pane fade" id="blockTab">
-
-                        <div class="row">
-
-                            <div class="col">
-
-                                <h6>
-
-                                    ブロックしている
-
-                                </h6>
-
-                                <ul class="list-group">
-
-                                    <li class="list-group-item">
-
-                                        yamada
-
-                                    </li>
-
-                                </ul>
-
-                            </div>
-
-                            <div class="col">
-
-                                <h6>
-
-                                    ブロックされている
-
-                                </h6>
-
-                                <ul class="list-group">
-
-                                    <li class="list-group-item">
-
-                                        suzuki
-
-                                    </li>
-
-                                </ul>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<!-- 停止確認 -->
-<div class="modal fade" id="deleteModal">
-
-    <div class="modal-dialog">
-
-        <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">
-
-                    ユーザー停止
-
-                </h5>
-
-                <button class="btn-close" data-bs-dismiss="modal"></button>
-
-            </div>
-
-            <div class="modal-body">
-
-                このユーザーを停止しますか？
-
-            </div>
-
-            <div class="modal-footer">
-
-                <button
-                        class="btn btn-secondary"
-                        data-bs-dismiss="modal">
-
-                    キャンセル
-
-                </button>
-
-                <button class="btn btn-danger">
-
-                    停止する
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
 <?php require_once __DIR__ . '/../component/footer.php'; ?>
+
+<script>
+    const csrfToken = document.getElementById('csrf_token').value;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        loadMngDashboard();
+    });
+
+    async function loadMngDashboard() {
+
+        hideMessage();
+        showLoading();
+
+        const result = await postApi(
+            '../api/mng/get_mng_dashboard.php',
+            {
+                csrf_token: csrfToken
+            }
+        );
+
+        hideLoading();
+
+        if (!result) {
+            showError('APIから正しいレスポンスが返ってきませんでした');
+            return;
+        }
+
+        if (!result.success) {
+            showError(result.message);
+            return;
+        }
+
+        setCount('userCount', result.data.user_count);
+        setCount('blogCount', result.data.blog_count);
+        setCount('groupCount', result.data.group_count);
+        setCount('blockCount', result.data.block_count);
+
+        document.getElementById('lastUpdated').textContent =
+            new Date().toLocaleString('ja-JP');
+
+        showSuccess('運営管理情報を更新しました');
+    }
+
+    async function postApi(url, params) {
+
+        const formData = new FormData();
+
+        for (const key in params) {
+            formData.append(key, params[key]);
+        }
+
+        try {
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+
+            const text = await response.text();
+
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('JSONではないレスポンス:', text);
+                return {
+                    success: false,
+                    message: 'JSONではないレスポンスが返ってきました。APIを確認してください。'
+                };
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            return {
+                success: false,
+                message: '通信エラーが発生しました'
+            };
+
+        }
+    }
+
+    function setCount(elementId, value) {
+
+        const target = document.getElementById(elementId);
+
+        if (!target) {
+            return;
+        }
+
+        target.textContent = Number(value).toLocaleString('ja-JP');
+
+    }
+
+    function showLoading() {
+        document.getElementById('loadingArea').classList.add('active');
+    }
+
+    function hideLoading() {
+        document.getElementById('loadingArea').classList.remove('active');
+    }
+
+    function showError(message) {
+
+        const errorMessage = document.getElementById('errorMessage');
+
+        errorMessage.textContent = message;
+        errorMessage.classList.remove('d-none');
+
+    }
+
+    function showSuccess(message) {
+
+        const successMessage = document.getElementById('successMessage');
+
+        successMessage.textContent = message;
+        successMessage.classList.remove('d-none');
+
+        setTimeout(function () {
+            successMessage.classList.add('d-none');
+        }, 2500);
+
+    }
+
+    function hideMessage() {
+
+        document.getElementById('errorMessage').classList.add('d-none');
+        document.getElementById('successMessage').classList.add('d-none');
+
+    }
+</script>
 
 </body>
 
