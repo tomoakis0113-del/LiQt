@@ -3,8 +3,11 @@ src/composer.phar
 src/vendor/
 src/uploads/
 
-# Local environment
+# Environment files
 .env
+**/.env
+.env.*
+**/.env.*
 
 # OS / editor files
 .DS_Store
